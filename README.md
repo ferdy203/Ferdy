@@ -16,6 +16,7 @@
 - [ ] Message buffering - same messages in temporary storage till any consumer is up to receive the message or expiry time(Keep a default expiry time). 
 - [ ] Consumer Acknowledgments
 - [ ] Producer Acknowledgments
+- [ ] Duplicate Message handling(bloom filter)
 ### Queue
 - [ ] Message buffering
 - [ ] Message Persistence
@@ -28,6 +29,7 @@
 - [ ] Message Queue Length Limit:
 - [ ] Load Balancing: If multiple consumers are connected to the same queue, messages are distributed among consumers in a round-robin fashion, achieving load balancing
 - [ ] Queue Auto-Deletion: Queues can be configured to be automatically deleted after a period of inactivity. This feature is useful for temporary queues that are used for short-lived tasks.
+- [ ] Duplicate Message handling(bloom filter)
 
 ## Prerequisite
 - [ ] Project Reactor + Reactive Streams
