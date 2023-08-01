@@ -31,17 +31,18 @@
 - [ ] Queue Auto-Deletion: Queues can be configured to be automatically deleted after a period of inactivity. This feature is useful for temporary queues that are used for short-lived tasks.
 - [ ] Duplicate Message handling(bloom filter)
 
-## Prerequisite
+## Prerequisite to complete before starting the project
 - [ ] Project Reactor + Reactive Streams
 - [ ] AMQP Understanding
 - [ ] Apache Avro
 - [ ] Apache ZooKeeper
 - [ ] Plain TCP Communication in Java
-- [ ] Encoding and Decoding understanding
+- [ ] Encoding and Decoding 
+- [ ] Schema Evolution
 
 ## Non Functional Requirement 
-- [ ] scalable
+- [ ] It should be scalable as and when required
 - [ ] Foult tolerant
-- [ ] Error retry
+- [ ] It should have retry mechanism
 - [ ] Everything should be configurable at run time, no need to start the message broker, consumer or producer
 
