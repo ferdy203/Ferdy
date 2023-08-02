@@ -36,7 +36,8 @@
 - [ ] AMQP Understanding
 - [ ] Apache Avro
 - [ ] Apache ZooKeeper
-- [ ] Plain TCP Communication in Java
+- [ ] Plain TCP Communication in Java'
+     - [ ] TCP with NIO
 - [ ] Encoding and Decoding 
 - [ ] Schema Evolution
 
