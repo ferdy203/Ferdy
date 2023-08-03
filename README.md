@@ -35,7 +35,7 @@
 - [ ] Project Reactor + Reactive Streams
 - [ ] AMQP Understanding
 - [ ] Apache Avro
-- [ ] Apache ZooKeeper
+- [x] Apache ZooKeeper
 - [x] Plain TCP Communication in Java'
      - [ ] TCP with NIO
      - [ ] TCP with reactor
