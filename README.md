@@ -37,7 +37,7 @@
 - [ ] Apache Avro
 - [x] Apache ZooKeeper
 - [x] Plain TCP Communication in Java'
-     - [ ] TCP with NIO
+     - [x] TCP with NIO
      - [ ] TCP with reactor
 - [ ] Encoding and Decoding 
 - [ ] Schema Evolution
