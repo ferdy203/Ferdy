@@ -17,6 +17,7 @@
 - [ ] Consumer Acknowledgments
 - [ ] Producer Acknowledgments
 - [ ] Duplicate Message handling(bloom filter)
+- [ ] BackPressure control - Suppose there is a consumer C consuming from topic T. C is using upstream service to process the message. Upstream service is consumed by many other services, so it's possible that upstream service can slow down some time. Processing of messages depends on speed of upstream service. Usually consumer can consume 10 messages per second and process them concurrently. But what if we can controll the rate of messages processing by using acknowledgment time of the consumer. For example if consumer processed 5 messages per second then give them 6, if there isn’t any problem with 6 messages per second then give 8, if processing becomes slow then slow down automatically.
 ### Queue
 - [ ] Message buffering
 - [ ] Message Persistence
