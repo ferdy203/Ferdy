@@ -1,5 +1,6 @@
 # message-broker
-
+> Make it a chat application SDK
+> 
 ## Project Components 
 - [ ] Message Broker
 - [ ] API Client - NodeJs/Java
