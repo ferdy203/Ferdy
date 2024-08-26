@@ -1,4 +1,8 @@
 # message-broker
+## Names
+- Sanchari
+- Dakia
+
 > Make it a chat application SDK
 > 
 ## Project Components 
