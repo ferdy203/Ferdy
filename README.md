@@ -41,4 +41,6 @@ _______
 - Service Discovery
 - Dynamically provision certificates
 - Distributed Rate Limiting
+- Circuit Breaker
+
 
