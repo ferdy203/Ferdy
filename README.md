@@ -35,3 +35,10 @@ _______
 - Virtual Host
 - Dynamic Configuration
 - TCP Proxying
+
+### Future Scopes
+- Distributed Configuration
+- Service Discovery
+- Dynamically provision certificates
+- Distributed Rate Limiting
+
