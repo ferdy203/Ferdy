@@ -15,9 +15,11 @@ _______
                `--'  `"  '------'  '---'       `--'  `"
 ```
 
-- `dakia` is an api gateway written [rust](https://www.rust-lang.org/) and powered by [pingora](https://github.com/cloudflare/pingora) and [tokio](https://tokio.rs/)
+- `dakia` is an api gateway written [rust](https://www.rust-lang.org/) and powered by [tokio](https://tokio.rs/)
 - `dakia` itself will be shiped as a [crate](https://crates.io) as well as binary to support ultimate customization
 
+> `dakia` is still in development
+> 
 ## Fearures
 
 - Reverse Proxy
