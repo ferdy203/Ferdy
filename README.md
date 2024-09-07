@@ -1,5 +1,10 @@
 # dakia
 
+
+### Pricing
+- We can ship router open source
+- Ship monitoring and management dashboard for premium users
+- Ship this dashboard for free as well for up to 1000 req per day
 ```text
 _______
 \  ___ `'.                    .          .--.
