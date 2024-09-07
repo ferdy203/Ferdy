@@ -5,6 +5,8 @@
 - We can ship router open source
 - Ship monitoring and management dashboard for premium users
 - Ship this dashboard for free as well for up to 1000 req per day
+- Offer cloud based monitoring and management as well as self hosted docker based option
+
 ```text
 _______
 \  ___ `'.                    .          .--.
