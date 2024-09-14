@@ -52,4 +52,7 @@ _______
 - Circuit Breaker
 - [Http Streaming](https://www.youtube.com/watch?v=wrURmYwqYb4)
 
+## Reference 
+- https://www.linkedin.com/posts/pushkar1005_if-you-write-your-own-api-gateway-then-you-activity-7239933401707773968-14oY?utm_source=share&utm_medium=member_desktop
+
 
