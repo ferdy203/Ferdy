@@ -1,0 +1,5 @@
+version: 1
+threads: 2
+pid_file: /Users/ats1999/Desktop/projects/dakia/app.pid
+error_log: /Users/ats1999/Desktop/projects/dakia/error.log
+upgrade_sock: /Users/ats1999/Desktop/projects/dakia/upgrade.sock
