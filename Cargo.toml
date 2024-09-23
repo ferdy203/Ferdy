@@ -11,6 +11,7 @@ pingora-core = { version = "0.3.0"}
 pingora-proxy = { version = "0.3.0"}
 pingora-http = { version = "0.3.0"}
 env_logger = "0.9"
+pingora = { version = "0.3.0", features = [ "lb" ] }
 
 [dev-dependencies]
 clap = { version = "3.2.25", features = ["derive"] }
