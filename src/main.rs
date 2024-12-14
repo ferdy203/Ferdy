@@ -58,7 +58,7 @@ impl ProxyHttp for LB {
 }
 
 fn main() {
-    let mut server = Server::new(None).unwrap();
+    let mut server = Server::new(Some(pingora::prelude::Opt::parse_args())).unwrap();
     server.bootstrap();
 
     let mut upstreams = LoadBalancer::try_from_iter(["127.0.0.1:8080", "127.0.0.1:8081"]).unwrap();
@@ -75,3 +75,8 @@ fn main() {
     server.add_service(lb);
     server.run_forever();
 }
+
+/*
+// TODO: can we pass hostname directly here -> let mut upstreams = LoadBalancer::try_from_iter(["127.0.0.1:8080", "127.0.0.1:8081"]).unwrap();
+// eg. let mut upstreams = LoadBalancer::try_from_iter(["w3worker.com"]).unwrap();
+*/
