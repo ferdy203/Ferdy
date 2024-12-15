@@ -1,5 +1,5 @@
-use crate::configuration::args::DakiaArgs;
-use crate::configuration::router_config;
+use crate::config::args::DakiaArgs;
+use crate::config::router_config;
 use crate::libs::utils::get_or_default;
 use pingora::prelude::Opt;
 use serde;

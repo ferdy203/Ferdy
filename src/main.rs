@@ -1,7 +1,7 @@
-mod configuration;
+mod config;
 mod libs;
 
-use crate::configuration::dakia_config::DakiaConfig;
+use crate::config::dakia_config::DakiaConfig;
 use async_trait::async_trait;
 use clap::Parser;
 use libs::utils::get_dakia_ascii_art;
@@ -15,7 +15,7 @@ use pingora::{
 };
 use std::sync::Arc;
 
-use configuration::args;
+use config::args;
 
 pub struct LB(Arc<LoadBalancer<RoundRobin>>);
 
