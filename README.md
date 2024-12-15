@@ -19,8 +19,7 @@ _______
 
 <!-- ![dakia logo](https://github.com/user-attachments/assets/7877c4bb-4358-4297-9213-e29d81550f99) -->
 
-<!-- ![dakia logo](https://github.com/user-attachments/assets/2294cf7d-84a6-4f13-9a01-92748cdaaf97) -->
-![dakia logo](https://github.com/user-attachments/assets/92eaaa6f-c18b-4af3-84e8-3b6c6c1b6b9d)
+![dakia logo (1)](https://github.com/user-attachments/assets/44a908dd-a79c-4045-9e3e-b3125a5efdc5)
 
 
 A next generation multi language programmable proxy & API gateway
