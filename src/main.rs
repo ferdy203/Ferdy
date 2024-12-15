@@ -66,12 +66,14 @@ fn main() {
     let mut dakia_proxy_service = http_proxy_service(&server.configuration, dakia_proxy);
 
     if let Some(router_config) = dakia_config.router_config {
-        for inet_address in &router_config.listen {
-            let host = &inet_address.host;
-            let port = inet_address.port;
+        for gate_way in &router_config.gate_ways {
+            for inet_address in &gate_way.listen {
+                let host = &inet_address.host;
+                let port = inet_address.port;
 
-            let host_port = host.to_string() + ":" + &port.to_string();
-            dakia_proxy_service.add_tcp(&host_port);
+                let addr = format!("{}:{}", host, port);
+                dakia_proxy_service.add_tcp(&addr);
+            }
         }
     } else {
         dakia_proxy_service.add_tcp("0.0.0.0:80");

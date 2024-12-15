@@ -13,17 +13,18 @@ upstream_connect_offload_threadpools: 2
 upstream_connect_offload_thread_per_pool: 5
 upstream_debug_ssl_keylog: false
 router_config:
-  listen:
-    - host: "0.0.0.0"
-      port: 8080
-      sni: null
-      tls: false
-    - host: "0.0.0.0"
-      port: 80
-      sni: null
-      tls: true
-  hosts:
-    - host: "dsabyte.com"
-      port: 80
-  locations:
-  backends:
+  gate_ways:
+    - listen:
+        - host: "0.0.0.0"
+          port: 8080
+          sni: null
+          tls: false
+        - host: "0.0.0.0"
+          port: 80
+          sni: null
+          tls: true
+      hosts:
+        - host: "dsabyte.com"
+          port: 80
+      locations:
+      backends:
