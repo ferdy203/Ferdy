@@ -1,0 +1,27 @@
+daemon: true
+error_log: "/var/log/dakia/error.log"
+pid_file: "/var/run/dakia.pid"
+upgrade_sock: "/var/run/dakia.sock"
+user: "dakia_user"
+group: "dakia_group"
+threads: 4
+work_stealing: true
+grace_period_seconds: 60
+graceful_shutdown_timeout_seconds: 30
+upstream_keepalive_pool_size: 10
+upstream_connect_offload_threadpools: 2
+upstream_connect_offload_thread_per_pool: 5
+upstream_debug_ssl_keylog: false
+router_config:
+  listen:
+    - host: "0.0.0.0"
+      port: 8080
+      sni: null
+      tls: false
+    - host: "0.0.0.0"
+      port: 80
+      sni: null
+      tls: true
+  hosts:
+    - host: "dsabyte.com"
+      port: 80
