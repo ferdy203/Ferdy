@@ -42,7 +42,7 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 
 | Task            | Status      |
 | --------------- | ----------- |
-| Simple Proxy    | Done        |
+| Simple Proxy    | Done ✅     |
 | Load Balancer   | In-Progress |
 | Caching         | Pending     |
 | Rate Limiting   | Pending     |
