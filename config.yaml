@@ -25,3 +25,5 @@ router_config:
   hosts:
     - host: "dsabyte.com"
       port: 80
+  locations:
+  backends:

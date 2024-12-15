@@ -99,9 +99,9 @@ impl DakiaConfig {
         opt
     }
 
-    pub fn build(args: DakiaArgs) -> Self {
-        let dcp = match args.dcp {
-            Some(dcp) => dcp,
+    pub fn build(args: &DakiaArgs) -> Self {
+        let dcp = match &args.dcp {
+            Some(dcp) => dcp.to_string(),
             None => String::from("/etc/dakia/config.yaml"),
         };
 
@@ -127,6 +127,11 @@ impl DakiaConfig {
 
             let dakia_raw_config_from_file: DakiaRawConfig =
                 serde_yaml::from_str(&raw_config).unwrap();
+
+            if args.debug.is_some() && args.debug.unwrap() {
+                println!("dakia config: {:?}", dakia_raw_config_from_file);
+            }
+
             dakia_raw_config_from_file
         } else {
             DakiaRawConfig::default()
