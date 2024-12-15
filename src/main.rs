@@ -1,6 +1,10 @@
-use std::sync::Arc;
+mod configuration;
+mod libs;
 
+use crate::configuration::dakia_config::DakiaConfig;
 use async_trait::async_trait;
+use clap::Parser;
+use libs::utils::get_dakia_ascii_art;
 use pingora::{
     http::RequestHeader,
     lb::LoadBalancer,
@@ -9,6 +13,9 @@ use pingora::{
     server::Server,
     Error,
 };
+use std::sync::Arc;
+
+use configuration::args;
 
 pub struct LB(Arc<LoadBalancer<RoundRobin>>);
 
@@ -58,7 +65,12 @@ impl ProxyHttp for LB {
 }
 
 fn main() {
-    let mut server = Server::new(Some(pingora::prelude::Opt::parse_args())).unwrap();
+    println!("{}", get_dakia_ascii_art());
+
+    let dakia_args = args::DakiaArgs::parse();
+    let dakia_config = DakiaConfig::build(dakia_args);
+
+    let mut server = Server::new(Some(dakia_config.to_pingora_opt())).unwrap();
     server.bootstrap();
 
     let mut upstreams = LoadBalancer::try_from_iter(["127.0.0.1:8080", "127.0.0.1:8081"]).unwrap();
@@ -75,8 +87,3 @@ fn main() {
     server.add_service(lb);
     server.run_forever();
 }
-
-/*
-// TODO: can we pass hostname directly here -> let mut upstreams = LoadBalancer::try_from_iter(["127.0.0.1:8080", "127.0.0.1:8081"]).unwrap();
-// eg. let mut upstreams = LoadBalancer::try_from_iter(["w3worker.com"]).unwrap();
-*/

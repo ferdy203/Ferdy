@@ -35,3 +35,24 @@ A next generation multi language programmable proxy & API gateway
   - They can be written in any language
   - Allow popular extensions in static linking
   - Allow users to install plugins at run time or start time (Dynamic Linking)
+- TCP/UDP/SMTP etc proxy
+- gRPC proxy
+- WebSocket proxy
+- Static content serving
+
+## POC project
+
+- HTTP proxy
+- load balancing
+- virtual hosts
+- SSL/TLS
+- Caching
+- Authentication
+
+====================================================
+
+- Archetecture
+- router_config
+  - a router_config can have multiple server_config
+    - a server_config can have listen on multiple ports
+    - a server can process request for multiple hosts
