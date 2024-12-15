@@ -23,7 +23,9 @@ _______
 
 # Dakia is an API Gateway that’s Fully Programmable, Configurable, and Extensible!
 
-**Dakia** is a powerful and flexible API Gateway designed for modern web applications. Fully programmable, configurable, and extensible, it provides the following features:
+**Dakia** is a powerful and flexible API Gateway designed for modern web applications.
+
+## Features
 
 - **Fully Programmable**: Tailor the API Gateway to your specific needs with custom plugins and middleware in multiple languages.
 - **Configurable**: Easily manage API configurations using various formats like YAML, JSON, and HTTP API calls.
