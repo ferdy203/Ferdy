@@ -1,7 +1,7 @@
 use super::upstream::Upstream;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub enum UpstreamSelectionAlgorithm {
+pub enum SelectionAlgorithm {
     RoundRobin,
     Weighted,
     LeastConnection,
@@ -12,7 +12,7 @@ pub enum UpstreamSelectionAlgorithm {
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct RoutingPolicy {
-    upstream_selection_algorithm: UpstreamSelectionAlgorithm,
+    selection_algorithm: SelectionAlgorithm,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -24,10 +24,10 @@ pub struct Backend {
 }
 
 impl Backend {
-    fn get_upstream_selection_algorithm(&self) -> &UpstreamSelectionAlgorithm {
+    fn get_upstream_selection_algorithm(&self) -> &SelectionAlgorithm {
         match &self.routing_policy {
-            Some(policy) => &policy.upstream_selection_algorithm,
-            None => &UpstreamSelectionAlgorithm::RoundRobin,
+            Some(policy) => &policy.selection_algorithm,
+            None => &SelectionAlgorithm::RoundRobin,
         }
     }
 }

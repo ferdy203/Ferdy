@@ -1,9 +1,11 @@
 mod config;
 mod libs;
+mod proxy;
 
 use crate::config::dakia_config::DakiaConfig;
 use async_trait::async_trait;
 use clap::Parser;
+use config::args::DakiaArgs;
 use libs::utils::get_dakia_ascii_art;
 use pingora::{
     http::RequestHeader,
@@ -13,21 +15,10 @@ use pingora::{
     Error,
 };
 
-use config::args::{self, DakiaArgs};
-
-struct DakiaCtx {}
-impl DakiaCtx {
-    fn new() -> DakiaCtx {
-        DakiaCtx {}
-    }
-}
-
-struct DakiaProxy {
-    dakia_config: DakiaConfig,
-}
+use proxy::http::{DakiaCtx, DakiaHttpProxy};
 
 #[async_trait]
-impl ProxyHttp for DakiaProxy {
+impl ProxyHttp for DakiaHttpProxy {
     /// For this small example, we don't need context storage
     type CTX = DakiaCtx;
 
@@ -62,24 +53,16 @@ impl ProxyHttp for DakiaProxy {
     }
 }
 
-impl DakiaProxy {
-    fn new(args: &DakiaArgs) -> DakiaProxy {
-        DakiaProxy {
-            dakia_config: DakiaConfig::build(args),
-        }
-    }
-}
-
 fn main() {
     println!("{}", get_dakia_ascii_art());
 
-    let dakia_args = args::DakiaArgs::parse();
+    let dakia_args = DakiaArgs::parse();
     let dakia_config = DakiaConfig::build(&dakia_args);
 
     let mut server = Server::new(Some(dakia_config.to_pingora_opt())).unwrap();
     server.bootstrap();
 
-    let dakia_proxy = DakiaProxy::new(&dakia_args);
+    let dakia_proxy = DakiaHttpProxy::new(&dakia_args);
     let mut dakia_proxy_service = http_proxy_service(&server.configuration, dakia_proxy);
 
     if let Some(router_config) = dakia_config.router_config {
