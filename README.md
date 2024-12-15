@@ -37,3 +37,13 @@ _______
 - **Real-Time Configuration**: Modify your gateway configuration in real time with no downtime, using HTTP API calls.
 
 Dakia ensures your services stay performant, reliable, and highly customizable, giving you full control over your
+
+## 📊 Progress Tracker
+
+| Task            | Status      |
+| --------------- | ----------- |
+| Simple Proxy    | Done        |
+| Load Balancer   | In-Progress |
+| Caching         | Pending     |
+| Rate Limiting   | Pending     |
+| Plan Next Steps | Pending     |
