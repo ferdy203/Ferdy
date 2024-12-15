@@ -107,7 +107,18 @@ impl DakiaConfig {
 
         let is_config_readable = match fs::metadata(&dcp) {
             Ok(metadata) => metadata.is_file(),
-            Err(_) => false,
+            Err(e) => {
+                match args.debug {
+                    Some(debug) => {
+                        if debug {
+                            println!("Can not read dakia config: {:?}", e);
+                        }
+                    }
+                    None => {}
+                }
+
+                false
+            }
         };
 
         let drc = if is_config_readable {
