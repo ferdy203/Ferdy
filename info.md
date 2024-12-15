@@ -1,3 +1,0 @@
-- learn `std::sync::{Arc, Mutex}`
-- https://draft.ryhl.io/blog/shared-mutable-state/
-- Run example - `cargo run --example folder-name`

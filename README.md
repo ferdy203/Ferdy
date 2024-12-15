@@ -21,57 +21,17 @@ _______
 
 ![dakia logo (1)](https://github.com/user-attachments/assets/44a908dd-a79c-4045-9e3e-b3125a5efdc5)
 
+# Dakia is an API Gateway that’s Fully Programmable, Configurable, and Extensible!
 
-A next generation multi language programmable proxy & API gateway
+**Dakia** is a powerful and flexible API Gateway designed for modern web applications. Fully programmable, configurable, and extensible, it provides the following features:
 
-## Plan
+- **Fully Programmable**: Tailor the API Gateway to your specific needs with custom plugins and middleware in multiple languages.
+- **Configurable**: Easily manage API configurations using various formats like YAML, JSON, and HTTP API calls.
+- **Extensible**: Add new functionality with support for custom middleware and plugins, written in any programming language (Rust, Java, C++, etc.).
+- **Zero Downtime Upgrades**: Perform upgrades and restarts without affecting the availability of your services.
+- **Dynamic Middleware**: Add, remove, or modify middleware on the fly without disrupting service.
+- **Request and Response Management**: Modify requests before they reach the upstream or read/write responses to meet your application's needs.
+- **High-Performance**: Built on top of pingora which is battle-tested service with high traffic loads, serving more than **40** millions of requests per second.
+- **Real-Time Configuration**: Modify your gateway configuration in real time with no downtime, using HTTP API calls.
 
-- Create an api gateway with all features that we want to support
-- Make gateway as a package
-- Move features from core code to extensions as a seperate crete
-
-## Features
-
-- Nginx features
-- Support of customization in other languages
-- Extensions/Plugins based archetecture
-  - They can be written in any language
-  - Allow popular extensions in static linking
-  - Allow users to install plugins at run time or start time (Dynamic Linking)
-- TCP/UDP/SMTP etc proxy
-- gRPC proxy
-- WebSocket proxy
-- Static content serving
-
-## POC project
-
-- HTTP proxy
-- load balancing
-- virtual hosts
-- SSL/TLS
-- Caching
-- Authentication
-
-====================================================
-
-- Archetecture
-- router_config
-  - a router_config can have multiple server_config
-    - a server_config can have listen on multiple ports
-    - a server can process request for multiple hosts
-
-<a href="https://www.vecteezy.com/free-vector/indian-postman">Indian Postman Vectors by Vecteezy</a>
-
-## TODO
-
-    upstream backend {
-        # Define backend servers
-        server backend1.example.com;
-        server backend2.example.com;
-    }
-
-- allow options to specify backend seperatly not inside location block
-- once backends are specified, then users can specify which backend to use from location block
-- if no path specified, then atleast / path must be specified
-- apart from just path in the location block, users can specify, header, etc as well
-- allow a plugin for users to return path (dynamic linking)
+Dakia ensures your services stay performant, reliable, and highly customizable, giving you full control over your

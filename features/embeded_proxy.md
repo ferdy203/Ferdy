@@ -1,2 +1,0 @@
-- Let's say i have an java app and i want to receive traffic from external app, wants to serve ssl and other proxy stuffs
-- Allow a binary binding, that can be started from java code along side spring boot server
