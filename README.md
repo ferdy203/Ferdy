@@ -38,7 +38,7 @@ _______
 - **High-Performance**: Built on top of pingora which is battle-tested service with high traffic loads, serving more than **40** millions of requests per second.
 - **Real-Time Configuration**: Modify your gateway configuration in real time with no downtime, using HTTP API calls.
 
-Dakia ensures your services stay performant, reliable, and highly customizable, giving you full control over your
+Dakia ensures your services stay performant, reliable, and highly customizable, giving you full control.
 
 ## 📊 Progress Tracker
 
