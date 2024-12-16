@@ -1,7 +1,7 @@
 use crate::config::args::DakiaArgs;
 use crate::config::router;
 use crate::libs::utils::get_or_default;
-use log::{debug, warn};
+use log::{debug, error, warn};
 use pingora::prelude::Opt;
 use serde;
 use serde_yaml;
@@ -109,13 +109,8 @@ impl DakiaConfig {
         let is_dakia_config_file_readable = match fs::metadata(&cp) {
             Ok(metadata) => metadata.is_file(),
             Err(e) => {
-                match args.debug {
-                    Some(debug) => {
-                        if debug {
-                            println!("Can not read dakia config: {:?}", e);
-                        }
-                    }
-                    None => {}
+                if args.cp.is_some() {
+                    error!("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed: {:?}", e);
                 }
 
                 false
