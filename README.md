@@ -25,8 +25,6 @@ _______
 
 ## Features
 
-> Work is in-progress, not all features supported yet!
-
 - **Fully Programmable**: Tailor the API Gateway to your specific needs with custom plugins and middleware in multiple languages.
 - **Configurable**: Easily manage API configurations using various formats like YAML, JSON, and HTTP API calls.
 - **Extensible**: Add new functionality with support for custom middleware and plugins, written in any programming language (Rust, Java, C++, etc.).
