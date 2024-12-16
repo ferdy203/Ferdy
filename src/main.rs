@@ -5,7 +5,7 @@ mod libs;
 use crate::config::dakia::DakiaConfig;
 use async_trait::async_trait;
 use clap::Parser;
-use config::args::DakiaArgs;
+use config::DakiaArgs;
 use libs::utils::{get_dakia_ascii_art, get_or_default};
 use pingora::{
     http::RequestHeader,
