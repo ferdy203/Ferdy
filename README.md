@@ -49,3 +49,57 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 | Caching         | Pending     |
 | Rate Limiting   | Pending     |
 | Plan Next Steps | Pending     |
+
+## How to?
+
+```yaml
+daemon: true
+error_log: "/var/log/dakia/error.log"
+pid_file: "/var/run/dakia.pid"
+upgrade_sock: "/var/run/dakia.sock"
+user: "dakia_user"
+group: "dakia_group"
+threads: 4
+work_stealing: true
+grace_period_seconds: 60
+graceful_shutdown_timeout_seconds: 30
+upstream_keepalive_pool_size: 10
+upstream_connect_offload_threadpools: 2
+upstream_connect_offload_thread_per_pool: 5
+upstream_debug_ssl_keylog: false
+router_config:
+  gate_ways:
+    - listen:
+        - host: "0.0.0.0"
+          port: 8080
+          sni: null
+          tls: false
+        - host: "0.0.0.0"
+          port: 80
+          sni: null
+          tls: true
+      hosts:
+        - host: "w3worker.net"
+      locations:
+        - path: "/first"
+          backend: "back2"
+        - path: "*"
+          backend: "back1"
+      backends:
+        - name: "back1"
+          default: true
+          upstreams:
+            - inet_address:
+                host: "0.0.0.0"
+                port: 3000
+              sni: null
+              tls: false
+        - name: "back2"
+          default: false
+          upstreams:
+            - inet_address:
+                host: "0.0.0.0"
+                port: 3001
+              sni: null
+              tls: false
+```
