@@ -36,9 +36,9 @@ impl DakiaHttpProxy {
     fn get_path_map(gate_way: &Gateway) -> Vec<WildPathBackend> {
         let mut path_backend_list: Vec<WildPathBackend> = vec![];
 
-        gate_way.locations.iter().for_each(|loc| {
+        gate_way.routes.iter().for_each(|loc| {
             let path_backend = WildPathBackend {
-                wild_path: WildMatch::new(&loc.path),
+                wild_path: WildMatch::new(&loc.pattern),
                 backend: loc.backend.to_string(),
             };
             path_backend_list.push(path_backend);
