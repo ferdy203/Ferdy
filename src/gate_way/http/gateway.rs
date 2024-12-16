@@ -14,14 +14,24 @@ use pingora::{
 use std::collections::HashMap;
 use wildmatch::WildMatch;
 
-struct WildPathBackend {
-    wild_path: WildMatch,
+struct RoutePatternBackendMatcher {
+    pattern: WildMatch,
     backend: String,
 }
 
+impl RoutePatternBackendMatcher {
+    fn is_matched(&self, path: &str) -> bool {
+        self.pattern.matches(path)
+    }
+
+    fn get_backend(&self) -> &str {
+        &self.backend
+    }
+}
+
 pub struct DakiaHttpGateway {
-    wild_hosts: Vec<WildMatch>,
-    path_backends: Vec<WildPathBackend>,
+    downstream_patterns: Vec<WildMatch>,
+    route_pattern_backend_matchers: Vec<RoutePatternBackendMatcher>,
     backend_map: HashMap<String, Backend>,
     default_backend: Option<Backend>,
 }
@@ -45,12 +55,12 @@ impl DakiaHttpGateway {
             .collect()
     }
 
-    fn get_path_map(gate_way: &GatewayConfig) -> Vec<WildPathBackend> {
-        let mut path_backend_list: Vec<WildPathBackend> = vec![];
+    fn get_path_map(gate_way: &GatewayConfig) -> Vec<RoutePatternBackendMatcher> {
+        let mut path_backend_list: Vec<RoutePatternBackendMatcher> = vec![];
 
         gate_way.routes.iter().for_each(|loc| {
-            let path_backend = WildPathBackend {
-                wild_path: WildMatch::new(&loc.pattern),
+            let path_backend = RoutePatternBackendMatcher {
+                pattern: WildMatch::new(&loc.pattern),
                 backend: loc.backend.to_string(),
             };
             path_backend_list.push(path_backend);
@@ -78,8 +88,8 @@ impl DakiaHttpGateway {
 
     pub fn build(gate_way: &GatewayConfig) -> DakiaHttpGateway {
         DakiaHttpGateway {
-            wild_hosts: DakiaHttpGateway::get_hosts(gate_way),
-            path_backends: DakiaHttpGateway::get_path_map(gate_way),
+            downstream_patterns: DakiaHttpGateway::get_hosts(gate_way),
+            route_pattern_backend_matchers: DakiaHttpGateway::get_path_map(gate_way),
             backend_map: DakiaHttpGateway::get_backend_map(gate_way),
             default_backend: DakiaHttpGateway::get_default_backend(gate_way),
         }
@@ -108,25 +118,25 @@ impl DakiaHttpGateway {
     }
 
     fn is_host_exists(&self, host: &str) -> bool {
-        self.wild_hosts
+        self.downstream_patterns
             .iter()
             .any(|wild_host| wild_host.matches(host))
     }
 
-    fn get_path_backend(&self, path: &String) -> Option<&String> {
+    fn get_path_backend(&self, path: &String) -> Option<&str> {
         // unwrap used here because it'll be always called if path exists
         let path_backend = self
-            .path_backends
+            .route_pattern_backend_matchers
             .iter()
-            .find(|path_backend| path_backend.wild_path.matches(path));
+            .find(|path_backend| path_backend.is_matched(path));
 
         match path_backend {
-            Some(pb) => Some(&pb.backend),
+            Some(pb) => Some(pb.get_backend()),
             None => None,
         }
     }
 
-    fn get_backend(&self, backend_name: &String) -> Option<&Backend> {
+    fn get_backend(&self, backend_name: &str) -> Option<&Backend> {
         self.backend_map.get(backend_name)
     }
 }
