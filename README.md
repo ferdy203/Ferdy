@@ -16,10 +16,7 @@ _______
 -->
 
 <!-- canva logo url -> https://www.canva.com/design/DAGZAdY1d9c/YCHWZRD78H5j0CAWaaF6gw/edit -->
-
-<!-- ![dakia logo](https://github.com/user-attachments/assets/7877c4bb-4358-4297-9213-e29d81550f99) -->
-
-![dakia logo (1)](https://github.com/user-attachments/assets/44a908dd-a79c-4045-9e3e-b3125a5efdc5)
+![1](https://github.com/user-attachments/assets/fd00ba75-3f0d-4806-b3c9-cc972ebaf126)
 
 # Dakia is an API Gateway that’s Fully Programmable, Configurable, and Extensible!
 
