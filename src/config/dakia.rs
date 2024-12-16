@@ -100,12 +100,12 @@ impl DakiaConfig {
     }
 
     pub fn build(args: &DakiaArgs) -> Self {
-        let dcp = match &args.dcp {
-            Some(dcp) => dcp.to_string(),
+        let cp = match &args.cp {
+            Some(cp) => cp.to_string(),
             None => String::from("/etc/dakia/config.yaml"),
         };
 
-        let is_config_readable = match fs::metadata(&dcp) {
+        let is_config_readable = match fs::metadata(&cp) {
             Ok(metadata) => metadata.is_file(),
             Err(e) => {
                 match args.debug {
@@ -123,7 +123,7 @@ impl DakiaConfig {
 
         let drc = if is_config_readable {
             // TODO: handle unwrap() here
-            let raw_config = fs::read_to_string(dcp).unwrap();
+            let raw_config = fs::read_to_string(cp).unwrap();
 
             let dakia_raw_config_from_file: DakiaRawConfig =
                 serde_yaml::from_str(&raw_config).unwrap();

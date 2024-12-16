@@ -6,7 +6,7 @@ use clap::Parser;
 pub struct DakiaArgs {
     /// dakia config path
     #[clap(short, long)]
-    pub dcp: Option<String>,
+    pub cp: Option<String>,
 
     /// debug mode
     pub debug: Option<bool>,
