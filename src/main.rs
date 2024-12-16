@@ -2,7 +2,7 @@ mod config;
 mod gate_way;
 mod libs;
 
-use crate::config::dakia_config::DakiaConfig;
+use crate::config::dakia::DakiaConfig;
 use async_trait::async_trait;
 use clap::Parser;
 use config::args::DakiaArgs;
