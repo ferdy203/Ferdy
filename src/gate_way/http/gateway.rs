@@ -7,14 +7,14 @@ struct WildPathBackend {
     backend: String,
 }
 
-pub struct HttpGateway {
+pub struct Gateway {
     wild_hosts: Vec<WildMatch>,
     path_backends: Vec<WildPathBackend>,
     backend_map: HashMap<String, Backend>,
     default_backend: Option<Backend>,
 }
 
-impl HttpGateway {
+impl Gateway {
     fn get_hosts(gate_way: &GatewayConfig) -> Vec<WildMatch> {
         gate_way
             .downstreams
@@ -64,12 +64,12 @@ impl HttpGateway {
         }
     }
 
-    pub fn build(gate_way: &GatewayConfig) -> HttpGateway {
-        HttpGateway {
-            wild_hosts: HttpGateway::get_hosts(gate_way),
-            path_backends: HttpGateway::get_path_map(gate_way),
-            backend_map: HttpGateway::get_backend_map(gate_way),
-            default_backend: HttpGateway::get_default_backend(gate_way),
+    pub fn build(gate_way: &GatewayConfig) -> Gateway {
+        Gateway {
+            wild_hosts: Gateway::get_hosts(gate_way),
+            path_backends: Gateway::get_path_map(gate_way),
+            backend_map: Gateway::get_backend_map(gate_way),
+            default_backend: Gateway::get_default_backend(gate_way),
         }
     }
 
@@ -119,14 +119,14 @@ impl HttpGateway {
     }
 }
 
-pub struct HttpGatewayCtx {
+pub struct GatewayCtx {
     // TODO: use Rc or Arc to store upstream details
     pub upstream_address: Option<String>,
 }
 
-impl HttpGatewayCtx {
-    pub fn new() -> HttpGatewayCtx {
-        HttpGatewayCtx {
+impl GatewayCtx {
+    pub fn new() -> GatewayCtx {
+        GatewayCtx {
             upstream_address: None,
         }
     }

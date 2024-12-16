@@ -1,4 +1,4 @@
 mod gateway;
 
-pub use gateway::HttpGateway;
-pub use gateway::HttpGatewayCtx;
+pub use gateway::Gateway;
+pub use gateway::GatewayCtx;

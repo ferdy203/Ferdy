@@ -15,20 +15,20 @@ use pingora::{
     Error,
 };
 
-use gate_way::http::{HttpGateway, HttpGatewayCtx};
+use gate_way::http::{Gateway, GatewayCtx};
 
 #[async_trait]
-impl ProxyHttp for HttpGateway {
-    type CTX = HttpGatewayCtx;
+impl ProxyHttp for Gateway {
+    type CTX = GatewayCtx;
 
     fn new_ctx(&self) -> Self::CTX {
-        HttpGatewayCtx::new()
+        GatewayCtx::new()
     }
 
     async fn upstream_peer(
         &self,
         _session: &mut Session,
-        _ctx: &mut HttpGatewayCtx,
+        _ctx: &mut GatewayCtx,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
         let host_header_value = _session.req_header().headers.get("host");
 
@@ -88,7 +88,7 @@ fn main() {
 
     if let Some(router_config) = dakia_config.router_config {
         for gate_way in &router_config.gateways {
-            let dakia_proxy = HttpGateway::build(gate_way);
+            let dakia_proxy = Gateway::build(gate_way);
             let mut dakia_proxy_service = http_proxy_service(&server.configuration, dakia_proxy);
 
             for inet_address in &gate_way.bind_addresses {
