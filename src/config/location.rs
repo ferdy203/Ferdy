@@ -1,11 +1,6 @@
 use serde;
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub enum PatternType {
-    Text,
-    Wildcard,
-    Regex,
-}
+use super::pattern::PatternType;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Route {
