@@ -7,14 +7,14 @@ struct WildPathBackend {
     backend: String,
 }
 
-pub struct Gateway {
+pub struct DakiaHttpGateway {
     wild_hosts: Vec<WildMatch>,
     path_backends: Vec<WildPathBackend>,
     backend_map: HashMap<String, Backend>,
     default_backend: Option<Backend>,
 }
 
-impl Gateway {
+impl DakiaHttpGateway {
     fn get_hosts(gate_way: &GatewayConfig) -> Vec<WildMatch> {
         gate_way
             .downstreams
@@ -64,12 +64,12 @@ impl Gateway {
         }
     }
 
-    pub fn build(gate_way: &GatewayConfig) -> Gateway {
-        Gateway {
-            wild_hosts: Gateway::get_hosts(gate_way),
-            path_backends: Gateway::get_path_map(gate_way),
-            backend_map: Gateway::get_backend_map(gate_way),
-            default_backend: Gateway::get_default_backend(gate_way),
+    pub fn build(gate_way: &GatewayConfig) -> DakiaHttpGateway {
+        DakiaHttpGateway {
+            wild_hosts: DakiaHttpGateway::get_hosts(gate_way),
+            path_backends: DakiaHttpGateway::get_path_map(gate_way),
+            backend_map: DakiaHttpGateway::get_backend_map(gate_way),
+            default_backend: DakiaHttpGateway::get_default_backend(gate_way),
         }
     }
 
@@ -116,18 +116,5 @@ impl Gateway {
 
     fn get_backend(&self, backend_name: &String) -> Option<&Backend> {
         self.backend_map.get(backend_name)
-    }
-}
-
-pub struct GatewayCtx {
-    // TODO: use Rc or Arc to store upstream details
-    pub upstream_address: Option<String>,
-}
-
-impl GatewayCtx {
-    pub fn new() -> GatewayCtx {
-        GatewayCtx {
-            upstream_address: None,
-        }
     }
 }

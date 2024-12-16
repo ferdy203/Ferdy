@@ -1,11 +1,11 @@
-pub struct GatewayCtx {
+pub struct DakiaHttpGatewayCtx {
     // TODO: use Rc or Arc to store upstream details
     pub upstream_address: Option<String>,
 }
 
-impl GatewayCtx {
-    pub fn new() -> GatewayCtx {
-        GatewayCtx {
+impl DakiaHttpGatewayCtx {
+    pub fn new() -> DakiaHttpGatewayCtx {
+        DakiaHttpGatewayCtx {
             upstream_address: None,
         }
     }

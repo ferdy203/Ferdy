@@ -1,4 +1,5 @@
+mod ctx;
 mod gateway;
 
-pub use gateway::Gateway;
-pub use gateway::GatewayCtx;
+pub use ctx::DakiaHttpGatewayCtx;
+pub use gateway::DakiaHttpGateway;
