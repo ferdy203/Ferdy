@@ -80,6 +80,7 @@ impl ProxyHttp for DakiaHttpProxy {
 // TODO: refactor entire code to improve code quality and organization
 // TODO: add regex host and path matching along with wild card host and path matching
 fn main() {
+    env_logger::init();
     println!("{}", get_dakia_ascii_art());
 
     let dakia_args = DakiaArgs::parse();

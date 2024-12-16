@@ -1,6 +1,7 @@
 use crate::config::args::DakiaArgs;
 use crate::config::router;
 use crate::libs::utils::get_or_default;
+use log::{debug, warn};
 use pingora::prelude::Opt;
 use serde;
 use serde_yaml;
@@ -105,7 +106,7 @@ impl DakiaConfig {
             None => String::from("/etc/dakia/config.yaml"),
         };
 
-        let is_config_readable = match fs::metadata(&cp) {
+        let is_dakia_config_file_readable = match fs::metadata(&cp) {
             Ok(metadata) => metadata.is_file(),
             Err(e) => {
                 match args.debug {
@@ -121,22 +122,27 @@ impl DakiaConfig {
             }
         };
 
-        let drc = if is_config_readable {
+        let dakia_raw_config_from_file = if is_dakia_config_file_readable {
             // TODO: handle unwrap() here
             let raw_config = fs::read_to_string(cp).unwrap();
 
             let dakia_raw_config_from_file: DakiaRawConfig =
                 serde_yaml::from_str(&raw_config).unwrap();
 
-            if args.debug.is_some() && args.debug.unwrap() {
-                println!("dakia config: {:?}", dakia_raw_config_from_file);
-            }
-
+            debug!(
+                "\n========== Dakia Config ==========\n{:#?}\n===================================",
+                dakia_raw_config_from_file
+            );
             dakia_raw_config_from_file
         } else {
-            DakiaRawConfig::default()
+            let default_dakia_raw_config = DakiaRawConfig::default();
+            warn!(
+                "⚠️  Config File Not Found!\n👉 Using Default Configuration\n {:#?}",
+                default_dakia_raw_config
+            );
+            default_dakia_raw_config
         };
 
-        drc.to_dakia_config()
+        dakia_raw_config_from_file.to_dakia_config()
     }
 }
