@@ -27,7 +27,7 @@ _______
 
 ## Features
 
-> Work is in-progress
+> Work is in-progress, not all features supported yet!
 
 - **Fully Programmable**: Tailor the API Gateway to your specific needs with custom plugins and middleware in multiple languages.
 - **Configurable**: Easily manage API configurations using various formats like YAML, JSON, and HTTP API calls.
