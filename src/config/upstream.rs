@@ -12,7 +12,7 @@ pub struct UpstreamConfig {
 
 // TODO: add support for weight
 impl UpstreamConfig {
-    pub fn new(inet_address: InetAddress) -> UpstreamConfig {
+    pub fn _new(inet_address: InetAddress) -> UpstreamConfig {
         UpstreamConfig {
             address: inet_address,
             tls: false,
@@ -21,7 +21,7 @@ impl UpstreamConfig {
         }
     }
 
-    pub fn new_tls(address: InetAddress, sni: String) -> UpstreamConfig {
+    pub fn _new_tls(address: InetAddress, sni: String) -> UpstreamConfig {
         UpstreamConfig {
             address,
             tls: true,

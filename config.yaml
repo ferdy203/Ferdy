@@ -13,37 +13,56 @@ upstream_connect_offload_threadpools: 2
 upstream_connect_offload_thread_per_pool: 5
 upstream_debug_ssl_keylog: false
 router_config:
-  gate_ways:
-    - listen:
+  gateways:
+    - bind_addresses:
         - host: "0.0.0.0"
           port: 8080
-          sni: null
-          tls: false
         - host: "0.0.0.0"
           port: 80
-          sni: null
-          tls: true
-      hosts:
+      downstreams:
         - host: "w3worker.net"
-      locations:
-        - path: "/first"
-          backend: "back2"
-        - path: "*"
-          backend: "back1"
+        - host: "localhost"
       backends:
-        - name: "back1"
-          default: true
+        - name: "payment"
+          default: false
+          traffic_distribution_policy:
+            selection_algorithm: "RoundRobin"
           upstreams:
-            - inet_address:
+            - address:
                 host: "0.0.0.0"
                 port: 3000
-              sni: null
               tls: false
-        - name: "back2"
-          default: false
-          upstreams:
-            - inet_address:
+              sni: null
+              weight: 1
+            - address:
                 host: "0.0.0.0"
                 port: 3001
-              sni: null
               tls: false
+              sni: null
+              weight: 2
+        - name: "search"
+          default: false
+          upstreams:
+            - address:
+                host: "0.0.0.0"
+                port: 3002
+              tls: false
+              sni: null
+        - name: "content"
+          default: true
+          upstreams:
+            - address:
+                host: "0.0.0.0"
+                port: 3003
+              tls: false
+              sni: null
+      routes:
+        - pattern: "*/pay"
+          pattern_type: "Wildcard"
+          backend: "payment"
+        - pattern: "*/query"
+          pattern_type: "Wildcard"
+          backend: "payment"
+        - pattern: "*"
+          pattern_type: "Wildcard"
+          backend: "content"
