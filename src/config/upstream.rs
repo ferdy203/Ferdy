@@ -3,7 +3,7 @@ use serde;
 use super::inet_address::InetAddress;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct Upstream {
+pub struct UpstreamConfig {
     pub address: InetAddress,
     pub tls: bool,
     pub sni: Option<String>,
@@ -11,9 +11,9 @@ pub struct Upstream {
 }
 
 // TODO: add support for weight
-impl Upstream {
-    pub fn new(inet_address: InetAddress) -> Upstream {
-        Upstream {
+impl UpstreamConfig {
+    pub fn new(inet_address: InetAddress) -> UpstreamConfig {
+        UpstreamConfig {
             address: inet_address,
             tls: false,
             sni: None,
@@ -21,8 +21,8 @@ impl Upstream {
         }
     }
 
-    pub fn new_tls(address: InetAddress, sni: String) -> Upstream {
-        Upstream {
+    pub fn new_tls(address: InetAddress, sni: String) -> UpstreamConfig {
+        UpstreamConfig {
             address,
             tls: true,
             sni: Some(sni),

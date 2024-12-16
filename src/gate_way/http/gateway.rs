@@ -1,4 +1,4 @@
-use crate::config::{Backend, GatewayConfig, Upstream};
+use crate::config::{Backend, GatewayConfig, UpstreamConfig};
 use std::collections::HashMap;
 use wildmatch::WildMatch;
 
@@ -73,7 +73,7 @@ impl DakiaHttpGateway {
         }
     }
 
-    pub fn get_up_stream(&self, host: String, path: String) -> Option<&Upstream> {
+    pub fn get_up_stream(&self, host: String, path: String) -> Option<&UpstreamConfig> {
         if !self.is_host_exists(&host) {
             return None;
         }
