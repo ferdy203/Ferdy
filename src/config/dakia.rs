@@ -1,5 +1,5 @@
 use crate::config::args::DakiaArgs;
-use crate::config::router_config;
+use crate::config::router;
 use crate::libs::utils::get_or_default;
 use pingora::prelude::Opt;
 use serde;
@@ -22,7 +22,7 @@ pub struct DakiaRawConfig {
     pub upstream_connect_offload_threadpools: Option<usize>,
     pub upstream_connect_offload_thread_per_pool: Option<usize>,
     pub upstream_debug_ssl_keylog: Option<bool>,
-    pub router_config: Option<router_config::RouterConfig>,
+    pub router_config: Option<router::RouterConfig>,
 }
 
 pub struct DakiaConfig {
@@ -40,7 +40,7 @@ pub struct DakiaConfig {
     pub upstream_connect_offload_threadpools: Option<usize>,
     pub upstream_connect_offload_thread_per_pool: Option<usize>,
     pub upstream_debug_ssl_keylog: bool,
-    pub router_config: Option<router_config::RouterConfig>,
+    pub router_config: Option<router::RouterConfig>,
 }
 
 impl DakiaRawConfig {
