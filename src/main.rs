@@ -1,6 +1,6 @@
 mod config;
+mod gate_way;
 mod libs;
-mod proxy;
 
 use crate::config::dakia_config::DakiaConfig;
 use async_trait::async_trait;
@@ -15,7 +15,7 @@ use pingora::{
     Error,
 };
 
-use proxy::http::{DakiaCtx, DakiaHttpProxy};
+use gate_way::http::{DakiaCtx, DakiaHttpProxy};
 
 #[async_trait]
 impl ProxyHttp for DakiaHttpProxy {
