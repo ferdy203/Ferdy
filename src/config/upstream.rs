@@ -4,9 +4,9 @@ use super::inet_address::InetAddress;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Upstream {
-    pub inet_address: InetAddress,
-    pub sni: Option<String>,
+    pub address: InetAddress,
     pub tls: bool,
+    pub sni: Option<String>,
     pub weight: Option<u16>,
 }
 
@@ -14,16 +14,16 @@ pub struct Upstream {
 impl Upstream {
     pub fn new(inet_address: InetAddress) -> Upstream {
         Upstream {
-            inet_address,
+            address: inet_address,
             tls: false,
             sni: None,
             weight: None,
         }
     }
 
-    pub fn new_tls(inet_address: InetAddress, sni: String) -> Upstream {
+    pub fn new_tls(address: InetAddress, sni: String) -> Upstream {
         Upstream {
-            inet_address,
+            address,
             tls: true,
             sni: Some(sni),
             weight: None,

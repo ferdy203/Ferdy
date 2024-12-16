@@ -47,10 +47,7 @@ impl ProxyHttp for DakiaHttpProxy {
 
         match upstream {
             Some(upstream) => {
-                let address = format!(
-                    "{}:{}",
-                    upstream.inet_address.host, upstream.inet_address.port
-                );
+                let address = format!("{}:{}", upstream.address.host, upstream.address.port);
                 _ctx.upstream_address = Some(address.clone());
 
                 let peer = Box::new(HttpPeer::new(
