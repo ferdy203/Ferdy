@@ -24,10 +24,11 @@ pub struct Backend {
 }
 
 impl Backend {
-    fn get_upstream_selection_algorithm(&self) -> &SelectionAlgorithm {
-        match &self.traffic_distribution_policy {
-            Some(policy) => &policy.selection_algorithm,
-            None => &SelectionAlgorithm::RoundRobin,
-        }
+    pub fn get_upstream_config(&self) -> Option<&UpstreamConfig> {
+        // match &self.traffic_distribution_policy {
+        //     Some(policy) => &policy.selection_algorithm,
+        //     None => &SelectionAlgorithm::RoundRobin,
+        // }
+        self.upstreams.get(0)
     }
 }

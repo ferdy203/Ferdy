@@ -108,10 +108,9 @@ impl DakiaHttpGateway {
         };
 
         match backend {
-            // TODO: implement load balancer logic
-            Some(backend) => backend.upstreams.get(0),
+            Some(backend) => backend.get_upstream_config(),
             None => match &self.default_backend {
-                Some(default_backend) => default_backend.upstreams.get(0),
+                Some(default_backend) => default_backend.get_upstream_config(),
                 None => None,
             },
         }
