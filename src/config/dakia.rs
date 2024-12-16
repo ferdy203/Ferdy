@@ -96,7 +96,8 @@ impl Default for DakiaRawConfig {
 
 impl DakiaConfig {
     pub fn to_pingora_opt(&self) -> Opt {
-        let opt = Opt::default();
+        let mut opt = Opt::default();
+        opt.daemon = self.daemon;
         opt
     }
 
