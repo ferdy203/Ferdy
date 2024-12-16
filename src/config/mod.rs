@@ -12,5 +12,5 @@ pub use args::DakiaArgs;
 
 pub use backend::Backend;
 pub use dakia::DakiaConfig;
-pub use router::Gateway;
+pub use router::GatewayConfig;
 pub use upstream::Upstream;

@@ -5,7 +5,7 @@ use crate::config::location::Route;
 use serde;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct Gateway {
+pub struct GatewayConfig {
     pub bind_addresses: Vec<InetAddress>,
     pub downstreams: Vec<Downstream>,
     pub backends: Vec<Backend>,
@@ -14,5 +14,5 @@ pub struct Gateway {
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Router {
-    pub gateways: Vec<Gateway>,
+    pub gateways: Vec<GatewayConfig>,
 }

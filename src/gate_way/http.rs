@@ -1,4 +1,4 @@
-use crate::config::{Backend, Gateway, Upstream};
+use crate::config::{Backend, GatewayConfig, Upstream};
 use std::collections::HashMap;
 use wildmatch::WildMatch;
 
@@ -15,7 +15,7 @@ pub struct HttpGateway {
 }
 
 impl HttpGateway {
-    fn get_hosts(gate_way: &Gateway) -> Vec<WildMatch> {
+    fn get_hosts(gate_way: &GatewayConfig) -> Vec<WildMatch> {
         gate_way
             .downstreams
             .iter()
@@ -33,7 +33,7 @@ impl HttpGateway {
             .collect()
     }
 
-    fn get_path_map(gate_way: &Gateway) -> Vec<WildPathBackend> {
+    fn get_path_map(gate_way: &GatewayConfig) -> Vec<WildPathBackend> {
         let mut path_backend_list: Vec<WildPathBackend> = vec![];
 
         gate_way.routes.iter().for_each(|loc| {
@@ -47,7 +47,7 @@ impl HttpGateway {
         path_backend_list
     }
 
-    fn get_backend_map(gate_way: &Gateway) -> HashMap<String, Backend> {
+    fn get_backend_map(gate_way: &GatewayConfig) -> HashMap<String, Backend> {
         let mut backend_map = HashMap::new();
         gate_way.backends.iter().for_each(|backend| {
             backend_map.insert(backend.name.to_string(), backend.clone());
@@ -55,7 +55,7 @@ impl HttpGateway {
         backend_map
     }
 
-    fn get_default_backend(gate_way: &Gateway) -> Option<Backend> {
+    fn get_default_backend(gate_way: &GatewayConfig) -> Option<Backend> {
         let default_backend_ref = gate_way.backends.iter().find(|backend| backend.default);
 
         match default_backend_ref {
@@ -64,7 +64,7 @@ impl HttpGateway {
         }
     }
 
-    pub fn build(gate_way: &Gateway) -> HttpGateway {
+    pub fn build(gate_way: &GatewayConfig) -> HttpGateway {
         HttpGateway {
             wild_hosts: HttpGateway::get_hosts(gate_way),
             path_backends: HttpGateway::get_path_map(gate_way),
