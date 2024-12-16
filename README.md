@@ -39,24 +39,33 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 
 ## 📊 Progress Tracker
 
-| Task                                                                                                                        | Status      |
-| --------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| Configurable(Only yaml supported for now)                                                                                   | Done ✅     |
-| Virtual Host                                                                                                                | Done ✅     |
-| Wild card host and route pattern (Use \* to match any number of character including 0 and use ? to match any one character) | Done ✅     |
-| Proxy                                                                                                                       | Done ✅     |
-| Load Balancer                                                                                                               | In-Progress |
-| Extension(Rust,Java, JavaScript)                                                                                            | Pending     |
-| Middleware(Rust,Java, JavaScript)                                                                                           | Pending     |
-| Controller(API to manage dakia over REST)                                                                                   | Pending     |
-| Docker Image (Docker image to quicky play with dakia)                                                                       | Pending     |
-| Regex support in host and route pattern                                                                                     | Pending     |
+| Task                                                                          | Status      |
+| ----------------------------------------------------------------------------- | ----------- |
+| Configurable(Only yaml supported for now)                                     | Done ✅     |
+| Virtual Host                                                                  | Done ✅     |
+| Wild card host                                                                | Done ✅     |
+| Wild card route                                                               | Done ✅     |
+| Proxy                                                                         | Done ✅     |
+| [ SSL upstream support](https://en.wikipedia.org/wiki/Server_Name_Indication) | Done ✅     |
+| Load Balancer                                                                 | In-Progress |
+| Extension(Rust,Java, JavaScript)                                              | Pending     |
+| Middleware(Rust,Java, JavaScript)                                             | Pending     |
+| SSL Support                                                                   | Pending     |
+| Certbot Integration                                                           | Pending     |
+| Controller(API to manage dakia over REST)                                     | Pending     |
+| Docker Image (Docker image to quicky play with dakia)                         | Pending     |
+| Regex support in host and route pattern                                       | Pending     |
 
-## How to?
+## How to run?
+
+- Download the binary from https://github.com/ats1999/dakia/releases/tag/0.0.0
+  > This binary file is not platform independent, in case you are using different platform then build from soure directly
+- Execute the binary by typing `./dakia`
+- Optionally create a config file `/etc/dakia/config.yaml` and write below yaml content into config file. Modify according to your need.
 
 ```yaml
 daemon: true
-# support for below options is yet to be done
+# TODO: support for below options is yet to be done
 # error_log: "/var/log/dakia/error.log"
 # pid_file: "/var/run/dakia.pid"
 # upgrade_sock: "/var/run/dakia.sock"
