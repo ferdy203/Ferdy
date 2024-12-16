@@ -1,16 +1,21 @@
-use std::collections::{HashMap, HashSet};
-
 use crate::config::{backend::Backend, router_config::Gateway, upstream::Upstream};
+use std::collections::HashMap;
+use wildmatch::WildMatch;
+
+struct WildPathBackend {
+    wild_path: WildMatch,
+    backend: String,
+}
 
 pub struct DakiaHttpProxy {
-    host_set: HashSet<String>,
-    path_to_backend_map: HashMap<String, String>,
+    wild_hosts: Vec<WildMatch>,
+    path_backends: Vec<WildPathBackend>,
     backend_map: HashMap<String, Backend>,
     default_backend: Option<Backend>,
 }
 
 impl DakiaHttpProxy {
-    fn get_host_set(gate_way: &Gateway) -> HashSet<String> {
+    fn get_hosts(gate_way: &Gateway) -> Vec<WildMatch> {
         gate_way
             .hosts
             .iter()
@@ -18,30 +23,36 @@ impl DakiaHttpProxy {
                 let host = &inet_address.host;
                 let port = &inet_address.port;
 
-                match port {
+                let host_port = match port {
                     Some(port) => format!("{}:{}", host, port),
                     None => host.to_string(),
-                }
+                };
+
+                WildMatch::new(&host_port)
             })
             .collect()
     }
 
-    fn get_path_map(gate_way: &Gateway) -> HashMap<String, String> {
-        let mut hm = HashMap::new();
+    fn get_path_map(gate_way: &Gateway) -> Vec<WildPathBackend> {
+        let mut path_backend_list: Vec<WildPathBackend> = vec![];
+
         gate_way.locations.iter().for_each(|loc| {
-            hm.insert(loc.path.to_string(), loc.backend.to_string());
+            let path_backend = WildPathBackend {
+                wild_path: WildMatch::new(&loc.path),
+                backend: loc.backend.to_string(),
+            };
+            path_backend_list.push(path_backend);
         });
-        hm
+
+        path_backend_list
     }
 
     fn get_backend_map(gate_way: &Gateway) -> HashMap<String, Backend> {
-        let mut hm = HashMap::new();
-
+        let mut backend_map = HashMap::new();
         gate_way.backends.iter().for_each(|backend| {
-            hm.insert(backend.name.to_string(), backend.clone());
+            backend_map.insert(backend.name.to_string(), backend.clone());
         });
-
-        hm
+        backend_map
     }
 
     fn get_default_backend(gate_way: &Gateway) -> Option<Backend> {
@@ -55,8 +66,8 @@ impl DakiaHttpProxy {
 
     pub fn build(gate_way: &Gateway) -> DakiaHttpProxy {
         DakiaHttpProxy {
-            host_set: DakiaHttpProxy::get_host_set(gate_way),
-            path_to_backend_map: DakiaHttpProxy::get_path_map(gate_way),
+            wild_hosts: DakiaHttpProxy::get_hosts(gate_way),
+            path_backends: DakiaHttpProxy::get_path_map(gate_way),
             backend_map: DakiaHttpProxy::get_backend_map(gate_way),
             default_backend: DakiaHttpProxy::get_default_backend(gate_way),
         }
@@ -67,13 +78,12 @@ impl DakiaHttpProxy {
             return None;
         }
 
-        if !self.is_path_exists(&path) {
-            return None;
-        }
-
         let backend_name = self.get_path_backend(&path);
 
-        let backend = self.get_backend(backend_name);
+        let backend = match backend_name {
+            None => None,
+            Some(backend_name) => self.get_backend(backend_name),
+        };
 
         match backend {
             // TODO: implement load balancer logic
@@ -86,16 +96,22 @@ impl DakiaHttpProxy {
     }
 
     fn is_host_exists(&self, host: &String) -> bool {
-        self.host_set.contains(host)
+        self.wild_hosts
+            .iter()
+            .any(|wild_host| wild_host.matches(host))
     }
 
-    fn is_path_exists(&self, path: &String) -> bool {
-        self.path_to_backend_map.contains_key(path)
-    }
-
-    fn get_path_backend(&self, path: &String) -> &String {
+    fn get_path_backend(&self, path: &String) -> Option<&String> {
         // unwrap used here because it'll be always called if path exists
-        self.path_to_backend_map.get(path).unwrap()
+        let path_backend = self
+            .path_backends
+            .iter()
+            .find(|path_backend| path_backend.wild_path.matches(path));
+
+        match path_backend {
+            Some(pb) => Some(&pb.backend),
+            None => None,
+        }
     }
 
     fn get_backend(&self, backend_name: &String) -> Option<&Backend> {

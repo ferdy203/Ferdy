@@ -15,6 +15,7 @@ pingora = { version = "0.3.0", features = [ "lb" ] }
 clap = { version = "3.2.25", features = ["derive"] }
 serde_yaml = "0.9.34"
 serde = "1.0.216"
+wildmatch = "2.4.0"
 
 [dev-dependencies]
 clap = { version = "3.2.25", features = ["derive"] }
