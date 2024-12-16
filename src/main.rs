@@ -62,11 +62,11 @@ fn main() {
     let mut server = Server::new(Some(dakia_config.to_pingora_opt())).unwrap();
     server.bootstrap();
 
-    let dakia_proxy = DakiaHttpProxy::new(&dakia_args);
-    let mut dakia_proxy_service = http_proxy_service(&server.configuration, dakia_proxy);
-
     if let Some(router_config) = dakia_config.router_config {
         for gate_way in &router_config.gate_ways {
+            let dakia_proxy = DakiaHttpProxy::new(gate_way);
+            let mut dakia_proxy_service = http_proxy_service(&server.configuration, dakia_proxy);
+
             for inet_address in &gate_way.listen {
                 let host = &inet_address.host;
                 let port = inet_address.port;
@@ -74,12 +74,10 @@ fn main() {
                 let addr = format!("{}:{}", host, port);
                 dakia_proxy_service.add_tcp(&addr);
             }
+
+            server.add_service(dakia_proxy_service);
         }
-    } else {
-        dakia_proxy_service.add_tcp("0.0.0.0:80");
-        dakia_proxy_service.add_tcp("0.0.0.0:443");
     }
 
-    server.add_service(dakia_proxy_service);
     server.run_forever();
 }
