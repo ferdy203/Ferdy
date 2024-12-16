@@ -4,10 +4,10 @@ use super::inet_address::InetAddress;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Upstream {
-    inet_address: InetAddress,
-    sni: Option<String>,
-    tls: bool,
-    weight: Option<u16>,
+    pub inet_address: InetAddress,
+    pub sni: Option<String>,
+    pub tls: bool,
+    pub weight: Option<u16>,
 }
 
 // TODO: add support for weight

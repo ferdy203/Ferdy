@@ -17,10 +17,10 @@ pub struct RoutingPolicy {
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Backend {
-    name: String,
-    default: bool,
-    upstreams: Vec<Upstream>,
-    routing_policy: Option<RoutingPolicy>,
+    pub name: String,
+    pub default: bool,
+    pub upstreams: Vec<Upstream>,
+    pub routing_policy: Option<RoutingPolicy>,
 }
 
 impl Backend {

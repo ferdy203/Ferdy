@@ -4,6 +4,6 @@ use serde;
 pub struct Location {
     // TODO: add support for wild card paths
     // TODO: add support for regex path matching
-    path: String,
-    backend: String,
+    pub path: String,
+    pub backend: String,
 }
