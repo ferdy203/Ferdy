@@ -11,7 +11,7 @@ pub enum SelectionAlgorithm {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct RoutingPolicy {
+pub struct TrafficDistributionPolicy {
     selection_algorithm: SelectionAlgorithm,
 }
 
@@ -20,12 +20,12 @@ pub struct Backend {
     pub name: String,
     pub default: bool,
     pub upstreams: Vec<Upstream>,
-    pub routing_policy: Option<RoutingPolicy>,
+    pub traffic_distribution_policy: Option<TrafficDistributionPolicy>,
 }
 
 impl Backend {
     fn get_upstream_selection_algorithm(&self) -> &SelectionAlgorithm {
-        match &self.routing_policy {
+        match &self.traffic_distribution_policy {
             Some(policy) => &policy.selection_algorithm,
             None => &SelectionAlgorithm::RoundRobin,
         }

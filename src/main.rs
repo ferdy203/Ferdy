@@ -87,11 +87,11 @@ fn main() {
     server.bootstrap();
 
     if let Some(router_config) = dakia_config.router_config {
-        for gate_way in &router_config.gate_ways {
+        for gate_way in &router_config.gateways {
             let dakia_proxy = DakiaHttpProxy::build(gate_way);
             let mut dakia_proxy_service = http_proxy_service(&server.configuration, dakia_proxy);
 
-            for inet_address in &gate_way.listen {
+            for inet_address in &gate_way.bind_addresses {
                 let host = &inet_address.host;
                 let port = inet_address.port;
 

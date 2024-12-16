@@ -17,7 +17,7 @@ pub struct DakiaHttpProxy {
 impl DakiaHttpProxy {
     fn get_hosts(gate_way: &Gateway) -> Vec<WildMatch> {
         gate_way
-            .hosts
+            .downstreams
             .iter()
             .map(|inet_address| {
                 let host = &inet_address.host;
