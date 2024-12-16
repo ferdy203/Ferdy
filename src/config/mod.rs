@@ -1,6 +1,6 @@
 mod args;
 mod backend;
-pub mod dakia;
+mod dakia;
 pub mod downstream;
 pub mod inet_address;
 pub mod location;
@@ -11,3 +11,4 @@ pub mod upstream;
 pub use args::DakiaArgs;
 
 pub use backend::Backend;
+pub use dakia::DakiaConfig;
