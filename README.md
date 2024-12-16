@@ -16,6 +16,7 @@ _______
 -->
 
 <!-- canva logo url -> https://www.canva.com/design/DAGZAdY1d9c/YCHWZRD78H5j0CAWaaF6gw/edit -->
+
 ![1](https://github.com/user-attachments/assets/fd00ba75-3f0d-4806-b3c9-cc972ebaf126)
 
 # Dakia is an API Gateway that’s Fully Programmable, Configurable, and Extensible!
@@ -32,71 +33,95 @@ _______
 - **Zero Downtime Upgrades**: Perform upgrades and restarts without affecting the availability of your services.
 - **Dynamic Middleware**: Add, remove, or modify middleware on the fly without disrupting service.
 - **Request and Response Management**: Modify requests before they reach the upstream or read/write responses to meet your application's needs.
-- **High-Performance**: Built on top of pingora which is battle-tested service with high traffic loads, serving more than **40** millions of requests per second.
 - **Real-Time Configuration**: Modify your gateway configuration in real time with no downtime, using HTTP API calls.
 
 Dakia ensures your services stay performant, reliable, and highly customizable, giving you full control.
 
 ## 📊 Progress Tracker
 
-| Task            | Status      |
-| --------------- | ----------- |
-| Proxy           | Done ✅     |
-| Load Balancer   | In-Progress |
-| Caching         | Pending     |
-| Rate Limiting   | Pending     |
-| Plan Next Steps | Pending     |
+| Task                                                                                                                        | Status      |
+| --------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Configurable(Only yaml supported for now)                                                                                   | Done ✅     |
+| Virtual Host                                                                                                                | Done ✅     |
+| Wild card host and route pattern (Use \* to match any number of character including 0 and use ? to match any one character) | Done ✅     |
+| Proxy                                                                                                                       | Done ✅     |
+| Load Balancer                                                                                                               | In-Progress |
+| Extension(Rust,Java, JavaScript)                                                                                            | Pending     |
+| Middleware(Rust,Java, JavaScript)                                                                                           | Pending     |
+| Controller(API to manage dakia over REST)                                                                                   | Pending     |
+| Docker Image (Docker image to quicky play with dakia)                                                                       | Pending     |
+| Regex support in host and route pattern                                                                                     | Pending     |
 
 ## How to?
 
 ```yaml
 daemon: true
-error_log: "/var/log/dakia/error.log"
-pid_file: "/var/run/dakia.pid"
-upgrade_sock: "/var/run/dakia.sock"
-user: "dakia_user"
-group: "dakia_group"
-threads: 4
-work_stealing: true
-grace_period_seconds: 60
-graceful_shutdown_timeout_seconds: 30
-upstream_keepalive_pool_size: 10
-upstream_connect_offload_threadpools: 2
-upstream_connect_offload_thread_per_pool: 5
-upstream_debug_ssl_keylog: false
+# support for below options is yet to be done
+# error_log: "/var/log/dakia/error.log"
+# pid_file: "/var/run/dakia.pid"
+# upgrade_sock: "/var/run/dakia.sock"
+# user: "dakia_user"
+# group: "dakia_group"
+# threads: 4
+# work_stealing: true
+# grace_period_seconds: 60
+# graceful_shutdown_timeout_seconds: 30
+# upstream_keepalive_pool_size: 10
+# upstream_connect_offload_threadpools: 2
+# upstream_connect_offload_thread_per_pool: 5
+# upstream_debug_ssl_keylog: false
 router_config:
-  gate_ways:
-    - listen:
+  gateways:
+    - bind_addresses:
         - host: "0.0.0.0"
           port: 8080
-          sni: null
-          tls: false
         - host: "0.0.0.0"
           port: 80
-          sni: null
-          tls: true
-      hosts:
+      downstreams:
         - host: "w3worker.net"
-      locations:
-        - path: "/first"
-          backend: "back2"
-        - path: "*"
-          backend: "back1"
+        - host: "localhost"
       backends:
-        - name: "back1"
-          default: true
+        - name: "payment"
+          default: false
+          traffic_distribution_policy:
+            selection_algorithm: "RoundRobin"
           upstreams:
-            - inet_address:
+            - address:
                 host: "0.0.0.0"
                 port: 3000
-              sni: null
               tls: false
-        - name: "back2"
-          default: false
-          upstreams:
-            - inet_address:
+              sni: null
+              weight: 1
+            - address:
                 host: "0.0.0.0"
                 port: 3001
-              sni: null
               tls: false
+              sni: null
+              weight: 2
+        - name: "search"
+          default: false
+          upstreams:
+            - address:
+                host: "0.0.0.0"
+                port: 3002
+              tls: false
+              sni: null
+        - name: "content"
+          default: true
+          upstreams:
+            - address:
+                host: "0.0.0.0"
+                port: 3003
+              tls: false
+              sni: null
+      routes:
+        - pattern: "*/pay"
+          pattern_type: "Wildcard"
+          backend: "payment"
+        - pattern: "*/query"
+          pattern_type: "Wildcard"
+          backend: "payment"
+        - pattern: "*"
+          pattern_type: "Wildcard"
+          backend: "content"
 ```
