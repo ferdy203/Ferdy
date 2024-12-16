@@ -1,4 +1,16 @@
-use crate::config::{Backend, GatewayConfig, UpstreamConfig};
+use super::DakiaHttpGatewayCtx;
+use crate::{
+    config::{Backend, GatewayConfig, UpstreamConfig},
+    libs::{pingora::get_header_value, utils::get_or_default},
+};
+use async_trait::async_trait;
+use pingora::{
+    http::RequestHeader,
+    prelude::HttpPeer,
+    proxy::{ProxyHttp, Session},
+    Error,
+};
+
 use std::collections::HashMap;
 use wildmatch::WildMatch;
 
@@ -73,8 +85,8 @@ impl DakiaHttpGateway {
         }
     }
 
-    pub fn get_up_stream(&self, host: String, path: String) -> Option<&UpstreamConfig> {
-        if !self.is_host_exists(&host) {
+    pub fn get_upstream_config(&self, host: &str, path: String) -> Option<&UpstreamConfig> {
+        if !self.is_host_exists(host) {
             return None;
         }
 
@@ -95,7 +107,7 @@ impl DakiaHttpGateway {
         }
     }
 
-    fn is_host_exists(&self, host: &String) -> bool {
+    fn is_host_exists(&self, host: &str) -> bool {
         self.wild_hosts
             .iter()
             .any(|wild_host| wild_host.matches(host))
@@ -116,5 +128,69 @@ impl DakiaHttpGateway {
 
     fn get_backend(&self, backend_name: &String) -> Option<&Backend> {
         self.backend_map.get(backend_name)
+    }
+}
+
+#[async_trait]
+impl ProxyHttp for DakiaHttpGateway {
+    type CTX = DakiaHttpGatewayCtx;
+
+    fn new_ctx(&self) -> Self::CTX {
+        DakiaHttpGatewayCtx::new()
+    }
+
+    async fn upstream_peer(
+        &self,
+        _session: &mut Session,
+        _ctx: &mut DakiaHttpGatewayCtx,
+    ) -> Result<Box<HttpPeer>, Box<Error>> {
+        let header = get_header_value(_session, "host".to_string())?;
+
+        let header_value = match header {
+            None => return Err(Error::new(pingora::ErrorType::ConnectNoRoute)),
+            // TODO:  fix data copy issue, data copy using header_value.to_string() needed here to avoid borrowing issue, because header_value is used after brrowing header_value
+            Some(header_value) => header_value.to_string(),
+        };
+
+        let path: &str = _session.req_header().uri.path();
+        let upstream_config = self.get_upstream_config(&header_value, path.to_string());
+
+        match upstream_config {
+            Some(upstream_config) => {
+                let address = upstream_config.address.get_formatted_address();
+
+                // TODO: fix .clone() here use Box/Rc
+                _ctx.upstream_config = Some(upstream_config.clone());
+
+                let peer = Box::new(HttpPeer::new(
+                    address,
+                    upstream_config.tls,
+                    // TODO: avoid clone here
+                    get_or_default(upstream_config.sni.clone(), "".to_string()),
+                ));
+                Ok(peer)
+            }
+            None => Err(Error::new(pingora::ErrorType::ConnectNoRoute)),
+        }
+    }
+
+    async fn upstream_request_filter(
+        &self,
+        _session: &mut Session,
+        upstream_request: &mut RequestHeader,
+        _ctx: &mut Self::CTX,
+    ) -> Result<(), Box<Error>> {
+        let formatted_address = _ctx
+            .upstream_config
+            .as_ref()
+            // unwrapping because it'll be always available
+            .unwrap()
+            .address
+            .get_formatted_address();
+
+        upstream_request
+            .insert_header("Host", formatted_address)
+            .unwrap();
+        Ok(())
     }
 }

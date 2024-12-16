@@ -3,76 +3,12 @@ mod gate_way;
 mod libs;
 
 use crate::config::DakiaConfig;
-use async_trait::async_trait;
 use clap::Parser;
 use config::DakiaArgs;
-use libs::utils::{get_dakia_ascii_art, get_or_default};
-use pingora::{
-    http::RequestHeader,
-    prelude::HttpPeer,
-    proxy::{http_proxy_service, ProxyHttp, Session},
-    server::Server,
-    Error,
-};
+use libs::utils::get_dakia_ascii_art;
+use pingora::{proxy::http_proxy_service, server::Server};
 
-use gate_way::http::{DakiaHttpGateway, DakiaHttpGatewayCtx};
-
-#[async_trait]
-impl ProxyHttp for DakiaHttpGateway {
-    type CTX = DakiaHttpGatewayCtx;
-
-    fn new_ctx(&self) -> Self::CTX {
-        DakiaHttpGatewayCtx::new()
-    }
-
-    async fn upstream_peer(
-        &self,
-        _session: &mut Session,
-        _ctx: &mut DakiaHttpGatewayCtx,
-    ) -> Result<Box<HttpPeer>, Box<Error>> {
-        let host_header_value = _session.req_header().headers.get("host");
-
-        if host_header_value.is_none() {
-            return Err(Error::new(pingora::ErrorType::ConnectNoRoute));
-        }
-
-        let host_header_str_result = host_header_value.unwrap().to_str();
-        if host_header_str_result.is_err() {
-            return Err(Error::new(pingora::ErrorType::ReadError));
-        }
-
-        let host_header_str = host_header_str_result.unwrap();
-        let path = _session.req_header().uri.path();
-        let upstream = self.get_up_stream(host_header_str.to_string(), path.to_string());
-
-        match upstream {
-            Some(upstream) => {
-                let address = format!("{}:{}", upstream.address.host, upstream.address.port);
-                _ctx.upstream_address = Some(address.clone());
-
-                let peer = Box::new(HttpPeer::new(
-                    address,
-                    upstream.tls,
-                    // TODO: avoid clone here
-                    get_or_default(upstream.sni.clone(), "".to_string()),
-                ));
-                Ok(peer)
-            }
-            None => Err(Error::new(pingora::ErrorType::ConnectNoRoute)),
-        }
-    }
-
-    async fn upstream_request_filter(
-        &self,
-        _session: &mut Session,
-        upstream_request: &mut RequestHeader,
-        _ctx: &mut Self::CTX,
-    ) -> Result<(), Box<Error>> {
-        let addr = _ctx.upstream_address.as_ref().unwrap();
-        upstream_request.insert_header("Host", addr).unwrap();
-        Ok(())
-    }
-}
+use gate_way::http::DakiaHttpGateway;
 
 // TODO: refactor entire code to improve code quality and organization
 // TODO: add regex host and path matching along with wild card host and path matching

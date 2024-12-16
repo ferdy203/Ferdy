@@ -1,12 +1,13 @@
+use crate::config::UpstreamConfig;
+
 pub struct DakiaHttpGatewayCtx {
-    // TODO: use Rc or Arc to store upstream details
-    pub upstream_address: Option<String>,
+    pub upstream_config: Option<UpstreamConfig>,
 }
 
 impl DakiaHttpGatewayCtx {
     pub fn new() -> DakiaHttpGatewayCtx {
         DakiaHttpGatewayCtx {
-            upstream_address: None,
+            upstream_config: None,
         }
     }
 }
