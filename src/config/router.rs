@@ -1,5 +1,5 @@
 use super::backend::Backend;
-use super::host::Host;
+use super::downstream::Downstream;
 use crate::config::inet_address::InetAddress;
 use crate::config::location::Location;
 use serde;
@@ -7,7 +7,7 @@ use serde;
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Gateway {
     pub listen: Vec<InetAddress>,
-    pub hosts: Vec<Host>,
+    pub hosts: Vec<Downstream>,
     pub locations: Vec<Location>,
     pub backends: Vec<Backend>,
 }
