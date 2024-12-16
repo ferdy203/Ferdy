@@ -77,6 +77,8 @@ impl ProxyHttp for DakiaHttpProxy {
     }
 }
 
+// TODO: refactor entire code to improve code quality and organization
+// TODO: add regex host and path matching along with wild card host and path matching
 fn main() {
     println!("{}", get_dakia_ascii_art());
 
