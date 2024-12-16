@@ -55,7 +55,6 @@ impl DakiaHttpProxy {
 
     pub fn build(gate_way: &Gateway) -> DakiaHttpProxy {
         DakiaHttpProxy {
-            // TODO: avoid cloning here, use lifetime instead
             host_set: DakiaHttpProxy::get_host_set(gate_way),
             path_to_backend_map: DakiaHttpProxy::get_path_map(gate_way),
             backend_map: DakiaHttpProxy::get_backend_map(gate_way),
