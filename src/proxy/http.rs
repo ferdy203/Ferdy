@@ -120,6 +120,7 @@ impl DakiaHttpProxy {
 }
 
 pub struct DakiaCtx {
+    // TODO: use Rc or Arc to store upstream details
     pub upstream_address: Option<String>,
 }
 

@@ -24,7 +24,26 @@ router_config:
           sni: null
           tls: true
       hosts:
-        - host: "dsabyte.com"
-          port: 80
+        - host: "w3worker.net"
       locations:
+        - path: "/first"
+          backend: "back2"
+        - path: "*"
+          backend: "back1"
       backends:
+        - name: "back1"
+          default: true
+          upstreams:
+            - inet_address:
+                host: "0.0.0.0"
+                port: 3000
+              sni: null
+              tls: false
+        - name: "back2"
+          default: false
+          upstreams:
+            - inet_address:
+                host: "0.0.0.0"
+                port: 3001
+              sni: null
+              tls: false
