@@ -1,4 +1,4 @@
-use crate::config::{router::Gateway, upstream::Upstream, Backend};
+use crate::config::{Backend, Gateway, Upstream};
 use std::collections::HashMap;
 use wildmatch::WildMatch;
 

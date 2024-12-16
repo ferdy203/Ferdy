@@ -13,6 +13,6 @@ pub struct Gateway {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct RouterConfig {
+pub struct Router {
     pub gateways: Vec<Gateway>,
 }
