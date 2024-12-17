@@ -1,11 +1,10 @@
 [package]
-name = "dakia"
+name = "router"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-mini-redis = "0.4"
 async-trait="0.1"
 pingora-core = { version = "0.3.0"}
 pingora-proxy = { version = "0.3.0"}
@@ -16,8 +15,4 @@ clap = { version = "3.2.25", features = ["derive"] }
 serde_yaml = "0.9.34"
 serde = "1.0.216"
 wildmatch = "2.4.0"
-log = "0.4"
-
-[dev-dependencies]
-clap = { version = "3.2.25", features = ["derive"] }
 log = "0.4"
