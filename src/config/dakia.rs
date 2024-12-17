@@ -108,8 +108,7 @@ impl DakiaConfig {
         opt
     }
 
-    // TODO: write pingore config only if there is any change in the config between restarts
-    fn to_pingora_server_config(&self) -> ServerConf {
+    pub fn to_pingora_server_config(&self) -> ServerConf {
         // TODO: use Arc instead of clone
         ServerConf {
             daemon: self.daemon,
@@ -131,20 +130,6 @@ impl DakiaConfig {
             client_bind_to_ipv4: vec![],
             client_bind_to_ipv6: vec![],
         }
-    }
-
-    fn write_pingora_config_to_file(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let pingora_server_config = self.to_pingora_server_config();
-        let yaml_string = serde_yaml::to_string(&pingora_server_config)?;
-        let path_to_pingora_config_file = Path::new(&self.dp).join("config/pingora.yaml");
-
-        if let Some(parent) = path_to_pingora_config_file.parent() {
-            fs::create_dir_all(parent)?;
-        }
-
-        let mut file = File::create(&path_to_pingora_config_file)?;
-        file.write_all(yaml_string.as_bytes())?;
-        Ok(())
     }
 
     pub fn build(args: &DakiaArgs) -> Self {
@@ -191,17 +176,6 @@ impl DakiaConfig {
 
         let mut dakia_config = dakia_raw_config_from_file.to_dakia_config();
         dakia_config.dp = dp.to_string();
-
-        // write pingora config to file for pingora to read
-        // TODO: move all write/read(if required) to dakia controller
-        if let Err(e) = dakia_config.write_pingora_config_to_file() {
-            error!(
-                "Failed to write Pingora configuration to file: {}\nDetails: {}",
-                e,
-                e.to_string()
-            );
-            panic!("Critical Error: Unable to write configuration file. Aborting the application due to error: {}", e);
-        }
 
         dakia_config
     }

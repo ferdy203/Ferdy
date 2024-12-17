@@ -19,7 +19,11 @@ fn main() {
     let dakia_args = DakiaArgs::parse();
     let dakia_config = DakiaConfig::build(&dakia_args);
 
-    let mut server = Server::new(Some(dakia_config.to_pingora_opt())).unwrap();
+    let mut server = Server::new_with_opt_and_conf(
+        dakia_config.to_pingora_opt(),
+        dakia_config.to_pingora_server_config(),
+    );
+
     server.bootstrap();
 
     if let Some(router_config) = dakia_config.router_config {
