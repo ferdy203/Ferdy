@@ -44,6 +44,7 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 | Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards)) | Done ✅     |
 | Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))         | Done ✅     |
 | Proxy                                                                              | Done ✅     |
+| HTTP Protocol Suport                                                               | Done ✅     |
 | [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)       | Done ✅     |
 | Load Balancer                                                                      | In-Progress |
 | Extension(Rust,Java, JavaScript)                                                   | Pending     |
@@ -53,6 +54,12 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 | Controller(API to manage dakia over REST)                                          | Pending     |
 | Docker Image (Docker image to quicky play with dakia)                              | Pending     |
 | Regex support in host and route pattern                                            | Pending     |
+| TCP Protocol Support                                                               | Pending     |
+| UDP Protocol Support                                                               | Pending     |
+| Web Socket Protocol Support                                                        | Pending     |
+| HTTP/2 and HTTP/3 Protocol Support                                                 | Pending     |
+| gRPC Protocol Support                                                              | Pending     |
+| gRPC Protocol Support                                                              | Pending     |
 
 ## How to run?
 
