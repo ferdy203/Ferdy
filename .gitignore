@@ -26,6 +26,6 @@ replay_pid*
 
 # Added by cargo
 
-/target
+*/target
 /test
 /.vscode
