@@ -193,7 +193,7 @@ impl DakiaConfig {
         dakia_config.dp = dp.to_string();
 
         // write pingora config to file for pingora to read
-        // TODO: move all write/read(if required) to dakia  controller
+        // TODO: move all write/read(if required) to dakia controller
         if let Err(e) = dakia_config.write_pingora_config_to_file() {
             error!(
                 "Failed to write Pingora configuration to file: {}\nDetails: {}",
