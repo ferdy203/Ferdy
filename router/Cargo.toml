@@ -1,16 +1,22 @@
 [package]
-name = "router"
+name = "dakia_router"
 version = "0.1.0"
 edition = "2021"
+authors = ["Rahul Kumar"]
+description = "Dakia is a powerful and flexible API Gateway designed for modern web applications"
+license = "MIT"
+repository = "https://github.com/ats1999/dakia"
+documentation = "https://github.com/ats1999/dakia"
+
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 async-trait="0.1"
+env_logger = "0.9"
 pingora-core = { version = "0.3.0"}
 pingora-proxy = { version = "0.3.0"}
 pingora-http = { version = "0.3.0"}
-env_logger = "0.9"
-pingora = { version = "0.3.0", features = [ "lb" ] }
+pingora = { version = "0.3.0", features = [ "lb"] }
 clap = { version = "3.2.25", features = ["derive"] }
 serde_yaml = "0.9.34"
 serde = "1.0.216"

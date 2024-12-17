@@ -361,6 +361,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "dakia_router"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "clap",
+ "env_logger",
+ "log",
+ "pingora",
+ "pingora-core",
+ "pingora-http",
+ "pingora-proxy",
+ "serde",
+ "serde_yaml 0.9.34+deprecated",
+ "tokio",
+ "wildmatch",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1703,24 +1721,6 @@ dependencies = [
  "byteorder",
  "rmp",
  "serde",
-]
-
-[[package]]
-name = "router"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "clap",
- "env_logger",
- "log",
- "pingora",
- "pingora-core",
- "pingora-http",
- "pingora-proxy",
- "serde",
- "serde_yaml 0.9.34+deprecated",
- "tokio",
- "wildmatch",
 ]
 
 [[package]]
