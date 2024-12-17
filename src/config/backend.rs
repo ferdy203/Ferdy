@@ -1,4 +1,4 @@
-use super::upstream::UpstreamConfig;
+use super::upstream::UpstreamNodeConfig;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub enum SelectionAlgorithm {
@@ -16,19 +16,15 @@ pub struct TrafficDistributionPolicy {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct Backend {
+pub struct UpstreamConfig {
     pub name: String,
     pub default: bool,
-    pub upstreams: Vec<UpstreamConfig>,
+    pub upstreams: Vec<UpstreamNodeConfig>,
     pub traffic_distribution_policy: Option<TrafficDistributionPolicy>,
 }
 
-impl Backend {
-    pub fn get_upstream_config(&self) -> Option<&UpstreamConfig> {
-        // match &self.traffic_distribution_policy {
-        //     Some(policy) => &policy.selection_algorithm,
-        //     None => &SelectionAlgorithm::RoundRobin,
-        // }
+impl UpstreamConfig {
+    pub fn get_upstream_node_config(&self) -> Option<&UpstreamNodeConfig> {
         self.upstreams.get(0)
     }
 }

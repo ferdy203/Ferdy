@@ -1,6 +1,6 @@
 use super::DakiaHttpGatewayCtx;
 use crate::{
-    config::{Backend, GatewayConfig, UpstreamConfig},
+    config::{GatewayConfig, UpstreamConfig, UpstreamNodeConfig},
     libs::{pingora::get_header_value, utils::get_or_default},
 };
 use async_trait::async_trait;
@@ -32,8 +32,8 @@ impl RoutePatternBackendMatcher {
 pub struct DakiaHttpGateway {
     downstream_patterns: Vec<WildMatch>,
     route_pattern_backend_matchers: Vec<RoutePatternBackendMatcher>,
-    backend_map: HashMap<String, Backend>,
-    default_backend: Option<Backend>,
+    backend_map: HashMap<String, UpstreamConfig>,
+    default_backend: Option<UpstreamConfig>,
 }
 
 impl DakiaHttpGateway {
@@ -58,27 +58,29 @@ impl DakiaHttpGateway {
     fn get_path_map(gate_way: &GatewayConfig) -> Vec<RoutePatternBackendMatcher> {
         let mut path_backend_list: Vec<RoutePatternBackendMatcher> = vec![];
 
-        gate_way.routes.iter().for_each(|loc| {
-            let path_backend = RoutePatternBackendMatcher {
-                pattern: WildMatch::new(&loc.pattern),
-                backend: loc.backend.to_string(),
-            };
-            path_backend_list.push(path_backend);
+        gate_way.filters.iter().for_each(|loc| {
+            if let Some(route) = &loc.route {
+                let path_backend = RoutePatternBackendMatcher {
+                    pattern: WildMatch::new(&route.route),
+                    backend: loc.upstream.to_string(),
+                };
+                path_backend_list.push(path_backend);
+            }
         });
 
         path_backend_list
     }
 
-    fn get_backend_map(gate_way: &GatewayConfig) -> HashMap<String, Backend> {
+    fn get_backend_map(gate_way: &GatewayConfig) -> HashMap<String, UpstreamConfig> {
         let mut backend_map = HashMap::new();
-        gate_way.backends.iter().for_each(|backend| {
+        gate_way.upstreams.iter().for_each(|backend| {
             backend_map.insert(backend.name.to_string(), backend.clone());
         });
         backend_map
     }
 
-    fn get_default_backend(gate_way: &GatewayConfig) -> Option<Backend> {
-        let default_backend_ref = gate_way.backends.iter().find(|backend| backend.default);
+    fn get_default_backend(gate_way: &GatewayConfig) -> Option<UpstreamConfig> {
+        let default_backend_ref = gate_way.upstreams.iter().find(|backend| backend.default);
 
         match default_backend_ref {
             Some(backend_ref) => Some(backend_ref.clone()),
@@ -95,7 +97,7 @@ impl DakiaHttpGateway {
         }
     }
 
-    pub fn get_upstream_config(&self, host: &str, path: String) -> Option<&UpstreamConfig> {
+    pub fn get_upstream_config(&self, host: &str, path: String) -> Option<&UpstreamNodeConfig> {
         if !self.is_host_exists(host) {
             return None;
         }
@@ -108,9 +110,9 @@ impl DakiaHttpGateway {
         };
 
         match backend {
-            Some(backend) => backend.get_upstream_config(),
+            Some(backend) => backend.get_upstream_node_config(),
             None => match &self.default_backend {
-                Some(default_backend) => default_backend.get_upstream_config(),
+                Some(default_backend) => default_backend.get_upstream_node_config(),
                 None => None,
             },
         }
@@ -135,7 +137,7 @@ impl DakiaHttpGateway {
         }
     }
 
-    fn get_backend(&self, backend_name: &str) -> Option<&Backend> {
+    fn get_backend(&self, backend_name: &str) -> Option<&UpstreamConfig> {
         self.backend_map.get(backend_name)
     }
 }

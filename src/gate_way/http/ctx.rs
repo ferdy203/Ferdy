@@ -1,7 +1,7 @@
-use crate::config::UpstreamConfig;
+use crate::config::UpstreamNodeConfig;
 
 pub struct DakiaHttpGatewayCtx {
-    pub upstream_config: Option<UpstreamConfig>,
+    pub upstream_config: Option<UpstreamNodeConfig>,
 }
 
 impl DakiaHttpGatewayCtx {
