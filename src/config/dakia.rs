@@ -2,10 +2,14 @@ use crate::config::args::DakiaArgs;
 use crate::config::router;
 use crate::libs::utils::get_or_default;
 use log::{debug, error, warn};
-use pingora::prelude::Opt;
+use pingora::{prelude::Opt, server::configuration::ServerConf};
 use serde;
 use serde_yaml;
-use std::fs;
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::Path,
+};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct DakiaRawConfig {
@@ -27,6 +31,7 @@ pub struct DakiaRawConfig {
 }
 
 pub struct DakiaConfig {
+    pub dp: String,
     pub daemon: bool,
     pub error_log: String,
     pub pid_file: String,
@@ -47,6 +52,7 @@ pub struct DakiaConfig {
 impl DakiaRawConfig {
     fn to_dakia_config(&self) -> DakiaConfig {
         DakiaConfig {
+            dp: "/etc/dakia".to_string(),
             daemon: get_or_default(self.daemon, false),
             error_log: get_or_default(
                 self.error_log.clone(),
@@ -98,19 +104,61 @@ impl DakiaConfig {
     pub fn to_pingora_opt(&self) -> Opt {
         let mut opt = Opt::default();
         opt.daemon = self.daemon;
+        opt.conf = Some(self.dp.clone() + "/config/pingora.yaml");
         opt
     }
 
+    // TODO: write pingore config only if there is any change in the config between restarts
+    fn to_pingora_server_config(&self) -> ServerConf {
+        // TODO: use Arc instead of clone
+        ServerConf {
+            daemon: self.daemon,
+            error_log: Some(self.error_log.clone()),
+            grace_period_seconds: self.grace_period_seconds,
+            graceful_shutdown_timeout_seconds: self.graceful_shutdown_timeout_seconds,
+            group: self.group.clone(),
+            user: self.user.clone(),
+            threads: self.threads,
+            pid_file: self.pid_file.clone(),
+            upgrade_sock: self.upgrade_sock.clone(),
+            upstream_connect_offload_thread_per_pool: self.upstream_connect_offload_thread_per_pool,
+            upstream_debug_ssl_keylog: self.upstream_debug_ssl_keylog,
+            upstream_connect_offload_threadpools: self.upstream_connect_offload_threadpools,
+            upstream_keepalive_pool_size: self.upstream_keepalive_pool_size,
+            work_stealing: self.work_stealing,
+            version: 1,
+            ca_file: None,
+            client_bind_to_ipv4: vec![],
+            client_bind_to_ipv6: vec![],
+        }
+    }
+
+    fn write_pingora_config_to_file(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let pingora_server_config = self.to_pingora_server_config();
+        let yaml_string = serde_yaml::to_string(&pingora_server_config)?;
+        let path_to_pingora_config_file = Path::new(&self.dp).join("config/pingora.yaml");
+
+        if let Some(parent) = path_to_pingora_config_file.parent() {
+            fs::create_dir_all(parent)?;
+        }
+
+        let mut file = File::create(&path_to_pingora_config_file)?;
+        file.write_all(yaml_string.as_bytes())?;
+        Ok(())
+    }
+
     pub fn build(args: &DakiaArgs) -> Self {
-        let cp = match &args.cp {
-            Some(cp) => cp.to_string(),
-            None => String::from("/etc/dakia/config.yaml"),
+        let dp = match &args.dp {
+            Some(dp) => dp,
+            None => "/etc/dakia",
         };
+
+        let cp = Path::new(dp).join("config/dakia.yaml");
 
         let is_dakia_config_file_readable = match fs::metadata(&cp) {
             Ok(metadata) => metadata.is_file(),
             Err(e) => {
-                if args.cp.is_some() {
+                if args.dp.is_some() {
                     error!("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed: {:?}", e);
                 }
 
@@ -120,7 +168,7 @@ impl DakiaConfig {
 
         let dakia_raw_config_from_file = if is_dakia_config_file_readable {
             // TODO: handle unwrap() here
-            let raw_config = fs::read_to_string(cp).unwrap();
+            let raw_config = fs::read_to_string(&cp).unwrap();
 
             let dakia_raw_config_from_file: DakiaRawConfig =
                 serde_yaml::from_str(&raw_config).unwrap();
@@ -139,6 +187,22 @@ impl DakiaConfig {
             default_dakia_raw_config
         };
 
-        dakia_raw_config_from_file.to_dakia_config()
+        // write server config to file for pingora to read
+
+        let mut dakia_config = dakia_raw_config_from_file.to_dakia_config();
+        dakia_config.dp = dp.to_string();
+
+        // write pingora config to file for pingora to read
+        // TODO: move all write/read(if required) to dakia  controller
+        if let Err(e) = dakia_config.write_pingora_config_to_file() {
+            error!(
+                "Failed to write Pingora configuration to file: {}\nDetails: {}",
+                e,
+                e.to_string()
+            );
+            panic!("Critical Error: Unable to write configuration file. Aborting the application due to error: {}", e);
+        }
+
+        dakia_config
     }
 }

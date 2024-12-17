@@ -4,9 +4,9 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[clap(about = "A programmable, configurable and extensible API Gateway!", long_about = None)]
 pub struct DakiaArgs {
-    /// dakia config path
+    /// path for dakia local directory
     #[clap(short, long)]
-    pub cp: Option<String>,
+    pub dp: Option<String>,
 
     /// debug mode
     pub debug: Option<bool>,
