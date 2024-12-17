@@ -27,7 +27,7 @@ pub struct DakiaRawConfig {
     pub upstream_connect_offload_threadpools: Option<usize>,
     pub upstream_connect_offload_thread_per_pool: Option<usize>,
     pub upstream_debug_ssl_keylog: Option<bool>,
-    pub router_config: Option<router::RouterConfig>,
+    pub router: Option<router::RouterConfig>,
 }
 
 pub struct DakiaConfig {
@@ -46,7 +46,7 @@ pub struct DakiaConfig {
     pub upstream_connect_offload_threadpools: Option<usize>,
     pub upstream_connect_offload_thread_per_pool: Option<usize>,
     pub upstream_debug_ssl_keylog: bool,
-    pub router_config: Option<router::RouterConfig>,
+    pub router: Option<router::RouterConfig>,
 }
 
 impl DakiaRawConfig {
@@ -73,7 +73,7 @@ impl DakiaRawConfig {
             upstream_connect_offload_threadpools: self.upstream_connect_offload_threadpools,
             upstream_connect_offload_thread_per_pool: self.upstream_connect_offload_thread_per_pool,
             upstream_debug_ssl_keylog: get_or_default(self.upstream_debug_ssl_keylog, false),
-            router_config: self.router_config.clone(),
+            router: self.router.clone(),
         }
     }
 }
@@ -95,7 +95,7 @@ impl Default for DakiaRawConfig {
             upstream_connect_offload_threadpools: None,
             upstream_debug_ssl_keylog: None,
             upstream_keepalive_pool_size: None,
-            router_config: None,
+            router: None,
         }
     }
 }

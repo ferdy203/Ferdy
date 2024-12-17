@@ -26,8 +26,8 @@ fn main() {
 
     server.bootstrap();
 
-    if let Some(router_config) = dakia_config.router_config {
-        for gate_way in &router_config.gateways {
+    if let Some(router) = dakia_config.router {
+        for gate_way in &router.gateways {
             let dakia_proxy = DakiaHttpGateway::build(gate_way);
             let mut dakia_proxy_service = http_proxy_service(&server.configuration, dakia_proxy);
 
