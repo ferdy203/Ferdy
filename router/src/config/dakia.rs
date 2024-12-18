@@ -6,8 +6,7 @@ use pingora::{prelude::Opt, server::configuration::ServerConf};
 use serde;
 use serde_yaml;
 use std::{
-    fs::{self, File},
-    io::Write,
+    fs::{self},
     path::Path,
 };
 
