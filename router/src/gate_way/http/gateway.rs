@@ -58,7 +58,7 @@ impl DakiaHttpGateway {
     fn get_path_map(gate_way: &GatewayConfig) -> Vec<RoutePatternBackendMatcher> {
         let mut path_backend_list: Vec<RoutePatternBackendMatcher> = vec![];
 
-        gate_way.filters.iter().for_each(|loc| {
+        gate_way.routers.iter().for_each(|loc| {
             if let Some(route) = &loc.route {
                 let path_backend = RoutePatternBackendMatcher {
                     pattern: WildMatch::new(&route.route),

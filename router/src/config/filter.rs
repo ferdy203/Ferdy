@@ -10,7 +10,7 @@ pub struct RouteConfig {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct FilterConfig {
+pub struct Router {
     pub route: Option<RouteConfig>,
     pub upstream: String,
 }

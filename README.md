@@ -55,6 +55,7 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 | Docker Image (Docker image to quicky play with dakia)                              | Pending     |
 | Regex support in host and route pattern                                            | Pending     |
 | TCP Protocol Support                                                               | Pending     |
+| Dakia CLI                                                                          | Pending     |
 | UDP Protocol Support                                                               | Pending     |
 | Web Socket Protocol Support                                                        | Pending     |
 | HTTP/2 and HTTP/3 Protocol Support                                                 | Pending     |
