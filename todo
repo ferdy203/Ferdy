@@ -1,4 +1,5 @@
 ## Routing Archetecture
+TODO: add support for operators like, is, contains, matches(r"regex", w"wild card"), not contains, (and/or support)
 - filter can be written in any other language
 - plugin can be written in any other language
 - gateway
@@ -34,6 +35,7 @@
   - interceptors - use ArcSwap and Lazy because filter can be custom filter as well which needs to be loaded from file, or anything else
                  - interceptor will return Result<({ phase:Option<PhaseType>, interceptor: Option<InterceptorType> },Error)>
                       - so, an interceptor will not return anything else except Error if there is any
+                      - dynamic params to interceptor and filter
     - InterceptorA
       - filters [f1,f2,...fn]
       - phase
@@ -43,7 +45,7 @@
       - A single request can be processed by multiple interceptors and each interceptor can be matched by diffrent filter 
         - for example 
           - a middleare named logging have filter - if path is *(Any path)
-          - a middleware named auth have filter - if path is not /login and not /signup
+          - a interceptor named auth have filter - if path is not /login and not /signup
 ==============================================================================================================
 
 ## Filter can be written in any language
@@ -76,7 +78,7 @@
 - https://github.com/memorysafety/river
 - https://github.com/randommm/pingora-reverse-proxy
 - https://github.com/vicanso/pingap
-- Extension/Middleware
+- Extension/interceptor
   - IPC - IPC will make extesnsion development easier, allow debgging developer code
   - Dynamic linking
   - WSAM - static/dynamic linking
@@ -94,13 +96,18 @@
 - custom error code
 - acme client integration
 - TLS termination
-// TODO: add support for middleware
-// TODO: process request internally similar to middleware
+// TODO: add support for interceptor
+// TODO: process request internally similar to interceptor
 // TODO: cretae own structs to represent HTTP request and response and store into ctx
 //      - Do not allow to direcly use strcuts variables but rahter allow via set of function calls
 - upstream can be file, string or anything else
 - use trie for hostname - plain text host name
 - use trie for paths, headers which is plain text
+- TODO: plan custom dakia error
+  - dakia error
+  - router error
+  - filter error
+  - interceptor error
 - implement a trie that starts with plain text and at the end have regex which can be matched for the rest of the part of string
 /// Whether this server should try to auto restart
 #[arg(short, long)]
@@ -110,7 +117,7 @@ autorestart: bool,
 #[arg(long)]
 autoreload: bool,
 
-# What are the phases of middleware?
+# What are the phases of interceptor?
 - startup
 - init
 - pre_filter, post_filter
@@ -124,22 +131,47 @@ autoreload: bool,
 - end
 - shutdown
 
-# What is middleware?
-Middlewares are executed in the order they are defined in your application, and they can modify the request, response, or halt the request-response cycle entirely.
-- every middleware must have a unique name
-- name of the current executing middleware will be inside ctx object
+# What is interceptor?
+interceptors are executed in the order they are defined in your application, and they can modify the request, response, or halt the request-response cycle entirely.
+- every interceptor must have a unique name
+- name of the current executing interceptor will be inside ctx object
 
-# What a middleware can do?
-- a middleware can read request
-- a middleware can modify request
-- a middleware can read upstream response
-- a middleware can modify upstream response before sending to downstream
-- a middleware can next middleware
-    - next() - call next middleware in chain
-    - next(next_phase_name, next_middleware_name) - call next specified middleware by skipping any other middleware in between
-- a middleware can terminate request/response cycle by
+# What an interceptor can do?
+- a interceptor can read request
+- a interceptor can modify request
+- a interceptor can read upstream response
+- a interceptor can modify upstream response before sending to downstream
+- a interceptor can next interceptor
+    - next() - call next interceptor in chain
+    - next(next_phase_name, next_interceptor_name) - call next specified interceptor by skipping any other interceptor in between
+- a interceptor can terminate request/response cycle by
     - sending a respone directly to the downstream
     - triggering an error
 
 - README TOC
 - Fix the issue of, server should fail to restart if there is any other port already listening on that port, e.g 80, 443, etc
+
+## TODO: Error
+
+
+## TODO: Dakia Controller
+- start controller on localhost and allow connection on local host without authentication
+  - optionally users can plug in auth interceptor
+- Authentication is mandatory when using any other host
+- Allow option to route traffic to dakia controller via any other host, with auth (Optionally via interceptors)
+- suppot above features with the help of filter and interceptors
+
+## default pages for dakia
+- show page when no bind_address defined
+- show page when no router matched
+- show 500x error
+- show 502 page
+- plan other pages
+
+
+## auto discovery
+- start dakia on any port by auto discovery
+
+## delivery visulation
+- create a animation library by using dakia router config
+- show a complete visulation that how packets are travelling, how filters, middleware are executing
