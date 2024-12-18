@@ -1,0 +1,145 @@
+## Routing Archetecture
+- filter can be written in any other language
+- plugin can be written in any other language
+- gateway
+  - bind_addresses - TODO: support for adding and removign bind addresses in future
+                    - because restart can be done without downtime
+                    - so, it's not needed for now, must document it
+  - downstreams
+                - use ArcSwap for this, don't use lazy 
+  - upstreams 
+                - adding upstreams is easy, but removing upstreams is not easy 
+                - how can we close all existing connections to an upstream, add a TODO comment, or document it in limitation section
+                - add set idle_timeout to configurable interval to drop connections -  https://github.com/cloudflare/pingora/blob/main/docs/user_guide/pooling.md
+                      - https://github.com/cloudflare/pingora/blob/main/docs/user_guide/peer.md
+  - routers - a router will take a request and returns the upstream to which this request should be routed to
+    - routerA - ArcSwap
+      - name - to uniquely identify the router and log in files for trace and debug
+      - upstream - to which this requst will be routed
+      - filters [f1,f2,...fn]
+
+  - filters - use ArcSwap and Lazy because filter can be custom filter as well which needs to be loaded from file, or anything else
+            - Using lazy will reduce startup time
+            - filter returns - Result<bool,Error>
+                  - bool - if this filter matched
+            - store a HasSet of filters name on ctx object
+            - create a static method on Filter trait 
+                - to return true if filter is already matched for the request 
+                - to return true if filter is matching and store filter name inside hasset 
+      - filterA
+      - name - to uniquely identify the filter and log in files for trace and debug
+      - params
+  - Keep a filter named UnMatched to handle the request and do not process any further
+
+  - interceptors - use ArcSwap and Lazy because filter can be custom filter as well which needs to be loaded from file, or anything else
+                 - interceptor will return Result<({ phase:Option<PhaseType>, interceptor: Option<InterceptorType> },Error)>
+                      - so, an interceptor will not return anything else except Error if there is any
+    - InterceptorA
+      - filters [f1,f2,...fn]
+      - phase
+      - order (Keep it internally only)
+      - name (Future - Generate random names dynamically)
+            - name is optional, required when you want to jump from one interceptor to another bypassing all other interceptors in between
+      - A single request can be processed by multiple interceptors and each interceptor can be matched by diffrent filter 
+        - for example 
+          - a middleare named logging have filter - if path is *(Any path)
+          - a middleware named auth have filter - if path is not /login and not /signup
+==============================================================================================================
+
+## Filter can be written in any language
+- A filter can accept params from config
+- Filter must return true/false indicating if this filter matched for the request
+
+
+## Plugin can be written in any language
+- A plugin can accept params 
+- Plugin must take req, res to modify them if available
+- req and res both can be available to plugin 
+
+## Upstream can be file/directory
+
+## Upstream can be written in any langage
+
+## A filter/plugin/upstream can return error indicating that request can not be proceed any further
+
+- storing filters like this, we won't be able to use trie
+- try to use lock for updating config
+  - use https://docs.rs/arc-swap/latest/arc_swap/
+  - try this - https://docs.rs/arc-swap/latest/arc_swap/docs/patterns/index.html
+- Provide other options like header, cookie, in FilterConfig
+- don't keep behaviour in config struct except builder functions
+- add http scope in config.yaml
+- design dakia to support different config sourses, like file, db, network, etc
+- update entire config at once or some portion of the config
+- provide getter/setter to avoid reading direcly
+- TLS
+- https://github.com/memorysafety/river
+- https://github.com/randommm/pingora-reverse-proxy
+- https://github.com/vicanso/pingap
+- Extension/Middleware
+  - IPC - IPC will make extesnsion development easier, allow debgging developer code
+  - Dynamic linking
+  - WSAM - static/dynamic linking
+- test pingora options if they are working fine
+- https://github.com/ats1999/dakia/community - add options from here
+- choose a licence
+- add licence code to all files
+- do not allow modification of config
+- do not clone and modify req/res content, otherwise they won't be visible to other middelware in chain
+- so take only refrences
+- support for kdl - https://kdl.dev/
+- support etcd/zookeeper as config source
+- document pingora options in tabuler format and test those options as well
+- check if upstream_peer called by pingora in different thread or same thread used every time, try tuning pingora config to see if that affect anything 
+- custom error code
+- acme client integration
+- TLS termination
+// TODO: add support for middleware
+// TODO: process request internally similar to middleware
+// TODO: cretae own structs to represent HTTP request and response and store into ctx
+//      - Do not allow to direcly use strcuts variables but rahter allow via set of function calls
+- upstream can be file, string or anything else
+- use trie for hostname - plain text host name
+- use trie for paths, headers which is plain text
+- implement a trie that starts with plain text and at the end have regex which can be matched for the rest of the part of string
+/// Whether this server should try to auto restart
+#[arg(short, long)]
+autorestart: bool,
+
+/// Whether this server should try to auto reload configuration
+#[arg(long)]
+autoreload: bool,
+
+# What are the phases of middleware?
+- startup
+- init
+- pre_filter, post_filter
+- pre_upstream_request_selection
+- post_upsptream_request_selection
+- post_upsptream_request
+- post_upstream_response
+- pre_upstream_response_process
+- post_upstream_response_process
+- post_upstream_response_process
+- end
+- shutdown
+
+# What is middleware?
+Middlewares are executed in the order they are defined in your application, and they can modify the request, response, or halt the request-response cycle entirely.
+- every middleware must have a unique name
+- name of the current executing middleware will be inside ctx object
+
+# What a middleware can do?
+- a middleware can read request
+- a middleware can modify request
+- a middleware can read upstream response
+- a middleware can modify upstream response before sending to downstream
+- a middleware can next middleware
+    - next() - call next middleware in chain
+    - next(next_phase_name, next_middleware_name) - call next specified middleware by skipping any other middleware in between
+- a middleware can terminate request/response cycle by
+    - sending a respone directly to the downstream
+    - triggering an error
+
+- README TOC
+- Fix the issue of, server should fail to restart if there is any other port already listening on that port, e.g 80, 443, etc
