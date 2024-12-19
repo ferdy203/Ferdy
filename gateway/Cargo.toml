@@ -1,5 +1,5 @@
 [package]
-name = "dakia_router"
+name = "dakia_gateway"
 version = "0.1.0"
 edition = "2021"
 authors = ["Rahul Kumar"]
