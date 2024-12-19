@@ -53,11 +53,15 @@ TODO: add support for operators like, is, contains, matches(r"regex", w"wild car
 - Filter must return true/false indicating if this filter matched for the request
 
 
-## Plugin can be written in any language
-- A plugin can accept params 
-- Plugin must take req, res to modify them if available
+## Middleware can be written in any language
+- A Middleware can accept params 
+- Middleware must take req, res to modify them if available
 - req and res both can be available to plugin 
-
+- req,res object should not be an option
+- not all options, like req,res will be available in all phases
+  - for example middlewares should not receive res object before upstream response
+- Chain of Responsibility for executing middleware
+- Use registry pattern store interceptors and filters and other heavy resources
 ## Upstream can be file/directory
 
 ## Upstream can be written in any langage
@@ -147,7 +151,7 @@ interceptors are executed in the order they are defined in your application, and
 - a interceptor can terminate request/response cycle by
     - sending a respone directly to the downstream
     - triggering an error
-
+    - TODO: document this as Short-Circuiting
 - README TOC
 - Fix the issue of, server should fail to restart if there is any other port already listening on that port, e.g 80, 443, etc
 
@@ -168,6 +172,8 @@ interceptors are executed in the order they are defined in your application, and
 - show 502 page
 - plan other pages
 
+## Support Scripting
+- Support lua or any other embeddable language for scripting for writing middlewares/filters
 
 ## auto discovery
 - start dakia on any port by auto discovery
@@ -175,3 +181,8 @@ interceptors are executed in the order they are defined in your application, and
 ## delivery visulation
 - create a animation library by using dakia router config
 - show a complete visulation that how packets are travelling, how filters, middleware are executing
+
+## Future scopes
+- https://tyk.io/docs/plugins/
+- https://bellard.org/quickjs/
+- https://www.perl.org/

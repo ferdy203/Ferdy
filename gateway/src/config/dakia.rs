@@ -45,6 +45,7 @@ pub struct DakiaConfig {
     pub upstream_connect_offload_threadpools: Option<usize>,
     pub upstream_connect_offload_thread_per_pool: Option<usize>,
     pub upstream_debug_ssl_keylog: bool,
+    // gateway.http.gateways[]
     pub router: Option<router::RouterConfig>,
 }
 
