@@ -71,20 +71,19 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 
 ```yaml
 daemon: true
-# TODO: support for below options is yet to be done
-# error_log: "/var/log/dakia/error.log"
-# pid_file: "/var/run/dakia.pid"
-# upgrade_sock: "/var/run/dakia.sock"
-# user: "dakia_user"
-# group: "dakia_group"
-# threads: 4
-# work_stealing: true
-# grace_period_seconds: 60
-# graceful_shutdown_timeout_seconds: 30
-# upstream_keepalive_pool_size: 10
-# upstream_connect_offload_threadpools: 2
-# upstream_connect_offload_thread_per_pool: 5
-# upstream_debug_ssl_keylog: false
+error_log: "/var/log/dakia/error.log"
+pid_file: "/var/run/dakia.pid"
+upgrade_sock: "/var/run/dakia.sock"
+user: "dakia_user"
+group: "dakia_group"
+threads: 4
+work_stealing: true
+grace_period_seconds: 60
+graceful_shutdown_timeout_seconds: 30
+upstream_keepalive_pool_size: 10
+upstream_connect_offload_threadpools: 2
+upstream_connect_offload_thread_per_pool: 5
+upstream_debug_ssl_keylog: false
 router_config:
   gateways:
     - bind_addresses:

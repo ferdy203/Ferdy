@@ -31,3 +31,4 @@ replay_pid*
 /.vscode
 /local/*
 todo.txt
+/example*
