@@ -2,7 +2,7 @@ mod config;
 mod libs;
 mod proxy;
 
-use crate::config::DakiaConfig;
+use crate::config::DakiaConfigTemp;
 use clap::Parser;
 use config::DakiaArgs;
 use libs::utils::get_dakia_ascii_art;
@@ -17,7 +17,7 @@ fn main() {
     println!("{}", get_dakia_ascii_art());
 
     let dakia_args = DakiaArgs::parse();
-    let dakia_config = DakiaConfig::build(&dakia_args);
+    let dakia_config = DakiaConfigTemp::build(&dakia_args);
 
     let mut server = Server::new_with_opt_and_conf(
         dakia_config.to_pingora_opt(),
