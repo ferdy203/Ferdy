@@ -1,6 +1,6 @@
 mod config;
-mod router;
 mod libs;
+mod router;
 
 use crate::config::DakiaConfig;
 use clap::Parser;
