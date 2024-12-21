@@ -1,5 +1,5 @@
 [package]
-name = "dakia_gateway"
+name = "dakia"
 version = "0.1.0"
 edition = "2021"
 authors = ["Rahul Kumar"]
@@ -22,3 +22,5 @@ serde_yaml = "0.9.34"
 serde = "1.0.216"
 wildmatch = "2.4.0"
 log = "0.4"
+bytes = "1.0"
+http = "1.0.0"

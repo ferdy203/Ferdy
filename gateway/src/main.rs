@@ -1,5 +1,5 @@
 mod config;
-mod gate_way;
+mod router;
 mod libs;
 
 use crate::config::DakiaConfig;
@@ -8,7 +8,7 @@ use config::DakiaArgs;
 use libs::utils::get_dakia_ascii_art;
 use pingora::{proxy::http_proxy_service, server::Server};
 
-use gate_way::http::DakiaHttpGateway;
+use router::http::DakiaHttpGateway;
 
 // TODO: refactor entire code to improve code quality and organization
 // TODO: add regex host and path matching along with wild card host and path matching
