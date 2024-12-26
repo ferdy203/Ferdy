@@ -10,8 +10,8 @@ use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
 use globals::CONFIG_STORE;
-use libs::utils::get_dakia_ascii_art;
 use pingora::{proxy::http_proxy_service, server::Server};
+use shared::get_dakia_ascii_art;
 
 use proxy::http::Proxy;
 use shared::IntoRef;

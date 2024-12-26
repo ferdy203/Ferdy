@@ -1,3 +1,7 @@
+pub fn exit() {
+    std::process::exit(0);
+}
+
 pub fn get_or_default<T>(item: Option<T>, default: T) -> T
 where
     T: Clone,

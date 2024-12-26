@@ -1,6 +1,6 @@
 use crate::config::args::DakiaArgs;
 use crate::config::router;
-use crate::libs::utils::get_or_default;
+use crate::shared::get_or_default;
 use log::{debug, error, warn};
 use pingora::{prelude::Opt, server::configuration::ServerConf};
 use serde;

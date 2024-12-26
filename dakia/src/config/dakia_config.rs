@@ -6,7 +6,7 @@ use pingora::{prelude::Opt, server::configuration::ServerConf};
 use crate::{
     config::source_config::SourceDakiaRawConfig,
     error::{DakiaError, ImmutStr},
-    libs::utils::get_or_default,
+    shared::get_or_default,
     shared::IntoRef,
 };
 
