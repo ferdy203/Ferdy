@@ -1,22 +1,37 @@
 use clap::Parser;
 
-/// A programmable, configurable and extensible API Gateway!
+/// A programmable, configurable, and extensible API Gateway!
 #[derive(Parser, Debug)]
-#[clap(about = "A programmable, configurable and extensible API Gateway!", long_about = None)]
+#[clap(about = "A programmable, configurable, and extensible API Gateway!", long_about = None)]
 pub struct DakiaArgs {
-    /// path for dakia local directory
+    /// Path to Dakia's local directory for storing configuration, interceptors, filters, extensions  and runtime data.
     #[clap(long)]
     pub dp: Option<String>,
 
-    /// watch for changes made to the config files
-    #[clap(long)]
+    /// Watch for changes in configuration files, interceptors, filters and extensions and automatically apply updates.
+    #[clap(short, long)]
     pub watch: Option<bool>,
 
-    /// reload config files and update run time configuration, it may trigger graceful restart if requird
+    /// Reload configuration files and update runtime settings.
+    /// May trigger a graceful restart if required.
     #[clap(long)]
     pub reload: Option<bool>,
 
-    /// enable debug mode
+    /// Test the server configuration without starting the application.
+    #[clap(short, long)]
+    pub test: Option<bool>,
+
+    /// Display the current version of the API Gateway and exit.
+    #[clap(short, long)]
+    pub version: Option<bool>,
+
+    /// Enable verbose logging for more detailed output.
+    /// This is useful for debugging and monitoring.
+    #[clap(long, default_value_t = false)]
+    pub verbose: bool,
+
+    /// Enable debug mode to output additional debugging information.
+    /// Use this to troubleshoot issues during development or runtime.
     #[clap(long)]
     pub debug: Option<bool>,
 }
