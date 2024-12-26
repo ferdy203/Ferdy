@@ -10,4 +10,6 @@ pub use inet_address::InetAddress;
 pub use router_config::RouterConfig;
 pub use upstream_config::*;
 
-pub mod source_dakia_config;
+mod source_dakia_config;
+
+pub use source_dakia_config::SourceDakiaRawConfig;

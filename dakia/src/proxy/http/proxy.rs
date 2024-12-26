@@ -34,7 +34,9 @@ impl ProxyHttp for Proxy {
         _ctx: &mut Self::CTX,
     ) -> Result<(), Box<Error>> {
         // TODO: fix unwrap here
-        let c = CONFIG_MANAGER.get_latest_config().unwrap();
+        // TODO: how can we avoid putting unsafe everywhere? Can we make a function unsafe itself?
+        let c = unsafe { CONFIG_MANAGER.get_latest_config().unwrap() };
+
         _ctx.config = c;
         println!("early_request_filter Called..");
         Ok(())

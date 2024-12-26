@@ -18,3 +18,26 @@ pub struct SourceDakiaRawConfig {
     pub upstream_debug_ssl_keylog: Option<bool>,
     pub gateways: Vec<GatewayConfig>,
 }
+
+impl Default for SourceDakiaRawConfig {
+    // TODO: keep a yaml embeded string for default config with router and interceptors
+    fn default() -> Self {
+        SourceDakiaRawConfig {
+            daemon: None,
+            error_log: None,
+            pid_file: None,
+            upgrade_sock: None,
+            user: None,
+            group: None,
+            threads: None,
+            work_stealing: None,
+            grace_period_seconds: None,
+            graceful_shutdown_timeout_seconds: None,
+            upstream_connect_offload_thread_per_pool: None,
+            upstream_connect_offload_threadpools: None,
+            upstream_debug_ssl_keylog: None,
+            upstream_keepalive_pool_size: None,
+            gateways: vec![],
+        }
+    }
+}

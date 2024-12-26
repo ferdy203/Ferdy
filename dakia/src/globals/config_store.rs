@@ -12,7 +12,7 @@ pub struct ConfigManager {
     mutex: Mutex<()>,
 }
 
-pub static CONFIG_MANAGER: Lazy<ConfigManager> = Lazy::new(|| ConfigManager::new());
+pub static mut CONFIG_MANAGER: Lazy<ConfigManager> = Lazy::new(|| ConfigManager::new());
 
 // https://stackoverflow.com/questions/77547984/relation-of-mutex-and-cpu-caches-and-memory-fences
 impl ConfigManager {
