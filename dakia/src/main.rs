@@ -1,8 +1,10 @@
 mod config;
+mod error;
 mod globals;
 mod libs;
 mod proxy;
 mod shared;
+
 // use crate::config::DakiaConfigTemp;
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
