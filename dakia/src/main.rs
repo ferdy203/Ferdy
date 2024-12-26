@@ -9,7 +9,7 @@ mod shared;
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
-use globals::CONFIG_MANAGER;
+use globals::CONFIG_STORE;
 use libs::utils::get_dakia_ascii_art;
 use pingora::{proxy::http_proxy_service, server::Server};
 
@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<DakiaError>> {
     // TODO: can we avoid using unsafe here?
     #[allow(static_mut_refs)]
     unsafe {
-        CONFIG_MANAGER.add_config(dakia_config.clone()).unwrap()
+        CONFIG_STORE.store_config(dakia_config.clone()).unwrap()
     };
 
     let mut server =

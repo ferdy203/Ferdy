@@ -1,7 +1,7 @@
 use crate::config::source_config::GatewayConfig;
 
 use super::DakiaHttpGatewayCtx;
-use crate::globals::CONFIG_MANAGER;
+use crate::globals::CONFIG_STORE;
 use async_trait::async_trait;
 use pingora::{
     prelude::HttpPeer,
@@ -35,7 +35,7 @@ impl ProxyHttp for Proxy {
     ) -> Result<(), Box<Error>> {
         // TODO: fix unwrap here
         // TODO: how can we avoid putting unsafe everywhere? Can we make a function unsafe itself?
-        let c = unsafe { CONFIG_MANAGER.get_latest_config().unwrap() };
+        let c = unsafe { CONFIG_STORE.get_latest_config().unwrap() };
 
         _ctx.config = c;
         println!("early_request_filter Called..");

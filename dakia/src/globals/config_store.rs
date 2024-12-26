@@ -6,25 +6,29 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
-pub struct ConfigManager {
+pub struct ConfigStore {
     configs: AtomicPtr<HashMap<i64, Arc<DakiaConfig>>>,
     version: i64,
     mutex: Mutex<()>,
 }
 
-pub static mut CONFIG_MANAGER: Lazy<ConfigManager> = Lazy::new(|| ConfigManager::new());
+pub static mut CONFIG_STORE: Lazy<ConfigStore> = Lazy::new(|| ConfigStore::new());
 
 // https://stackoverflow.com/questions/77547984/relation-of-mutex-and-cpu-caches-and-memory-fences
-impl ConfigManager {
+// TODO: We can use crossbeam epoch, if epoch::Guard can be kept across threads because of tokio run time
+// as per doc epoch::Guard is pinned to a thread, so keeping it across threads could lead to undefined behaviour
+//
+// TODO: delete old config which is not likely to be used
+impl ConfigStore {
     pub fn new() -> Self {
-        ConfigManager {
+        ConfigStore {
             configs: AtomicPtr::new(Box::into_raw(Box::new(HashMap::new()))),
             version: 0,
             mutex: Mutex::new(()),
         }
     }
 
-    pub fn add_config(
+    pub fn store_config(
         &mut self,
         new_config: DakiaConfig,
     ) -> Result<(), Box<dyn std::error::Error>> {
