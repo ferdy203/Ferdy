@@ -19,10 +19,11 @@ use shared::IntoRef;
 // TODO: refactor entire code to improve code quality and organization
 // TODO: add regex host and path matching along with wild card host and path matching
 fn main() -> Result<(), Box<DakiaError>> {
-    env_logger::init();
-    println!("{}", get_dakia_ascii_art());
-
+    init();
     let dakia_args = DakiaArgs::parse();
+    // process args and exist if required
+    process_args(&dakia_args);
+
     let dakia_config = DakiaConfig::from_args(dakia_args)?;
 
     // TODO: handle unwrap here
@@ -55,4 +56,17 @@ fn main() -> Result<(), Box<DakiaError>> {
     }
 
     server.run_forever();
+}
+
+fn init() {
+    env_logger::init();
+    println!("{}", get_dakia_ascii_art());
+}
+
+fn process_args(args: &DakiaArgs) -> () {
+    if args.version {
+        let package_version = env!("CARGO_PKG_VERSION");
+        println!("Dakia {}", package_version);
+        shared::exit();
+    }
 }
