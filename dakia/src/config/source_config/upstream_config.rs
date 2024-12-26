@@ -3,7 +3,7 @@ use serde;
 use super::inet_address::InetAddress;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-enum SelectionAlgorithm {
+pub enum NodeSelectionAlgorithm {
     RoundRobin,
     Weighted,
     LeastConnection,
@@ -13,12 +13,12 @@ enum SelectionAlgorithm {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-struct TrafficDistributionPolicy {
-    node_selection_algorithm: SelectionAlgorithm,
+pub struct TrafficDistributionPolicy {
+    node_selection_algorithm: NodeSelectionAlgorithm,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-struct UpstreamNodeConfig {
+pub struct UpstreamNodeConfig {
     pub address: InetAddress,
     pub tls: bool,
     pub sni: Option<String>,

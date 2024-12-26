@@ -1,5 +1,5 @@
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct RouterConfig {
-    filter: Option<i32>,
-    upstream: String,
+    pub filter: Option<i32>,
+    pub upstream: String,
 }

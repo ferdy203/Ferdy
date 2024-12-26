@@ -3,7 +3,7 @@ use super::InetAddress;
 use super::RouterConfig;
 use super::UpstreamConfig;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct GatewayConfig {
     pub bind_address: Vec<InetAddress>,
     pub downstreams: Vec<DownstreamConfig>,

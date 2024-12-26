@@ -8,6 +8,6 @@ pub use downstream_config::DownstreamConfig;
 pub use gateway_config::GatewayConfig;
 pub use inet_address::InetAddress;
 pub use router_config::RouterConfig;
-pub use upstream_config::UpstreamConfig;
+pub use upstream_config::*;
 
 pub mod source_dakia_config;

@@ -29,7 +29,7 @@ pub struct DakiaRawConfig {
     pub router: Option<router::RouterConfig>,
 }
 
-pub struct DakiaConfig {
+pub struct DakiaConfigTemp {
     pub dp: String,
     pub daemon: bool,
     pub error_log: String,
@@ -45,13 +45,12 @@ pub struct DakiaConfig {
     pub upstream_connect_offload_threadpools: Option<usize>,
     pub upstream_connect_offload_thread_per_pool: Option<usize>,
     pub upstream_debug_ssl_keylog: bool,
-    // gateway.http.gateways[]
     pub router: Option<router::RouterConfig>,
 }
 
 impl DakiaRawConfig {
-    fn to_dakia_config(&self) -> DakiaConfig {
-        DakiaConfig {
+    fn to_dakia_config(&self) -> DakiaConfigTemp {
+        DakiaConfigTemp {
             dp: "/etc/dakia".to_string(),
             daemon: get_or_default(self.daemon, false),
             error_log: get_or_default(
@@ -100,7 +99,7 @@ impl Default for DakiaRawConfig {
     }
 }
 
-impl DakiaConfig {
+impl DakiaConfigTemp {
     pub fn to_pingora_opt(&self) -> Opt {
         let mut opt = Opt::default();
         opt.daemon = self.daemon;

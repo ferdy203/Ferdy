@@ -1,5 +1,6 @@
-use super::GatewayConfig;
+use super::source_config::GatewayConfig;
 
+#[derive(Debug, Clone)]
 pub struct DakiaConfig {
     pub dp: String,
     pub daemon: bool,
@@ -17,4 +18,27 @@ pub struct DakiaConfig {
     pub upstream_connect_offload_thread_per_pool: Option<usize>,
     pub upstream_debug_ssl_keylog: bool,
     pub gateways: Vec<GatewayConfig>,
+}
+
+impl Default for DakiaConfig {
+    fn default() -> Self {
+        Self {
+            dp: Default::default(),
+            daemon: Default::default(),
+            error_log: Default::default(),
+            pid_file: Default::default(),
+            upgrade_sock: Default::default(),
+            user: Default::default(),
+            group: Default::default(),
+            threads: Default::default(),
+            work_stealing: Default::default(),
+            grace_period_seconds: Default::default(),
+            graceful_shutdown_timeout_seconds: Default::default(),
+            upstream_keepalive_pool_size: Default::default(),
+            upstream_connect_offload_threadpools: Default::default(),
+            upstream_connect_offload_thread_per_pool: Default::default(),
+            upstream_debug_ssl_keylog: Default::default(),
+            gateways: Default::default(),
+        }
+    }
 }
