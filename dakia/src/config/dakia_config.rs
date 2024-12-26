@@ -1,10 +1,13 @@
 use std::{fs, path::Path};
 
-use log::{debug, error, warn};
+use log::{debug, warn};
 use pingora::{prelude::Opt, server::configuration::ServerConf};
 
 use crate::{
-    config::source_config::SourceDakiaRawConfig, libs::utils::get_or_default, shared::IntoRef,
+    config::source_config::SourceDakiaRawConfig,
+    error::{DakiaError, ImmutStr},
+    libs::utils::get_or_default,
+    shared::IntoRef,
 };
 
 use super::{source_config::GatewayConfig, DakiaArgs};
@@ -52,8 +55,8 @@ impl Default for DakiaConfig {
     }
 }
 
-impl From<DakiaArgs> for DakiaConfig {
-    fn from(args: DakiaArgs) -> Self {
+impl DakiaConfig {
+    pub fn from_args(args: DakiaArgs) -> Result<Self, DakiaError> {
         let dp = match &args.dp {
             Some(dp) => dp,
             None => "/etc/dakia",
@@ -64,20 +67,59 @@ impl From<DakiaArgs> for DakiaConfig {
         let is_dakia_config_file_readable = match fs::metadata(&cp) {
             Ok(metadata) => metadata.is_file(),
             Err(e) => {
+                // if args.dp is present then config is supposed to be there
                 if args.dp.is_some() {
-                    error!("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed: {:?}", e);
+                    let e = DakiaError::create(
+                        crate::error::ErrorType::InternalError,
+                        crate::error::ErrorSource::Internal,
+                        Some(ImmutStr::from("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed!")),
+                        Some(Box::new(e)),
+                    );
+                    return Err(*e);
                 }
 
                 false
             }
         };
 
-        let dakia_raw_config_from_file = if is_dakia_config_file_readable {
-            // TODO: handle unwrap() here
-            let raw_config = fs::read_to_string(&cp).unwrap();
+        if args.dp.is_some() && !is_dakia_config_file_readable {
+            let e = DakiaError::create(
+                crate::error::ErrorType::InternalError,
+                crate::error::ErrorSource::Internal,
+                Some(ImmutStr::from("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed!")),
+                None,
+            );
+            return Err(*e);
+        }
 
-            let dakia_raw_config_from_file: SourceDakiaRawConfig =
-                serde_yaml::from_str(&raw_config).unwrap();
+        let dakia_raw_config_from_file = if is_dakia_config_file_readable {
+            let raw_config = match fs::read_to_string(&cp) {
+                Ok(raw_config) => raw_config,
+                Err(e) => {
+                    let e = DakiaError::create(
+                        crate::error::ErrorType::InternalError,
+                        crate::error::ErrorSource::Internal,
+                        Some(ImmutStr::from("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed!")),
+                        Some(Box::new(e)),
+                    );
+                    return Err(*e);
+                }
+            };
+
+            let dakia_raw_config_from_file: SourceDakiaRawConfig = match serde_yaml::from_str(
+                &raw_config,
+            ) {
+                Ok(c) => c,
+                Err(e) => {
+                    let e = DakiaError::create(
+                            crate::error::ErrorType::InternalError,
+                            crate::error::ErrorSource::Internal,
+                            Some(ImmutStr::from("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed!")),
+                            Some(Box::new(e)),
+                        );
+                    return Err(*e);
+                }
+            };
 
             debug!(
                 "\n========== Dakia Config ==========\n{:#?}\n===================================",
@@ -93,7 +135,7 @@ impl From<DakiaArgs> for DakiaConfig {
             default_dakia_raw_config
         };
 
-        DakiaConfig::from(dakia_raw_config_from_file)
+        Ok(DakiaConfig::from(dakia_raw_config_from_file))
     }
 }
 

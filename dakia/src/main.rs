@@ -8,21 +8,22 @@ mod shared;
 // use crate::config::DakiaConfigTemp;
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
+use error::DakiaError;
 use globals::CONFIG_MANAGER;
 use libs::utils::get_dakia_ascii_art;
-use pingora::{prelude::Opt, proxy::http_proxy_service, server::Server};
+use pingora::{proxy::http_proxy_service, server::Server};
 
 use proxy::http::Proxy;
 use shared::IntoRef;
 
 // TODO: refactor entire code to improve code quality and organization
 // TODO: add regex host and path matching along with wild card host and path matching
-fn main() {
+fn main() -> Result<(), DakiaError> {
     env_logger::init();
     println!("{}", get_dakia_ascii_art());
 
     let dakia_args = DakiaArgs::parse();
-    let dakia_config = DakiaConfig::from(dakia_args);
+    let dakia_config = DakiaConfig::from_args(dakia_args)?;
 
     // TODO: handle unwrap here
     // TODO: can we avoid using unsafe here?
