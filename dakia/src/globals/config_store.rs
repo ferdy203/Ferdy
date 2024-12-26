@@ -26,7 +26,7 @@ impl ConfigManager {
 
     pub fn add_config(
         &mut self,
-        mut new_config: DakiaConfig,
+        new_config: DakiaConfig,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let _g = match self.mutex.lock() {
             Ok(guard) => guard,
