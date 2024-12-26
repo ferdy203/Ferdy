@@ -9,21 +9,21 @@ pub struct DakiaArgs {
     pub dp: Option<String>,
 
     /// Watch for changes in configuration files, interceptors, filters and extensions and automatically apply updates.
-    #[clap(short, long)]
-    pub watch: Option<bool>,
+    #[clap(short, long, default_value_t = false)]
+    pub watch: bool,
 
     /// Reload configuration files and update runtime settings.
     /// May trigger a graceful restart if required.
-    #[clap(long)]
-    pub reload: Option<bool>,
+    #[clap(long, default_value_t = false)]
+    pub reload: bool,
 
     /// Test the server configuration without starting the application.
-    #[clap(short, long)]
-    pub test: Option<bool>,
+    #[clap(short, long, default_value_t = false)]
+    pub test: bool,
 
     /// Display the current version of the API Gateway and exit.
-    #[clap(short, long)]
-    pub version: Option<bool>,
+    #[clap(short, long, default_value_t = false)]
+    pub version: bool,
 
     /// Enable verbose logging for more detailed output.
     /// This is useful for debugging and monitoring.
@@ -32,6 +32,6 @@ pub struct DakiaArgs {
 
     /// Enable debug mode to output additional debugging information.
     /// Use this to troubleshoot issues during development or runtime.
-    #[clap(long)]
-    pub debug: Option<bool>,
+    #[clap(long, default_value_t = false)]
+    pub debug: bool,
 }
