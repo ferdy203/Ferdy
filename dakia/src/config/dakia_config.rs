@@ -144,7 +144,8 @@ impl IntoRef<Opt> for DakiaConfig {
     fn into_ref(&self) -> Opt {
         let mut opt = Opt::default();
         opt.daemon = self.daemon;
-        opt.conf = Some(self.dp.clone() + "/config/pingora.yaml");
+        // not required, as we are pssing struct directly
+        // opt.conf = Some(self.dp.clone() + "/config/pingora.yaml");
         opt
     }
 }

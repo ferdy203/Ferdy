@@ -52,6 +52,7 @@ fn init(_dakia_config: &DakiaConfig) {
 
     // if error log file option is available then create one
     // if out log file option is avaibale then cretae one
+    // TODO: add support for access log like nginx
     // TODO: create folder for extensions, filters, interceptors (if valid dp is available)
 }
 
