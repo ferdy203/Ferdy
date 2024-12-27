@@ -3,6 +3,7 @@ use serde;
 use super::inet_address::InetAddress;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum NodeSelectionAlgorithm {
     RoundRobin,
     Weighted,

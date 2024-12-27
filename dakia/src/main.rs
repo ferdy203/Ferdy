@@ -10,23 +10,22 @@ use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
 use globals::CONFIG_STORE;
-use pingora::{proxy::http_proxy_service, server::Server};
+use pingora::server::Server;
 use shared::get_dakia_ascii_art;
 
 use proxy::http::Proxy;
 use shared::IntoRef;
 
-// TODO: refactor entire code to improve code quality and organization
-// TODO: add regex host and path matching along with wild card host and path matching
 fn main() -> Result<(), Box<DakiaError>> {
     let dakia_args = DakiaArgs::parse();
+
+    // process args and exist if required
+    process_args(&dakia_args);
+
     let dakia_config = DakiaConfig::from_args(dakia_args.clone())?;
 
     // perform init steps
     init(&dakia_config);
-
-    // process args and exist if required
-    process_args(&dakia_args);
 
     // TODO: handle unwrap here
     // TODO: can we avoid using unsafe here?

@@ -6,7 +6,6 @@ use pingora::{prelude::Opt, server::configuration::ServerConf};
 use crate::{
     config::source_config::SourceDakiaRawConfig,
     error::{DakiaError, ImmutStr},
-    shared::get_or_default,
     shared::IntoRef,
 };
 
@@ -14,8 +13,8 @@ use super::{source_config::GatewayConfig, DakiaArgs};
 
 #[derive(Debug, Clone)]
 pub struct DakiaConfig {
-    pub dp: String,
     pub daemon: bool,
+    pub dp: String,
     pub error_log: String,
     pub pid_file: String,
     pub upgrade_sock: String,
@@ -64,8 +63,7 @@ impl DakiaConfig {
             .map(|metadata| metadata.is_file())
             .unwrap_or(false);
 
-        // if args.dp is present then config files are supposed to be there otherwise it'll be treated as an error
-        if args.dp.is_some() && !is_config_file_readable {
+        if !is_config_file_readable {
             let e = DakiaError::create(
                 crate::error::ErrorType::InternalError,
                 crate::error::ErrorSource::Internal,
@@ -75,38 +73,30 @@ impl DakiaConfig {
             return Err(e);
         }
 
-        // if is_config_file_readable is true then config files are supposed to be readable otherwise it'll be treated as an error
-        let source_dakia_config = if is_config_file_readable {
-            let raw_config = fs::read_to_string(&cp).map_err(|e| DakiaError::create(
-                crate::error::ErrorType::InternalError,
-                crate::error::ErrorSource::Internal,
-                Some(ImmutStr::from("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed!")),
-                Some(Box::new(e)),
-            ))?;
+        let raw_config = fs::read_to_string(&cp).map_err(|e| DakiaError::create(
+            crate::error::ErrorType::InternalError,
+            crate::error::ErrorSource::Internal,
+            Some(ImmutStr::from("Failed to load Dakia config file. The file might be missing, inaccessible, or malformed!")),
+            Some(Box::new(e)),
+        ))?;
 
-            let source_dakia_config: SourceDakiaRawConfig = serde_yaml::from_str(&raw_config)
-                .map_err(|e| {
-                    DakiaError::create(
-                        crate::error::ErrorType::InternalError,
-                        crate::error::ErrorSource::Internal,
-                        Some(ImmutStr::from("Failed to parse config the file.")),
-                        Some(Box::new(e)),
-                    )
-                })?;
+        let mut source_dakia_config: SourceDakiaRawConfig = serde_yaml::from_str(&raw_config)
+            .map_err(|e| {
+                DakiaError::create(
+                    crate::error::ErrorType::InternalError,
+                    crate::error::ErrorSource::Internal,
+                    Some(ImmutStr::from("Failed to parse config the file.")),
+                    Some(Box::new(e)),
+                )
+            })?;
 
-            debug!(
-                "\n========== Dakia Config ==========\n{:#?}\n===================================",
-                source_dakia_config
-            );
+        // update this so that it can be preserved over restart
+        source_dakia_config.dp = args.dp;
+
+        debug!(
+            "\n========== Dakia Config ==========\n{:#?}\n===================================",
             source_dakia_config
-        } else {
-            let source_dakia_config = SourceDakiaRawConfig::default();
-            warn!(
-                "⚠️  Config File Not Found!\n👉 Using Default Configuration\n {:#?}",
-                source_dakia_config
-            );
-            source_dakia_config
-        };
+        );
 
         Ok(DakiaConfig::from(source_dakia_config))
     }
@@ -115,39 +105,36 @@ impl DakiaConfig {
 impl From<SourceDakiaRawConfig> for DakiaConfig {
     fn from(source_dakia_raw_config: SourceDakiaRawConfig) -> Self {
         DakiaConfig {
-            dp: "/etc/dakia".to_string(),
-            daemon: get_or_default(source_dakia_raw_config.daemon, false),
-            error_log: get_or_default(
-                source_dakia_raw_config.error_log.clone(),
-                "/var/log/dakia/error.log".to_string(),
-            ),
-            pid_file: get_or_default(
-                source_dakia_raw_config.pid_file.clone(),
-                "/var/run/dakia.pid".to_string(),
-            ),
-            upgrade_sock: get_or_default(
-                source_dakia_raw_config.upgrade_sock.clone(),
-                "/var/run/dakia_upgrade.sock".to_string(),
-            ),
+            daemon: source_dakia_raw_config.daemon.unwrap_or(false),
+            dp: source_dakia_raw_config
+                .dp
+                .unwrap_or("/etc/dakia".to_string()),
+            error_log: source_dakia_raw_config
+                .error_log
+                .unwrap_or("/var/log/dakia/error.log".to_string()),
+            pid_file: source_dakia_raw_config
+                .pid_file
+                .unwrap_or("/tmp/dakia.pid".to_string()),
+            upgrade_sock: source_dakia_raw_config
+                .upgrade_sock
+                .unwrap_or("/tmp/dakia_upgrade.sock".to_string()),
             user: source_dakia_raw_config.user.clone(),
             group: source_dakia_raw_config.group.clone(),
-            threads: get_or_default(source_dakia_raw_config.threads, 1),
-            work_stealing: get_or_default(source_dakia_raw_config.work_stealing, true),
+            threads: source_dakia_raw_config.threads.unwrap_or(1),
+            work_stealing: source_dakia_raw_config.work_stealing.unwrap_or(true),
             grace_period_seconds: source_dakia_raw_config.grace_period_seconds,
             graceful_shutdown_timeout_seconds: source_dakia_raw_config
                 .graceful_shutdown_timeout_seconds,
-            upstream_keepalive_pool_size: get_or_default(
-                source_dakia_raw_config.upstream_keepalive_pool_size,
-                128,
-            ),
+            upstream_keepalive_pool_size: source_dakia_raw_config
+                .upstream_keepalive_pool_size
+                .unwrap_or(128),
             upstream_connect_offload_threadpools: source_dakia_raw_config
                 .upstream_connect_offload_threadpools,
             upstream_connect_offload_thread_per_pool: source_dakia_raw_config
                 .upstream_connect_offload_thread_per_pool,
-            upstream_debug_ssl_keylog: get_or_default(
-                source_dakia_raw_config.upstream_debug_ssl_keylog,
-                false,
-            ),
+            upstream_debug_ssl_keylog: source_dakia_raw_config
+                .upstream_debug_ssl_keylog
+                .unwrap_or(false),
             gateways: vec![],
         }
     }

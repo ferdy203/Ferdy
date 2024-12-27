@@ -2,7 +2,7 @@ use clap::AppSettings;
 use clap::Parser;
 
 /// A programmable, configurable, and extensible API Gateway!
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[clap(about = "A programmable, configurable, and extensible API Gateway!", long_about = None)]
 #[clap(global_setting(AppSettings::DisableVersionFlag))]
 pub struct DakiaArgs {
