@@ -18,18 +18,22 @@ use shared::IntoRef;
 // TODO: refactor entire code to improve code quality and organization
 // TODO: add regex host and path matching along with wild card host and path matching
 fn main() -> Result<(), Box<DakiaError>> {
+    // perform init steps
     init();
+
     let dakia_args = DakiaArgs::parse();
+
     // process args and exist if required
     process_args(&dakia_args);
 
+    // build dakia in memory config
     let dakia_config = DakiaConfig::from_args(dakia_args)?;
 
     // TODO: handle unwrap here
     // TODO: can we avoid using unsafe here?
     #[allow(static_mut_refs)]
     unsafe {
-        CONFIG_STORE.store_config(dakia_config.clone()).unwrap()
+        CONFIG_STORE.store_config(dakia_config.clone()).unwrap();
     };
 
     let mut server =

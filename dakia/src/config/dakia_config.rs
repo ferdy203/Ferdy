@@ -60,11 +60,12 @@ impl DakiaConfig {
         let dp = args.dp.as_deref().unwrap_or("/etc/dakia"); // dakia path
         let cp = Path::new(dp).join("config/dakia.yaml"); // configs path
 
-        let is_dakia_config_file_readable = fs::metadata(&cp)
+        let is_config_file_readable = fs::metadata(&cp)
             .map(|metadata| metadata.is_file())
             .unwrap_or(false);
 
-        if args.dp.is_some() && !is_dakia_config_file_readable {
+        // if args.dp is present then config files are supposed to be there otherwise it'll be treated as an error
+        if args.dp.is_some() && !is_config_file_readable {
             let e = DakiaError::create(
                 crate::error::ErrorType::InternalError,
                 crate::error::ErrorSource::Internal,
@@ -74,7 +75,8 @@ impl DakiaConfig {
             return Err(e);
         }
 
-        let dakia_config_raw_str = if is_dakia_config_file_readable {
+        // if is_config_file_readable is true then config files are supposed to be readable otherwise it'll be treated as an error
+        let source_dakia_config = if is_config_file_readable {
             let raw_config = fs::read_to_string(&cp).map_err(|e| DakiaError::create(
                 crate::error::ErrorType::InternalError,
                 crate::error::ErrorSource::Internal,
@@ -82,7 +84,7 @@ impl DakiaConfig {
                 Some(Box::new(e)),
             ))?;
 
-            let dakia_source_config: SourceDakiaRawConfig = serde_yaml::from_str(&raw_config)
+            let source_dakia_config: SourceDakiaRawConfig = serde_yaml::from_str(&raw_config)
                 .map_err(|e| {
                     DakiaError::create(
                         crate::error::ErrorType::InternalError,
@@ -94,19 +96,19 @@ impl DakiaConfig {
 
             debug!(
                 "\n========== Dakia Config ==========\n{:#?}\n===================================",
-                dakia_source_config
+                source_dakia_config
             );
-            dakia_source_config
+            source_dakia_config
         } else {
-            let default_dakia_source_config = SourceDakiaRawConfig::default();
+            let source_dakia_config = SourceDakiaRawConfig::default();
             warn!(
                 "⚠️  Config File Not Found!\n👉 Using Default Configuration\n {:#?}",
-                default_dakia_source_config
+                source_dakia_config
             );
-            default_dakia_source_config
+            source_dakia_config
         };
 
-        Ok(DakiaConfig::from(dakia_config_raw_str))
+        Ok(DakiaConfig::from(source_dakia_config))
     }
 }
 
