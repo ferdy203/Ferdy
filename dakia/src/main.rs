@@ -11,12 +11,13 @@ use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
 use globals::CONFIG_STORE;
 use pingora::server::Server;
-use shared::get_dakia_ascii_art;
+use shared::{get_ascii_version, get_dakia_ascii_art};
 
 use proxy::http::Proxy;
 use shared::IntoRef;
 
 fn main() -> Result<(), Box<DakiaError>> {
+    println!("{}", get_dakia_ascii_art());
     let dakia_args = DakiaArgs::parse();
 
     // process args and exist if required
@@ -48,7 +49,6 @@ fn main() -> Result<(), Box<DakiaError>> {
 
 fn init(_dakia_config: &DakiaConfig) {
     env_logger::init();
-    println!("{}", get_dakia_ascii_art());
 
     // if error log file option is available then create one
     // if out log file option is avaibale then cretae one
@@ -58,8 +58,7 @@ fn init(_dakia_config: &DakiaConfig) {
 
 fn process_args(args: &DakiaArgs) -> () {
     if args.version {
-        let package_version = env!("CARGO_PKG_VERSION");
-        println!("Dakia {}", package_version);
+        println!("\n\n{}", get_ascii_version());
         shared::exit();
     }
 }
