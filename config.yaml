@@ -22,12 +22,12 @@ router:
       downstreams:
         - host: "w3worker.net"
         - host: "localhost"
-      backends:
+      upstreams:
         - name: "payment"
           default: false
           traffic_distribution_policy:
-            selection_algorithm: "RoundRobin"
-          upstreams:
+            node_selection_algorithm: "round_robin"
+          upstream_nodes:
             - address:
                 host: "0.0.0.0"
                 port: 3000
@@ -42,7 +42,7 @@ router:
               weight: 2
         - name: "search"
           default: false
-          upstreams:
+          upstream_nodes:
             - address:
                 host: "0.0.0.0"
                 port: 3002
@@ -50,19 +50,19 @@ router:
               sni: null
         - name: "content"
           default: true
-          upstreams:
+          upstream_nodes:
             - address:
                 host: "0.0.0.0"
                 port: 3003
               tls: false
               sni: null
-      routes:
-        - pattern: "*/pay"
-          pattern_type: "Wildcard"
-          backend: "payment"
-        - pattern: "*/query"
-          pattern_type: "Wildcard"
-          backend: "payment"
-        - pattern: "*"
-          pattern_type: "Wildcard"
-          backend: "content"
+      # routes:
+      #   - pattern: "*/pay"
+      #     pattern_type: "Wildcard"
+      #     backend: "payment"
+      #   - pattern: "*/query"
+      #     pattern_type: "Wildcard"
+      #     backend: "payment"
+      #   - pattern: "*"
+      #     pattern_type: "Wildcard"
+      #     backend: "content"
