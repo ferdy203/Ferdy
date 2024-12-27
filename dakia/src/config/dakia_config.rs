@@ -135,7 +135,7 @@ impl From<SourceDakiaRawConfig> for DakiaConfig {
             upstream_debug_ssl_keylog: source_dakia_raw_config
                 .upstream_debug_ssl_keylog
                 .unwrap_or(false),
-            gateways: vec![],
+            gateways: source_dakia_raw_config.gateways,
         }
     }
 }
