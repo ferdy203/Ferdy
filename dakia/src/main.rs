@@ -1,5 +1,6 @@
 mod config;
 mod error;
+mod gateway;
 mod globals;
 mod proxy;
 mod shared;
@@ -18,16 +19,14 @@ use shared::IntoRef;
 // TODO: refactor entire code to improve code quality and organization
 // TODO: add regex host and path matching along with wild card host and path matching
 fn main() -> Result<(), Box<DakiaError>> {
-    // perform init steps
-    init();
-
     let dakia_args = DakiaArgs::parse();
+    let dakia_config = DakiaConfig::from_args(dakia_args.clone())?;
+
+    // perform init steps
+    init(&dakia_config);
 
     // process args and exist if required
     process_args(&dakia_args);
-
-    // build dakia in memory config
-    let dakia_config = DakiaConfig::from_args(dakia_args)?;
 
     // TODO: handle unwrap here
     // TODO: can we avoid using unsafe here?
@@ -42,28 +41,19 @@ fn main() -> Result<(), Box<DakiaError>> {
     server.bootstrap();
 
     for gateway in dakia_config.gateways {
-        // TODO:  move init code to gateway trait
-        // pass gateway config
-        let dakia_proxy = Proxy::build(&gateway);
-        let mut dakia_proxy_service = http_proxy_service(&server.configuration, dakia_proxy);
-
-        for inet_address in &gateway.bind_addresses {
-            let host = &inet_address.host;
-            let port = inet_address.port;
-
-            let addr = format!("{}:{}", host, port);
-            dakia_proxy_service.add_tcp(&addr);
-        }
-
-        server.add_service(dakia_proxy_service);
+        gateway::init(&mut server, &gateway);
     }
 
     server.run_forever();
 }
 
-fn init() {
+fn init(_dakia_config: &DakiaConfig) {
     env_logger::init();
     println!("{}", get_dakia_ascii_art());
+
+    // if error log file option is available then create one
+    // if out log file option is avaibale then cretae one
+    // TODO: create folder for extensions, filters, interceptors (if valid dp is available)
 }
 
 fn process_args(args: &DakiaArgs) -> () {
