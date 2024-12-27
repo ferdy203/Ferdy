@@ -56,9 +56,24 @@ fn init(_dakia_config: &DakiaConfig) {
     // TODO: create folder for extensions, filters, interceptors (if valid dp is available)
 }
 
-fn process_args(args: &DakiaArgs) -> () {
-    if args.version {
-        println!("\n\n{}", get_ascii_version());
+fn process_args(_args: &DakiaArgs) -> () {
+    if _args.version {
+        // version will be printed along with dakia art in the very beginning
+        shared::exit();
+    }
+
+    if _args.reload {
+        // TODO: add reload support
+        shared::exit();
+    }
+
+    if _args.debug {
+        // TODO: change log level to debug
+        shared::exit();
+    }
+
+    if _args.test {
+        // TODO: validate config
         shared::exit();
     }
 }

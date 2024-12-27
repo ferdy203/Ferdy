@@ -17,7 +17,7 @@ _______
 \\_______|/    / /   | |_  |   |  \\  \\         / /   | |_ 
               \\ \\._,\\ '/  '    \\  \\  \\        \\ \\._,\\ '/
                `--'  `\"  '------'  '---'       `--'  `\"";
-    DAKIA_ASCII_ART.to_string()
+    DAKIA_ASCII_ART.to_string() + "\n\n" + get_ascii_version()
 }
 
 pub fn get_ascii_version() -> &'static str {
