@@ -1,3 +1,4 @@
+use crate::config::ConfigVersion;
 use crate::config::DakiaConfig;
 use crate::error::DakiaError;
 use crate::error::ImmutStr;
@@ -10,8 +11,8 @@ use std::sync::Arc;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
 pub struct ConfigStore {
-    configs: AtomicPtr<HashMap<i64, Arc<DakiaConfig>>>,
-    version: i64,
+    configs: AtomicPtr<HashMap<ConfigVersion, Arc<DakiaConfig>>>,
+    version: ConfigVersion,
     mutex: Mutex<()>,
 }
 
@@ -41,10 +42,14 @@ impl ConfigStore {
 
         self.version = self.version + 1;
         let configs_ptr = self.configs.load(Ordering::SeqCst);
-
         unsafe {
             let configs = &mut *configs_ptr;
-            configs.insert(self.version, Arc::new(new_config));
+
+            // set version for the config
+            let mut cloned_config = new_config.clone();
+            cloned_config.version = self.version;
+
+            configs.insert(self.version, Arc::new(cloned_config));
         };
 
         Ok(())

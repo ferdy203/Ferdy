@@ -33,12 +33,14 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<(), Box<Error>> {
-        // TODO: fix unwrap here
-        // TODO: how can we avoid putting unsafe everywhere? Can we make a function unsafe itself?
-        let c = unsafe { CONFIG_STORE.get_latest_config().unwrap() };
-
+        #[allow(static_mut_refs)]
+        let c = unsafe {
+            CONFIG_STORE
+                .get_latest_config()
+                .map_err(|e| e.to_pingora_error())?
+        };
         _ctx.config = c;
-        println!("early_request_filter Called..");
+
         Ok(())
     }
 
@@ -47,9 +49,6 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
-        println!("{}", _ctx.config.daemon);
-
-        println!("upstream_peer Called..");
         let addr = ("127.0.0.1", 3000);
 
         let peer = Box::new(HttpPeer::new(addr, false, "one.one.one.one".to_string()));
