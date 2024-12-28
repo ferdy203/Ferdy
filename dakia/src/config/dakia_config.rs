@@ -1,6 +1,6 @@
 use std::{fs, path::Path};
 
-use log::{debug, warn};
+use log::debug;
 use pingora::{prelude::Opt, server::configuration::ServerConf};
 
 use crate::{
@@ -11,8 +11,11 @@ use crate::{
 
 use super::{source_config::GatewayConfig, DakiaArgs};
 
+pub type ConfigVersion = i64;
+
 #[derive(Debug, Clone)]
 pub struct DakiaConfig {
+    pub version: ConfigVersion,
     pub daemon: bool,
     pub dp: String,
     pub error_log: String,
@@ -34,6 +37,7 @@ pub struct DakiaConfig {
 impl Default for DakiaConfig {
     fn default() -> Self {
         Self {
+            version: 0,
             dp: Default::default(),
             daemon: Default::default(),
             error_log: Default::default(),
@@ -105,6 +109,7 @@ impl DakiaConfig {
 impl From<SourceDakiaRawConfig> for DakiaConfig {
     fn from(source_dakia_raw_config: SourceDakiaRawConfig) -> Self {
         DakiaConfig {
+            version: 0,
             daemon: source_dakia_raw_config.daemon.unwrap_or(false),
             dp: source_dakia_raw_config
                 .dp
