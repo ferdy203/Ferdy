@@ -5,7 +5,6 @@ mod globals;
 mod proxy;
 mod shared;
 
-// use crate::config::DakiaConfigTemp;
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
