@@ -284,6 +284,31 @@ impl DakiaError {
             c.downcast_ref::<BError>().map_or(c, |e| e.root_cause())
         })
     }
+
+    pub fn to_pingora_error(self) -> Box<pingora::Error> {
+        let petype = match self.etype {
+            ErrorType::InternalError => pingora::ErrorType::InternalError,
+            ErrorType::ProxyError(status_code) => pingora::ErrorType::HTTPStatus(status_code),
+            ErrorType::UnknownError => pingora::ErrorType::UnknownError,
+        };
+
+        let pesource = match self.source {
+            ErrorSource::Downstream => pingora::ErrorSource::Downstream,
+            ErrorSource::Internal => pingora::ErrorSource::Internal,
+            ErrorSource::Unknown => pingora::ErrorSource::Unset,
+            ErrorSource::Upstream => pingora::ErrorSource::Upstream,
+        };
+
+        let pe = pingora::Error::create(
+            petype, pesource, None,
+            // TODO: handle conversion of context
+            // Some(pingora::ImmutStr::Owned(
+            //     self.context.unwrap().clone().to_string().into_boxed_str(),
+            // )),
+            self.cause,
+        );
+        pe
+    }
 }
 
 impl fmt::Display for DakiaError {
