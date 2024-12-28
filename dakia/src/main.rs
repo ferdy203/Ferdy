@@ -28,11 +28,9 @@ fn main() -> Result<(), Box<DakiaError>> {
     // perform init steps
     init(&dakia_config);
 
-    // TODO: handle unwrap here
-    // TODO: can we avoid using unsafe here?
     #[allow(static_mut_refs)]
     unsafe {
-        CONFIG_STORE.store_config(dakia_config.clone()).unwrap();
+        CONFIG_STORE.store_config(dakia_config.clone())?;
     };
 
     let mut server =

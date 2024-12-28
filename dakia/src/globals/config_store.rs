@@ -1,4 +1,7 @@
 use crate::config::DakiaConfig;
+use crate::error::DakiaError;
+use crate::error::ImmutStr;
+use log::error;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::atomic::AtomicPtr;
@@ -28,10 +31,7 @@ impl ConfigStore {
         }
     }
 
-    pub fn store_config(
-        &mut self,
-        new_config: DakiaConfig,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn store_config(&mut self, new_config: DakiaConfig) -> Result<(), Box<DakiaError>> {
         let _g = match self.mutex.lock() {
             Ok(guard) => guard,
             Err(e) => {
@@ -51,7 +51,7 @@ impl ConfigStore {
     }
 
     // Get a config by its version
-    pub fn get_config(&self, version: i64) -> Result<Arc<DakiaConfig>, Box<dyn std::error::Error>> {
+    pub fn get_config(&self, version: i64) -> Result<Arc<DakiaConfig>, Box<DakiaError>> {
         if version < 0 {
             return Err(self.get_config_not_found_error());
         }
@@ -88,24 +88,30 @@ impl ConfigStore {
         self.get_config(version - 1)
     }
 
-    pub fn get_latest_config(&self) -> Result<Arc<DakiaConfig>, Box<dyn std::error::Error>> {
-        self.get_config(self.version)
+    pub fn get_latest_config(&self) -> Result<Arc<DakiaConfig>, Box<DakiaError>> {
+        let dc = self.get_config(self.version)?;
+        Ok(dc)
     }
 
-    fn get_mutex_lock_fail_error(
-        &self,
-        e: PoisonError<MutexGuard<()>>,
-    ) -> Box<dyn std::error::Error> {
-        Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Can not retrive the config {}", e),
-        ))
+    fn get_mutex_lock_fail_error(&self, e: PoisonError<MutexGuard<()>>) -> Box<DakiaError> {
+        error!("Error while getting lock in config store {}", e);
+
+        DakiaError::create(
+            crate::error::ErrorType::InternalError,
+            crate::error::ErrorSource::Internal,
+            Some(ImmutStr::Static(
+                "Error while getting lock to in config store",
+            )),
+            None,
+        )
     }
 
-    fn get_config_not_found_error(&self) -> Box<dyn std::error::Error> {
-        Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Can not retrive the config"),
-        ))
+    fn get_config_not_found_error(&self) -> Box<DakiaError> {
+        DakiaError::create(
+            crate::error::ErrorType::InternalError,
+            crate::error::ErrorSource::Internal,
+            Some(ImmutStr::Static("Can not retrive the config")),
+            None,
+        )
     }
 }
