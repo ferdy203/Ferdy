@@ -1,6 +1,6 @@
 use serde;
 
-use super::inet_address::InetAddress;
+use super::InetAddress;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct UpstreamNodeConfig {
