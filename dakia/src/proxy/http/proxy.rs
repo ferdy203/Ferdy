@@ -1,16 +1,9 @@
-use std::sync::Arc;
-
 use crate::{
     config::source_config::GatewayConfig,
-    shared::{
-        config_store,
-        pattern_matcher::Pcre2PatternMatcher,
-        pattern_registry::{PatternRegistry, PatternRegistryType},
-        registry::Registry,
-    },
+    shared::{config_store, pattern_registry::PatternRegistryType},
 };
 
-use super::DakiaHttpGatewayCtx;
+use super::{builder, DakiaHttpGatewayCtx};
 use async_trait::async_trait;
 use pingora::{
     prelude::HttpPeer,
@@ -29,24 +22,11 @@ impl Proxy {
         gateway_config: &GatewayConfig,
     ) -> Result<Proxy, Box<dyn std::error::Error>> {
         let ds_host_pattern_registry =
-            Proxy::build_ds_host_pattern_registry(gateway_config).await?;
+            builder::build_ds_host_pattern_registry(gateway_config).await?;
         let proxy = Proxy {
             ds_host_pattern_registry,
         };
         Ok(proxy)
-    }
-
-    async fn build_ds_host_pattern_registry(
-        gateway_config: &GatewayConfig,
-    ) -> Result<PatternRegistryType, Box<dyn std::error::Error>> {
-        let pr = PatternRegistry {};
-        for ds in &gateway_config.downstreams {
-            let ds_addr = ds.get_formatted_address();
-            let x = Pcre2PatternMatcher::build(&ds_addr)?;
-            let _ = pr.register(ds_addr, Arc::new(x)).await;
-        }
-
-        Ok(Arc::new(pr))
     }
 }
 
