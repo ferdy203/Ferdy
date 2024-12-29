@@ -63,6 +63,7 @@ impl ProxyHttp for Proxy {
 
         match host {
             None => {
+                // TODO: add option to customize http response status and body
                 helpers::write_response_ds(_session, 400, None).await?;
                 return Ok(true);
             }
@@ -74,6 +75,7 @@ impl ProxyHttp for Proxy {
                         .map_err(|e| e.to_pingora_error())?;
 
                 if !is_valid_ds_host {
+                    // TODO: add option to customize http response status and body
                     helpers::write_response_ds(_session, 403, None).await?;
                     return Ok(true);
                 }
