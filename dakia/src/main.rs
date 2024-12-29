@@ -7,7 +7,7 @@ mod shared;
 
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
-use error::{DakiaError, VoidDakiaResult};
+use error::DakiaError;
 use globals::config_store;
 use pingora::server::Server;
 use shared::get_dakia_ascii_art;
