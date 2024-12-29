@@ -39,10 +39,10 @@ fn main() -> Result<(), Box<DakiaError>> {
     server.run_forever();
 }
 
-fn init(_dakia_config: &DakiaConfig) {
+fn init(dakia_config: &DakiaConfig) {
     env_logger::init();
 
-    let dc = _dakia_config.clone();
+    let dc = dakia_config.clone();
 
     // pingora uses seprate runtime per config which we don't have access to
     // shutdown_background this runtime, because we no longer need this
