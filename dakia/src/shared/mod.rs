@@ -1,9 +1,6 @@
-mod common;
-mod into;
-mod pattern_matcher;
-mod registry;
-
-pub use common::*;
-pub use into::IntoRef;
-pub use pattern_matcher::*;
-pub use registry::*;
+pub mod common;
+pub mod config_store;
+pub mod into;
+pub mod pattern_matcher;
+pub mod pattern_registry;
+pub mod registry;

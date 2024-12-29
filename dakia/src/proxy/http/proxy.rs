@@ -2,8 +2,12 @@ use std::sync::Arc;
 
 use crate::{
     config::source_config::GatewayConfig,
-    globals::{config_store, PatternRegistry, PatternRegistryType},
-    shared::{Pcre2PatternMatcher, Registry},
+    shared::{
+        config_store,
+        pattern_matcher::Pcre2PatternMatcher,
+        pattern_registry::{PatternRegistry, PatternRegistryType},
+        registry::Registry,
+    },
 };
 
 use super::DakiaHttpGatewayCtx;

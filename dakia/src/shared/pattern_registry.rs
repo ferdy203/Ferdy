@@ -3,7 +3,7 @@ use once_cell::sync::Lazy;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 
-use crate::shared::{PatternMatcher, Registry};
+use super::{pattern_matcher::PatternMatcher, registry::Registry};
 
 static PATTERN_MACTCHER_STORE: Lazy<RwLock<HashMap<String, Arc<dyn PatternMatcher>>>> =
     Lazy::new(|| RwLock::new(HashMap::new()));

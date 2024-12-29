@@ -1,7 +1,6 @@
 mod config;
 mod error;
 mod gateway;
-mod globals;
 mod proxy;
 mod shared;
 
@@ -14,12 +13,12 @@ use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
 use gateway::HttpGateway;
-use globals::config_store;
 use pingora::server::{configuration::ServerConf, Server};
-use shared::get_dakia_ascii_art;
+use shared::common::get_dakia_ascii_art;
+use shared::config_store;
 
 use proxy::http::Proxy;
-use shared::IntoRef;
+use shared::into::IntoRef;
 use tokio::runtime::Builder;
 
 fn main() {
@@ -88,22 +87,22 @@ fn init() {
 fn process_args(_args: &DakiaArgs) -> Result<(), Box<DakiaError>> {
     if _args.version {
         // version will be printed along with dakia art in the very beginning, so just exist from here
-        shared::exit();
+        shared::common::exit();
     }
 
     if _args.reload {
         // not implemented
-        shared::exit();
+        shared::common::exit();
     }
 
     if _args.debug {
         // not implemented
-        shared::exit();
+        shared::common::exit();
     }
 
     if _args.test {
         // not implemented
-        shared::exit();
+        shared::common::exit();
     }
 
     Ok(())
