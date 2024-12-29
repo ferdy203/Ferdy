@@ -1,7 +1,6 @@
-use crate::config::source_config::GatewayConfig;
+use crate::{config::source_config::GatewayConfig, error::DakiaError, globals::config_store};
 
 use super::DakiaHttpGatewayCtx;
-use crate::globals::CONFIG_STORE;
 use async_trait::async_trait;
 use pingora::{
     prelude::HttpPeer,
@@ -13,14 +12,10 @@ pub struct Proxy {}
 
 impl Proxy {
     pub fn build(_gate_way: &GatewayConfig) -> Proxy {
-        Proxy {
-            // downstream_patterns: DakiaHttpGateway::get_hosts(gate_way),
-            // route_pattern_backend_matchers: DakiaHttpGateway::get_path_map(gate_way),
-            // backend_map: DakiaHttpGateway::get_backend_map(gate_way),
-            // default_backend: DakiaHttpGateway::get_default_backend(gate_way),
-        }
+        Proxy {}
     }
 }
+
 #[async_trait]
 impl ProxyHttp for Proxy {
     type CTX = DakiaHttpGatewayCtx;
@@ -33,14 +28,10 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<(), Box<Error>> {
-        #[allow(static_mut_refs)]
-        let c = unsafe {
-            CONFIG_STORE
-                .get_latest_config()
-                .map_err(|e| e.to_pingora_error())?
-        };
+        // update config into context
+        let c =
+            config_store::get().map_err(|_| DakiaError::create_internal().to_pingora_error())?;
         _ctx.config = c;
-
         Ok(())
     }
 

@@ -1,7 +1,6 @@
-mod config_store;
+pub mod config_store;
 mod regex_registry;
 
-pub use config_store::CONFIG_STORE;
 // 4. thread local lazy config read and update
 
 // 1. thread local lazy regex registry

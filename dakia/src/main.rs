@@ -7,8 +7,8 @@ mod shared;
 
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
-use error::DakiaError;
-use globals::CONFIG_STORE;
+use error::{DakiaError, VoidDakiaResult};
+use globals::config_store;
 use pingora::server::Server;
 use shared::get_dakia_ascii_art;
 
@@ -25,12 +25,7 @@ fn main() -> Result<(), Box<DakiaError>> {
     let dakia_config = DakiaConfig::from_args(dakia_args.clone())?;
 
     // perform init steps
-    init(&dakia_config);
-
-    #[allow(static_mut_refs)]
-    unsafe {
-        CONFIG_STORE.store_config(dakia_config.clone())?;
-    };
+    init(&dakia_config)?;
 
     let mut server =
         Server::new_with_opt_and_conf(dakia_config.into_ref(), dakia_config.into_ref());
@@ -44,8 +39,13 @@ fn main() -> Result<(), Box<DakiaError>> {
     server.run_forever();
 }
 
-fn init(_dakia_config: &DakiaConfig) {
+fn init(_dakia_config: &DakiaConfig) -> VoidDakiaResult {
     env_logger::init();
+
+    // store dakia config
+    config_store::store(_dakia_config.clone())?;
+
+    Ok(())
 }
 
 fn process_args(_args: &DakiaArgs) -> Result<(), Box<DakiaError>> {

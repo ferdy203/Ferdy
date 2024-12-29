@@ -27,6 +27,9 @@ pub struct DakiaError {
     pub context: Option<ImmutStr>,
 }
 
+pub type DakiaResult<T> = Result<T, Box<DakiaError>>;
+pub type VoidDakiaResult = DakiaResult<()>;
+
 /// The source of the error
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ErrorSource {
@@ -87,6 +90,17 @@ impl DakiaError {
             source: esource,
             cause,
             context,
+        })
+    }
+
+    /// Simply create the error. See other functions that provide less verbose interfaces.
+    #[inline]
+    pub fn create_internal() -> BError {
+        Box::new(DakiaError {
+            etype: ErrorType::InternalError,
+            source: ErrorSource::Internal,
+            cause: None,
+            context: None,
         })
     }
 
