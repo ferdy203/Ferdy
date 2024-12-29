@@ -23,3 +23,7 @@ _______
 pub fn get_ascii_version() -> &'static str {
     ASCII_VERSION
 }
+
+pub fn get_dakia_version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+}

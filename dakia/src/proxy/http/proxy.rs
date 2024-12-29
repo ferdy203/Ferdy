@@ -3,7 +3,11 @@ use crate::{
     shared::{config_store, pattern_registry::PatternRegistryType},
 };
 
-use super::{builder, DakiaHttpGatewayCtx};
+use super::{
+    builder,
+    helpers::{self, is_valid_ds_host},
+    DakiaHttpGatewayCtx,
+};
 use async_trait::async_trait;
 use pingora::{
     prelude::HttpPeer,
@@ -13,6 +17,7 @@ use pingora::{
 
 #[derive(Clone)]
 pub struct Proxy {
+    name: String,
     ds_host_pattern_registry: PatternRegistryType,
 }
 
@@ -23,6 +28,7 @@ impl Proxy {
         let ds_host_pattern_registry =
             builder::build_ds_host_pattern_registry(gateway_config).await?;
         let proxy = Proxy {
+            name: gateway_config.name.clone(),
             ds_host_pattern_registry,
         };
         Ok(proxy)
@@ -46,6 +52,35 @@ impl ProxyHttp for Proxy {
         _ctx.config = c;
 
         Ok(())
+    }
+
+    async fn request_filter(
+        &self,
+        _session: &mut Session,
+        _ctx: &mut Self::CTX,
+    ) -> Result<bool, Box<Error>> {
+        let host = helpers::get_header(_session, "host");
+
+        match host {
+            None => {
+                helpers::write_response_ds(_session, 400, None).await?;
+                return Ok(true);
+            }
+
+            Some(x) => {
+                let is_valid_ds_host =
+                    is_valid_ds_host(&_ctx.config, &self.name, &self.ds_host_pattern_registry, x)
+                        .await
+                        .map_err(|e| e.to_pingora_error())?;
+
+                if !is_valid_ds_host {
+                    helpers::write_response_ds(_session, 403, None).await?;
+                    return Ok(true);
+                }
+            }
+        };
+
+        Ok(false)
     }
 
     async fn upstream_peer(

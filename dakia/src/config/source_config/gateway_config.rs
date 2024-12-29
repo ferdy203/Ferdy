@@ -5,6 +5,7 @@ use super::UpstreamConfig;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct GatewayConfig {
+    pub name: String, // TODO: use auto generated name
     // TODO: add type = HTTP, TCP, SMTP, etc
     pub bind_addresses: Vec<InetAddress>,
     pub downstreams: Vec<DownstreamConfig>,
