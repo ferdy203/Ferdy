@@ -1,4 +1,4 @@
-pub trait Registry<K, I> {
-    fn register(&self, key: &K, item: &I) -> bool;
-    fn get(&self, key: &K) -> Option<&I>;
+pub trait Registry<I> {
+    async fn register(&self, key: String, item: I) -> ();
+    async fn get(&self, key: &str) -> Option<I>;
 }

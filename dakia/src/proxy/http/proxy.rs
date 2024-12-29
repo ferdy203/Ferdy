@@ -31,6 +31,7 @@ impl ProxyHttp for Proxy {
         // update config into context
         let c = config_store::get().await;
         _ctx.config = c;
+
         Ok(())
     }
 
