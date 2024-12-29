@@ -25,27 +25,38 @@ fn main() -> Result<(), Box<DakiaError>> {
     let dakia_config = DakiaConfig::from_args(dakia_args.clone())?;
 
     // perform init steps
-    init(&dakia_config)?;
+    init(&dakia_config);
 
     let mut server =
         Server::new_with_opt_and_conf(dakia_config.into_ref(), dakia_config.into_ref());
 
     server.bootstrap();
 
-    for gateway in dakia_config.gateways {
-        gateway::init(&mut server, &gateway);
+    for gateway in &dakia_config.gateways {
+        gateway::init(&mut server, gateway);
     }
 
     server.run_forever();
 }
 
-fn init(_dakia_config: &DakiaConfig) -> VoidDakiaResult {
+fn init(_dakia_config: &DakiaConfig) {
     env_logger::init();
 
-    // store dakia config
-    config_store::store(_dakia_config.clone())?;
+    let dc = _dakia_config.clone();
 
-    Ok(())
+    // pingora uses seprate runtime per config which we don't have access to
+    // shutdown_background this runtime, because we no longer need this
+    // new runtime is required because we can not access pingora runtime and asyn function needs runtime
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .build()
+        // if there is any error, just panic
+        .unwrap();
+
+    let h = rt.spawn(async move {
+        let _ = config_store::store(dc).await;
+    });
+    rt.block_on(h).unwrap();
+    rt.shutdown_background();
 }
 
 fn process_args(_args: &DakiaArgs) -> Result<(), Box<DakiaError>> {

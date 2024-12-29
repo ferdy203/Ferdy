@@ -29,8 +29,7 @@ impl ProxyHttp for Proxy {
         _ctx: &mut Self::CTX,
     ) -> Result<(), Box<Error>> {
         // update config into context
-        let c =
-            config_store::get().map_err(|_| DakiaError::create_internal().to_pingora_error())?;
+        let c = config_store::get().await;
         _ctx.config = c;
         Ok(())
     }

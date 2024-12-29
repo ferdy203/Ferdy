@@ -1,10 +1,8 @@
 use once_cell::sync::Lazy;
+use tokio::sync::RwLock;
 
-use crate::{
-    config::DakiaConfig,
-    error::{DakiaError, DakiaResult, VoidDakiaResult},
-};
-use std::sync::{Arc, RwLock};
+use crate::config::DakiaConfig;
+use std::sync::Arc;
 
 pub struct GlobalConfigStore {
     config: Arc<DakiaConfig>,
@@ -19,11 +17,6 @@ pub trait ConfigStore: Send + Sync {
     fn get_inner(&self) -> DakiaConfig;
 }
 
-// https://stackoverflow.com/questions/77547984/relation-of-mutex-and-cpu-caches-and-memory-fences
-// TODO: We can use crossbeam epoch, if epoch::Guard can be kept across threads because of tokio run time
-// as per doc epoch::Guard is pinned to a thread, so keeping it across threads could lead to undefined behaviour
-//
-// TODO: explore lock free data structure to improve the performance of cofig read/write
 impl GlobalConfigStore {
     pub fn from(dakia_config: &DakiaConfig) -> Self {
         GlobalConfigStore {
@@ -56,23 +49,17 @@ impl ConfigStore for GlobalConfigStore {
     }
 }
 
-pub fn get() -> DakiaResult<Arc<DakiaConfig>> {
-    let read_guard = CONFIG_STORE
-        .read()
-        .map_err(|_| DakiaError::create_internal())?;
-    let config = read_guard.get_config();
-    Ok(config)
+pub async fn get() -> Arc<DakiaConfig> {
+    let read_guard = CONFIG_STORE.read().await;
+    read_guard.get_config()
 }
 
-pub fn store(config: DakiaConfig) -> VoidDakiaResult {
-    let mut write_guard = CONFIG_STORE
-        .write()
-        .map_err(|_| DakiaError::create_internal())?;
+pub async fn store(config: DakiaConfig) -> () {
+    let mut write_guard = CONFIG_STORE.write().await;
     write_guard.store_config(config);
-    Ok(())
 }
 
-pub fn inner() -> DakiaResult<DakiaConfig> {
-    let config = get()?;
-    Ok((*config).clone())
+pub async fn inner() -> DakiaConfig {
+    let config = get().await;
+    (*config).clone()
 }
