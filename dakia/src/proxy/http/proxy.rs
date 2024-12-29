@@ -13,7 +13,6 @@ use pingora::{
 
 #[derive(Clone)]
 pub struct Proxy {
-    // ds_pattern_registry: Arc<dyn Registry<Arc<dyn PatternMatcher>> + Send + Sync>,
     ds_host_pattern_registry: PatternRegistryType,
 }
 
