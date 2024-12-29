@@ -11,6 +11,8 @@ pub use immut_str::ImmutStr;
 
 /// The boxed [Error], the desired way to pass [Error]
 pub type BError = Box<DakiaError>;
+pub type BErrorStd = Box<dyn std::error::Error>;
+
 /// Syntax sugar for `std::Result<T, BError>`
 pub type Result<T, E = BError> = StdResult<T, E>;
 

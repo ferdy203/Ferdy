@@ -5,58 +5,84 @@ mod globals;
 mod proxy;
 mod shared;
 
+use std::{
+    mem::take,
+    sync::{Arc, Mutex},
+};
+
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
+use gateway::HttpGateway;
 use globals::config_store;
-use pingora::server::Server;
+use pingora::server::{configuration::ServerConf, Server};
 use shared::get_dakia_ascii_art;
 
 use proxy::http::Proxy;
 use shared::IntoRef;
+use tokio::runtime::Builder;
 
-fn main() -> Result<(), Box<DakiaError>> {
+fn main() {
     println!("{}", get_dakia_ascii_art());
+
     let dakia_args = DakiaArgs::parse();
+    process_args(&dakia_args).unwrap();
 
-    // process args and exist if required
-    process_args(&dakia_args)?;
-
-    let dakia_config = DakiaConfig::from_args(dakia_args.clone())?;
+    let dakia_config = DakiaConfig::from_args(dakia_args.clone()).unwrap();
 
     // perform init steps
-    init(&dakia_config);
+    init();
+
+    let runtime = Builder::new_current_thread()
+        .build()
+        // if there is any error, just panic
+        .unwrap();
+
+    // TODO: add support for TCP, WebSocket and gRPC gateway
+    let gateways: Arc<Mutex<Vec<HttpGateway>>> = Arc::new(Mutex::new(vec![]));
+
+    // clone data to pass tokio inside runtime
+    let gateways_cloned = gateways.clone();
+    let dakia_config_cloned = dakia_config.clone();
+
+    let handle = runtime.spawn(async move {
+        let _ = config_store::store(dakia_config_cloned.clone()).await;
+
+        for gateway_config in &dakia_config_cloned.gateways {
+            let server_conf: ServerConf = dakia_config_cloned.into_ref();
+            let gateway = gateway::build_http(gateway_config, &Arc::new(server_conf))
+                .await
+                .unwrap();
+
+            // rust mutex guard does not work properly across tokio await, so creating lock guard after await in each loop
+            let mut gateway_vector_guard = gateways_cloned.lock().unwrap();
+            gateway_vector_guard.push(gateway);
+        }
+    });
+
+    runtime.block_on(handle).unwrap();
+
+    // we no longer this runtime, use pingora runtime instead
+    runtime.shutdown_background();
 
     let mut server =
         Server::new_with_opt_and_conf(dakia_config.into_ref(), dakia_config.into_ref());
-
     server.bootstrap();
 
-    for gateway in &dakia_config.gateways {
-        gateway::init(&mut server, gateway);
+    let mut gateway_vector_guard = gateways.lock().unwrap();
+
+    // take ownership of vector to pass owned value inside add_service
+    let proxy_vector = take(&mut *gateway_vector_guard);
+
+    for gateway in proxy_vector.into_iter() {
+        server.add_service(gateway);
     }
 
     server.run_forever();
 }
 
-fn init(dakia_config: &DakiaConfig) {
+fn init() {
     env_logger::init();
-
-    let dc = dakia_config.clone();
-
-    // pingora uses seprate runtime per config which we don't have access to
-    // shutdown_background this runtime, because we no longer need this
-    // new runtime is required because we can not access pingora runtime and asyn function needs runtime
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .build()
-        // if there is any error, just panic
-        .unwrap();
-
-    let h = rt.spawn(async move {
-        let _ = config_store::store(dc).await;
-    });
-    rt.block_on(h).unwrap();
-    rt.shutdown_background();
 }
 
 fn process_args(_args: &DakiaArgs) -> Result<(), Box<DakiaError>> {
@@ -66,17 +92,17 @@ fn process_args(_args: &DakiaArgs) -> Result<(), Box<DakiaError>> {
     }
 
     if _args.reload {
-        // https://www.notion.so/ats1999/Config-reload-16a598d18bbd8090af9ac6f5a902c7b1?pvs=4
+        // not implemented
         shared::exit();
     }
 
     if _args.debug {
-        // https://www.notion.so/ats1999/Change-Log-level-at-run-time-16a598d18bbd80619c34c90f8952060b?pvs=4
+        // not implemented
         shared::exit();
     }
 
     if _args.test {
-        // https://www.notion.so/ats1999/Config-Validator-16a598d18bbd80a080f1ef08090f5969?pvs=4
+        // not implemented
         shared::exit();
     }
 

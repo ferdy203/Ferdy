@@ -5,5 +5,5 @@ mod registry;
 
 pub use common::*;
 pub use into::IntoRef;
-pub use pattern_matcher::PatternMatcher;
-pub use registry::Registry;
+pub use pattern_matcher::*;
+pub use registry::*;

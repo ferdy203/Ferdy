@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
@@ -9,6 +10,7 @@ static PATTERN_MACTCHER_STORE: Lazy<RwLock<HashMap<String, Arc<dyn PatternMatche
 
 pub struct PatternRegistry {}
 
+#[async_trait]
 impl Registry<Arc<dyn PatternMatcher>> for PatternRegistry {
     async fn register(&self, key: String, item: Arc<dyn PatternMatcher>) {
         let mut write_guard = PATTERN_MACTCHER_STORE.write().await;
@@ -21,3 +23,5 @@ impl Registry<Arc<dyn PatternMatcher>> for PatternRegistry {
         Some(matcher.clone())
     }
 }
+
+pub type PatternRegistryType = Arc<dyn Registry<Arc<dyn PatternMatcher>> + Send + Sync>;
