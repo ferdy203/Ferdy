@@ -18,12 +18,6 @@ pub trait ConfigStore: Send + Sync {
 }
 
 impl GlobalConfigStore {
-    pub fn from(dakia_config: &DakiaConfig) -> Self {
-        GlobalConfigStore {
-            config: Arc::new(dakia_config.clone()),
-        }
-    }
-
     pub fn new() -> Self {
         Self {
             config: Arc::new(DakiaConfig::default()),
