@@ -2,6 +2,7 @@ mod config;
 mod error;
 mod gateway;
 mod proxy;
+mod qe;
 mod shared;
 
 use std::{
