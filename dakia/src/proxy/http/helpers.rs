@@ -93,3 +93,9 @@ pub async fn is_valid_ds_host(
 
     Ok(false)
 }
+
+// a function that map DakiaError to pingora::BError
+pub fn emap<T>(result: Result<T, Box<DakiaError>>) -> Result<T, pingora::BError> {
+    let r = result.map_err(|e| e.to_pingora_error())?;
+    Ok(r)
+}

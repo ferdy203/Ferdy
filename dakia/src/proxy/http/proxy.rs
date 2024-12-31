@@ -1,11 +1,12 @@
 use crate::{
     config::source_config::GatewayConfig,
+    qe::{self, engine::exec_match},
     shared::{config_store, pattern_registry::PatternRegistryType},
 };
 
 use super::{
     builder,
-    helpers::{self, is_valid_ds_host},
+    helpers::{self, emap, get_path, is_valid_ds_host},
     DakiaHttpGatewayCtx,
 };
 use async_trait::async_trait;
@@ -90,6 +91,24 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
+        let gateway_config = emap(_ctx.config.find_gateway_config_or_err(&self.name))?;
+
+        let router_config = emap(gateway_config.find_router_config_or_err(|filter| {
+            exec_match(filter, |param_path| {
+                let x = get_path(_session, param_path);
+                qe::engine::SupplierValue::Str(x)
+            })
+        }))?;
+
+        let _upstream_name = &router_config.upstream;
+        // TODO: create a load balancer for every upstream
+        // get upstream_node from load balancer by using upstream name
+        // let upstream_config =
+        //     emap(gateway_config.find_upstream_config_or_err(upstream_name, true))?;
+
+        // TODO: iterate through router config and check which upstream matches this request
+        // if no upstream matches this request then use default upstream
+        // if no default upstream present then retur 404
         let addr = ("127.0.0.1", 3000);
 
         let peer = Box::new(HttpPeer::new(addr, false, "one.one.one.one".to_string()));

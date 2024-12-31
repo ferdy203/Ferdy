@@ -32,3 +32,4 @@ replay_pid*
 /local/*
 todo.txt
 /example*
+/local_gateway_config*

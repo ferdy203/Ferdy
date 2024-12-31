@@ -13,7 +13,8 @@ upstream_connect_offload_threadpools: 2
 upstream_connect_offload_thread_per_pool: 5
 upstream_debug_ssl_keylog: false
 gateways:
-  - bind_addresses:
+  - name: root
+    bind_addresses:
       - host: 0.0.0.0
         port: 8080
       - host: 0.0.0.0
@@ -55,3 +56,6 @@ gateways:
               port: 3003
             tls: false
             sni: null
+    routers:
+      - upstream: payment
+        filter:

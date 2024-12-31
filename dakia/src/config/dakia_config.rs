@@ -5,7 +5,7 @@ use pingora::{prelude::Opt, server::configuration::ServerConf};
 
 use crate::{
     config::source_config::SourceDakiaRawConfig,
-    error::{DakiaError, ImmutStr},
+    error::{BError, DakiaError, ImmutStr},
     shared::into::IntoRef,
 };
 
@@ -103,6 +103,17 @@ impl DakiaConfig {
         );
 
         Ok(DakiaConfig::from(source_dakia_config))
+    }
+    pub fn find_gateway_config<'a>(&'a self, gateway_name: &str) -> Option<&'a GatewayConfig> {
+        self.gateways.iter().find(|g| g.name == gateway_name)
+    }
+    pub fn find_gateway_config_or_err(&self, gateway_name: &str) -> Result<&GatewayConfig, BError> {
+        let gateway_config =
+            self.find_gateway_config(gateway_name)
+                .ok_or(DakiaError::create_unknown_context(ImmutStr::Static(
+                    "gateway config not found".into(),
+                )))?;
+        Ok(gateway_config)
     }
 }
 
