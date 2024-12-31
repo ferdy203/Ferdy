@@ -2,6 +2,7 @@ mod builder;
 mod ctx;
 mod filter;
 mod helpers;
+mod lb;
 mod proxy;
 
 pub use ctx::DakiaHttpGatewayCtx;

@@ -12,7 +12,7 @@ use crate::{
 pub async fn build_ds_host_pattern_registry(
     gateway_config: &GatewayConfig,
 ) -> Result<PatternRegistryType, Box<dyn std::error::Error>> {
-    let pr = PatternRegistry {};
+    let pr = PatternRegistry::build();
     for ds in &gateway_config.downstreams {
         let ds_addr = ds.get_formatted_address();
         let x = Pcre2PatternMatcher::build(&ds_addr)?;
