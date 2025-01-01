@@ -1,13 +1,13 @@
 use pcre2::bytes::Regex;
 
-use crate::error::BErrorStd;
+use crate::error::{BErrorStd, DakiaResult};
 
 pub struct Pcre2PatternMatcher {
     regex: Regex,
 }
 
 impl Pcre2PatternMatcher {
-    pub fn build(pattern: &str) -> Result<Self, BErrorStd> {
+    pub fn build(pattern: &str) -> DakiaResult<Self> {
         let pcre2regex = Regex::new(pattern)?;
         let matcher = Self { regex: pcre2regex };
         Ok(matcher)

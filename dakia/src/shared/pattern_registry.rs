@@ -2,6 +2,8 @@ use async_trait::async_trait;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 
+use crate::error::DakiaResult;
+
 use super::{pattern_matcher::PatternMatcher, registry::Registry};
 
 pub struct PatternRegistry {
@@ -23,10 +25,13 @@ impl Registry<Arc<dyn PatternMatcher>> for PatternRegistry {
         write_guard.insert(key, item);
     }
 
-    async fn get(&self, key: &str) -> Option<Arc<dyn PatternMatcher>> {
+    async fn get(&self, key: &str) -> DakiaResult<Option<Arc<dyn PatternMatcher>>> {
         let read_guard = self.registry.read().await;
-        let matcher = read_guard.get(key)?;
-        Some(matcher.clone())
+        let matcher = read_guard.get(key);
+        match matcher {
+            None => Ok(None),
+            Some(matcher) => Ok(Some(matcher.clone())),
+        }
     }
 }
 

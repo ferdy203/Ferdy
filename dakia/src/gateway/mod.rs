@@ -4,14 +4,14 @@ use super::Proxy;
 use pingora::{server::configuration::ServerConf, services::listening::Service};
 use pingora_proxy::{http_proxy_service_with_name, HttpProxy};
 
-use crate::{config::source_config::GatewayConfig, error::BErrorStd};
+use crate::{config::source_config::GatewayConfig, error::DakiaResult};
 
 pub type HttpGateway = Service<HttpProxy<Proxy>>;
 
 pub async fn build_http(
     gateway_config: &GatewayConfig,
     server_conf: &Arc<ServerConf>,
-) -> Result<HttpGateway, BErrorStd> {
+) -> DakiaResult<HttpGateway> {
     let proxy = Proxy::build(gateway_config).await?;
     let mut http_proxy_service =
         http_proxy_service_with_name(&server_conf, proxy, "Dakia HTTP Proxy");

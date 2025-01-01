@@ -69,7 +69,7 @@ pub async fn is_valid_ds_host(
     for ds_addr in ds_addrs {
         let pattern = ds_host_pattern_registry
             .get(&ds_addr)
-            .await
+            .await?
             .ok_or(DakiaError::create(
                 crate::error::ErrorType::InternalError,
                 crate::error::ErrorSource::Internal,

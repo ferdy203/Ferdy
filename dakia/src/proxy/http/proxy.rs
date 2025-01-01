@@ -1,13 +1,14 @@
 use crate::{
     config::source_config::GatewayConfig,
+    error::DakiaResult,
     qe::{self, engine::exec_match},
     shared::{config_store, pattern_registry::PatternRegistryType},
 };
 
 use super::{
     builder,
-    helpers::{self, emap, get_path, is_valid_ds_host},
-    DakiaHttpGatewayCtx,
+    helpers::{self, get_path, is_valid_ds_host},
+    lb, DakiaHttpGatewayCtx,
 };
 use async_trait::async_trait;
 use pingora::{
@@ -20,18 +21,21 @@ use pingora::{
 pub struct Proxy {
     name: String,
     ds_host_pattern_registry: PatternRegistryType,
+    lb_registry: lb::LbRegistryType,
 }
 
 impl Proxy {
-    pub async fn build(
-        gateway_config: &GatewayConfig,
-    ) -> Result<Proxy, Box<dyn std::error::Error>> {
+    pub async fn build(gateway_config: &GatewayConfig) -> DakiaResult<Proxy> {
         let ds_host_pattern_registry =
             builder::build_ds_host_pattern_registry(gateway_config).await?;
+        let lb_registry = builder::build_lb_registry(gateway_config).await?;
+
         let proxy = Proxy {
             name: gateway_config.name.clone(),
             ds_host_pattern_registry,
+            lb_registry,
         };
+
         Ok(proxy)
     }
 }

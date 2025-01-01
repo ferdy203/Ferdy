@@ -1,7 +1,7 @@
 use std::sync::PoisonError;
 use tokio::sync::RwLockReadGuard;
 
-use super::DakiaError;
+use super::{DakiaError, ImmutStr};
 
 pub type DakiaResult<T> = Result<T, Box<Error>>;
 
@@ -37,5 +37,19 @@ impl From<Box<Error>> for Box<pingora_core::Error> {
             // TODO: implement conversion for other errors
             _ => pingora_core::Error::new(pingora::ErrorType::InternalError),
         }
+    }
+}
+
+impl From<std::io::Error> for Box<Error> {
+    fn from(value: std::io::Error) -> Self {
+        let message = value.to_string().into_boxed_str();
+        DakiaError::create_unknown_context(ImmutStr::Owned(message))
+    }
+}
+
+impl From<pcre2::Error> for Box<Error> {
+    fn from(value: pcre2::Error) -> Self {
+        let message = value.to_string().into_boxed_str();
+        DakiaError::create_unknown_context(ImmutStr::Owned(message))
     }
 }
