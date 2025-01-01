@@ -2,7 +2,7 @@ use pingora_http::ResponseHeader;
 use pingora_proxy::Session;
 
 use crate::{
-    config::{source_config::GatewayConfig, DakiaConfig},
+    config::{source_config::GatewayConfig, DakiaConfig, InetAddress},
     error::{DakiaError, DakiaResult},
     shared::{common::get_dakia_version, pattern_registry::PatternRegistryType},
 };
@@ -94,8 +94,13 @@ pub async fn is_valid_ds_host(
     Ok(false)
 }
 
-// a function that map DakiaError to pingora::BError
-pub fn emap<T>(result: Result<T, Box<DakiaError>>) -> Result<T, pingora::BError> {
-    let r = result.map_err(|e| e.to_pingora_error())?;
-    Ok(r)
+pub fn get_inet_addr_from_backend(backend: &Backend) -> InetAddress {
+    let addr = backend.addr.clone().to_string();
+    let parts: Vec<&str> = addr.split(":").collect();
+
+    InetAddress {
+        host: parts[0].to_owned(),
+        // TODO: handle unwrap
+        port: parts[1].parse().unwrap(),
+    }
 }

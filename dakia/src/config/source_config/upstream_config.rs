@@ -1,5 +1,7 @@
 use serde;
 
+use crate::error::{DakiaError, DakiaResult};
+
 use super::inet_address::InetAddress;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -32,4 +34,21 @@ pub struct UpstreamConfig {
     pub default: bool,
     pub upstream_nodes: Vec<UpstreamNodeConfig>,
     pub traffic_distribution_policy: Option<TrafficDistributionPolicy>,
+}
+impl UpstreamConfig {
+    pub fn find_upstream_node_config(&self, address: InetAddress) -> Option<&UpstreamNodeConfig> {
+        self.upstream_nodes.iter().find(|node_config| {
+            node_config.address.get_formatted_address() == address.get_formatted_address()
+        })
+    }
+
+    pub fn find_upstream_node_config_or_err(
+        &self,
+        address: InetAddress,
+    ) -> DakiaResult<&UpstreamNodeConfig> {
+        let node_config = self.find_upstream_node_config(address);
+        node_config.ok_or(DakiaError::create_unknown_context(
+            crate::error::ImmutStr::Static("upstream node config not found".into()),
+        ))
+    }
 }

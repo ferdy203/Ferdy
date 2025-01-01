@@ -23,6 +23,13 @@ _______
 
 **Dakia** is a powerful and flexible API Gateway designed for modern web applications.
 
+## Limitations
+
+- Works with only `UTF-8` character encoding
+- Only round robin load balancing algorithm is supported for now
+- Works with only IPv4 addresses, IPv6 is not supported as of now
+- We use Mutex and RwLock at multiple places
+
 ## Features
 
 - **Fully Programmable**: Tailor the API Gateway to your specific needs with custom plugins and middleware in multiple languages.

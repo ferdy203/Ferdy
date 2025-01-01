@@ -1,6 +1,7 @@
 use crate::{
     config::source_config::GatewayConfig,
-    error::DakiaResult,
+    error::{DakiaError, DakiaResult},
+    proxy::http::helpers::get_inet_addr_from_backend,
     qe::{self, engine::exec_match},
     shared::{config_store, pattern_registry::PatternRegistryType},
 };
@@ -104,17 +105,29 @@ impl ProxyHttp for Proxy {
         })?;
 
         let _upstream_name = &router_config.upstream;
-        // TODO: create a load balancer for every upstream
-        // get upstream_node from load balancer by using upstream name
-        // let upstream_config =
-        //     emap(gateway_config.find_upstream_config_or_err(upstream_name, true))?;
+        let mut lb = self.lb_registry.get(&_upstream_name).await?;
+        lb = match lb {
+            None => self.lb_registry.get("default").await?,
+            Some(lb) => Some(lb),
+        };
 
-        // TODO: iterate through router config and check which upstream matches this request
-        // if no upstream matches this request then use default upstream
-        // if no default upstream present then retur 404
-        let addr = ("127.0.0.1", 3000);
+        // TODO: return 404 if not lb found
+        let lb = lb.ok_or(DakiaError::create_internal())?;
+        let backend = lb.select(b"", 256).unwrap(); // hash doesn't matter
 
-        let peer = Box::new(HttpPeer::new(addr, false, "one.one.one.one".to_string()));
+        let inet_address = get_inet_addr_from_backend(&backend);
+
+        let upstream_node_config = gateway_config
+            .find_upstream_config_or_err(_upstream_name, true)
+            .map(|a| a.find_upstream_node_config_or_err(inet_address))??;
+
+        let tls = upstream_node_config.tls;
+        let sni = upstream_node_config
+            .clone()
+            .sni
+            .unwrap_or("default".to_string());
+
+        let peer = Box::new(HttpPeer::new(backend.addr, tls, sni));
         Ok(peer)
     }
 }

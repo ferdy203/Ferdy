@@ -31,9 +31,15 @@ pub async fn build_lb_registry(gateway_config: &GatewayConfig) -> DakiaResult<Lb
     let lb_registry = LoadBalancerRegistry::build();
     for upstream_config in &gateway_config.upstreams {
         let lb = build_lb(upstream_config)?;
+        let arc_lb = Arc::new(lb);
+
         let _ = lb_registry
-            .register(upstream_config.name.clone(), Arc::new(lb))
+            .register(upstream_config.name.clone(), arc_lb.clone())
             .await;
+
+        if upstream_config.default {
+            let _ = lb_registry.register("default".to_string(), arc_lb).await;
+        }
     }
 
     Ok(Arc::new(lb_registry))
