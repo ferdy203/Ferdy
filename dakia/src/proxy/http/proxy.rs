@@ -104,8 +104,8 @@ impl ProxyHttp for Proxy {
             })
         })?;
 
-        let _upstream_name = &router_config.upstream;
-        let mut lb = self.lb_registry.get(&_upstream_name).await?;
+        let upstream_name = &router_config.upstream;
+        let mut lb = self.lb_registry.get(&upstream_name).await?;
         lb = match lb {
             None => self.lb_registry.get("default").await?,
             Some(lb) => Some(lb),
@@ -118,7 +118,7 @@ impl ProxyHttp for Proxy {
         let inet_address = get_inet_addr_from_backend(&backend);
 
         let upstream_node_config = gateway_config
-            .find_upstream_config_or_err(_upstream_name, true)
+            .find_upstream_config_or_err(upstream_name, true)
             .map(|a| a.find_upstream_node_config_or_err(inet_address))??;
 
         let tls = upstream_node_config.tls;

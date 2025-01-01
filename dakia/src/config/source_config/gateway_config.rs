@@ -27,7 +27,7 @@ impl GatewayConfig {
         self.routers
             .iter()
             .find(|router_config| match &router_config.filter {
-                None => true,
+                None => true, // if no filter present for any router then it'll be considered a match
                 Some(filter) => predicate(filter),
             })
     }
