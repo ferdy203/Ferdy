@@ -41,7 +41,7 @@ fn main() {
     // TODO: add support for TCP, WebSocket and gRPC gateway
     let gateways: Arc<Mutex<Vec<HttpGateway>>> = Arc::new(Mutex::new(vec![]));
 
-    // clone data to pass tokio inside runtime
+    // clone data to pass to tokio inside runtime
     let gateways_cloned = gateways.clone();
     let dakia_config_cloned = dakia_config.clone();
 
