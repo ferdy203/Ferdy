@@ -122,10 +122,7 @@ impl ProxyHttp for Proxy {
             .map(|a| a.find_upstream_node_config_or_err(inet_address))??;
 
         let tls = upstream_node_config.tls;
-        let sni = upstream_node_config
-            .clone()
-            .sni
-            .unwrap_or("default".to_string());
+        let sni = upstream_node_config.clone().sni.unwrap_or("".to_string());
 
         let peer = Box::new(HttpPeer::new(backend.addr, tls, sni));
         Ok(peer)
