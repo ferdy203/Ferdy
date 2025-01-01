@@ -13,10 +13,10 @@ documentation = "https://github.com/ats1999/dakia"
 tokio = { version = "1", features = ["full"] }
 async-trait="0.1"
 env_logger = "0.9"
-pingora-core = { version = "0.3.0"}
-pingora-proxy = { version = "0.3.0"}
-pingora-http = { version = "0.3.0"}
-pingora = { version = "0.3.0", features = [ "lb"] }
+pingora-core = { version = "0.4.0"}
+pingora-proxy = { version = "0.4.0"}
+pingora-http = { version = "0.4.0"}
+pingora = { version = "0.4.0", features = [ "lb"] }
 clap = { version = "3.2.25", features = ["derive"] }
 serde_yaml = "0.9.34"
 serde = "1.0.216"

@@ -7,10 +7,12 @@ use std::fmt::Debug;
 use std::result::Result as StdResult;
 
 mod immut_str;
+mod result;
 pub use immut_str::ImmutStr;
+pub use result::*;
 
 /// The boxed [Error], the desired way to pass [Error]
-pub type BError = Box<DakiaError>;
+pub type BError = Box<Error>;
 pub type BErrorStd = Box<dyn std::error::Error>;
 
 /// Syntax sugar for `std::Result<T, BError>`
@@ -28,9 +30,6 @@ pub struct DakiaError {
     /// an arbitrary string that explains the context when the error happens
     pub context: Option<ImmutStr>,
 }
-
-pub type DakiaResult<T> = Result<T, Box<DakiaError>>;
-pub type VoidDakiaResult = DakiaResult<()>;
 
 /// The source of the error
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -87,34 +86,40 @@ impl DakiaError {
         context: Option<ImmutStr>,
         cause: Option<Box<dyn ErrorTrait + Send + Sync>>,
     ) -> BError {
-        Box::new(DakiaError {
+        let de = DakiaError {
             etype: etype,
             source: esource,
             cause,
             context,
-        })
+        };
+
+        Box::new(Error::DakiaError(de))
     }
 
     /// Simply create the error. See other functions that provide less verbose interfaces.
     #[inline]
     pub fn create_internal() -> BError {
-        Box::new(DakiaError {
+        let de = DakiaError {
             etype: ErrorType::InternalError,
             source: ErrorSource::Internal,
             cause: None,
             context: None,
-        })
+        };
+
+        Box::new(Error::DakiaError(de))
     }
 
     /// Simply create the error. See other functions that provide less verbose interfaces.
     #[inline]
     pub fn create_unknown_context(context: ImmutStr) -> BError {
-        Box::new(DakiaError {
+        let de = DakiaError {
             etype: ErrorType::UnknownError,
             source: ErrorSource::Unknown,
             cause: None,
             context: Some(context),
-        })
+        };
+
+        Box::new(Error::DakiaError(de))
     }
 
     #[inline]
@@ -232,41 +237,12 @@ impl DakiaError {
         self.source = ErrorSource::Internal;
     }
 
-    /// The into_{up, down, in} are the same as as_* but takes `self` and also return `self`
-    pub fn into_up(mut self: BError) -> BError {
-        self.as_up();
-        self
-    }
-
-    pub fn into_down(mut self: BError) -> BError {
-        self.as_down();
-        self
-    }
-
-    pub fn into_in(mut self: BError) -> BError {
-        self.as_in();
-        self
-    }
-
-    pub fn into_err<T>(self: BError) -> Result<T> {
-        Err(self)
-    }
-
     pub fn set_cause<C: Into<Box<dyn ErrorTrait + Send + Sync>>>(&mut self, cause: C) {
         self.cause = Some(cause.into());
     }
 
     pub fn set_context<T: Into<ImmutStr>>(&mut self, context: T) {
         self.context = Some(context.into());
-    }
-
-    // This function is less verbose than `Because`. But it only work for [Error] while
-    // `Because` works for all types of errors who implement [std::error::Error] trait.
-    pub fn more_context<T: Into<ImmutStr>>(self: BError, context: T) -> BError {
-        let esource = self.source.clone();
-        let mut e = Self::because(self.etype.clone(), context, self);
-        e.source = esource;
-        e
     }
 
     // Display error but skip the duplicate elements from the error in previous hop
@@ -286,7 +262,7 @@ impl DakiaError {
             write!(f, " context: {}", c)?;
         }
         if let Some(c) = self.cause.as_ref() {
-            if let Some(e) = c.downcast_ref::<BError>() {
+            if let Some(e) = c.downcast_ref::<Box<DakiaError>>() {
                 write!(f, " cause: ")?;
                 e.chain_display(Some(self), f)
             } else {
@@ -295,21 +271,6 @@ impl DakiaError {
         } else {
             Ok(())
         }
-    }
-
-    // Return the ErrorType of the root Error
-    pub fn root_etype(&self) -> &ErrorType {
-        self.cause.as_ref().map_or(&self.etype, |c| {
-            // Stop the recursion if the cause is not Error
-            c.downcast_ref::<BError>()
-                .map_or(&self.etype, |e| e.root_etype())
-        })
-    }
-
-    pub fn root_cause(&self) -> &(dyn ErrorTrait + Send + Sync + 'static) {
-        self.cause.as_deref().map_or(self, |c| {
-            c.downcast_ref::<BError>().map_or(c, |e| e.root_cause())
-        })
     }
 
     pub fn to_pingora_error(self) -> Box<pingora::Error> {
@@ -351,12 +312,6 @@ pub trait Context<T> {
     // Wrap the `Err(E)` in [Result] with more context, the existing E will be the cause.
     // This is a shortcut for map_err() + more_context()
     fn err_context<C: Into<ImmutStr>, F: FnOnce() -> C>(self, context: F) -> Result<T, BError>;
-}
-
-impl<T> Context<T> for Result<T, BError> {
-    fn err_context<C: Into<ImmutStr>, F: FnOnce() -> C>(self, context: F) -> Result<T, BError> {
-        self.map_err(|e| e.more_context(context()))
-    }
 }
 
 // Helper trait to chain errors with context

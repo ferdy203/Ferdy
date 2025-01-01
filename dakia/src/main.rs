@@ -66,7 +66,7 @@ fn main() {
     runtime.shutdown_background();
 
     let mut server =
-        Server::new_with_opt_and_conf(dakia_config.into_ref(), dakia_config.into_ref());
+        Server::new_with_opt_and_conf(dakia_config.to_pingore_opt(), dakia_config.into_ref());
     server.bootstrap();
 
     let mut gateway_vector_guard = gateways.lock().unwrap();

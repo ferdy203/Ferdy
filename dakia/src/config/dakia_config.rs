@@ -5,7 +5,7 @@ use pingora::{prelude::Opt, server::configuration::ServerConf};
 
 use crate::{
     config::source_config::SourceDakiaRawConfig,
-    error::{BError, DakiaError, ImmutStr},
+    error::{DakiaError, DakiaResult, ImmutStr},
     shared::into::IntoRef,
 };
 
@@ -59,7 +59,7 @@ impl Default for DakiaConfig {
 }
 
 impl DakiaConfig {
-    pub fn from_args(args: DakiaArgs) -> Result<Self, Box<DakiaError>> {
+    pub fn from_args(args: DakiaArgs) -> DakiaResult<Self> {
         let dp = args.dp.as_deref().unwrap_or("/etc/dakia"); // dakia path
         let cp = Path::new(dp).join("config/dakia.yaml"); // configs path
 
@@ -107,13 +107,20 @@ impl DakiaConfig {
     pub fn find_gateway_config<'a>(&'a self, gateway_name: &str) -> Option<&'a GatewayConfig> {
         self.gateways.iter().find(|g| g.name == gateway_name)
     }
-    pub fn find_gateway_config_or_err(&self, gateway_name: &str) -> Result<&GatewayConfig, BError> {
+    pub fn find_gateway_config_or_err(&self, gateway_name: &str) -> DakiaResult<&GatewayConfig> {
         let gateway_config =
             self.find_gateway_config(gateway_name)
                 .ok_or(DakiaError::create_unknown_context(ImmutStr::Static(
                     "gateway config not found".into(),
                 )))?;
         Ok(gateway_config)
+    }
+    pub fn to_pingore_opt(&self) -> Opt {
+        let mut opt = Opt::default();
+        opt.daemon = self.daemon;
+        // not required, as we are pssing struct directly
+        // opt.conf = Some(self.dp.clone() + "/config/pingora.yaml");
+        opt
     }
 }
 
@@ -153,16 +160,6 @@ impl From<SourceDakiaRawConfig> for DakiaConfig {
                 .unwrap_or(false),
             gateways: source_dakia_raw_config.gateways,
         }
-    }
-}
-
-impl IntoRef<Opt> for DakiaConfig {
-    fn into_ref(&self) -> Opt {
-        let mut opt = Opt::default();
-        opt.daemon = self.daemon;
-        // not required, as we are pssing struct directly
-        // opt.conf = Some(self.dp.clone() + "/config/pingora.yaml");
-        opt
     }
 }
 

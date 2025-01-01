@@ -72,8 +72,7 @@ impl ProxyHttp for Proxy {
             Some(x) => {
                 let is_valid_ds_host =
                     is_valid_ds_host(&_ctx.config, &self.name, &self.ds_host_pattern_registry, x)
-                        .await
-                        .map_err(|e| e.to_pingora_error())?;
+                        .await?;
 
                 if !is_valid_ds_host {
                     // TODO: add option to customize http response status and body
@@ -91,14 +90,14 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
-        let gateway_config = emap(_ctx.config.find_gateway_config_or_err(&self.name))?;
+        let gateway_config = _ctx.config.find_gateway_config_or_err(&self.name)?;
 
-        let router_config = emap(gateway_config.find_router_config_or_err(|filter| {
+        let router_config = gateway_config.find_router_config_or_err(|filter| {
             exec_match(filter, |param_path| {
                 let x = get_path(_session, param_path);
                 qe::engine::SupplierValue::Str(x)
             })
-        }))?;
+        })?;
 
         let _upstream_name = &router_config.upstream;
         // TODO: create a load balancer for every upstream

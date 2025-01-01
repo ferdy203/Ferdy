@@ -2,7 +2,7 @@ use std::{fs, path::Path};
 
 use crate::{
     config::DakiaConfig,
-    error::{DakiaError, ImmutStr},
+    error::{DakiaError, DakiaResult, ImmutStr},
 };
 
 use super::GatewayConfig;
@@ -76,7 +76,7 @@ impl From<DakiaConfig> for SourceDakiaRawConfig {
 }
 
 impl SourceDakiaRawConfig {
-    pub fn flush(&self) -> Result<(), Box<DakiaError>> {
+    pub fn flush(&self) -> DakiaResult<()> {
         let string_config = serde_yaml::to_string(self).map_err(|e| {
             DakiaError::create(
                 crate::error::ErrorType::InternalError,
