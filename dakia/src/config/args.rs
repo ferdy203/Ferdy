@@ -36,4 +36,9 @@ pub struct DakiaArgs {
     /// Use this to troubleshoot issues during development or runtime.
     #[clap(long)]
     pub debug: bool,
+
+    /// Whether this server should try to upgrade from a running old server
+    /// It'll work only on linux platforms 
+    #[clap(short, long)]
+    pub upgrade: bool,
 }

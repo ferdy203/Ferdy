@@ -115,9 +115,10 @@ impl DakiaConfig {
                 )))?;
         Ok(gateway_config)
     }
-    pub fn to_pingore_opt(&self) -> Opt {
+    pub fn to_pingore_opt(&self, args: &DakiaArgs) -> Opt {
         let mut opt = Opt::default();
         opt.daemon = self.daemon;
+        opt.upgrade = args.upgrade;
         // not required, as we are pssing struct directly
         // opt.conf = Some(self.dp.clone() + "/config/pingora.yaml");
         opt
