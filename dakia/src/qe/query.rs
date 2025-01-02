@@ -10,14 +10,20 @@ pub type Query = Map;
 
 #[derive(PartialEq)]
 pub enum Operator {
-    And,     // logical and
-    Or,      // logical or
-    Eq,      // equal to
-    Ne,      // not equal to
-    In,      // in array
-    Nin,     // not in array
-    Exists,  // value exists
-    Matches, // value matches specified regex
+    And,          // logical and
+    Or,           // logical or
+    Eq,           // equal to
+    Ne,           // not equal to
+    In,           // in array
+    Nin,          // not in array
+    Contains,     // substring present
+    NotContains,  // sub strig not present,
+    StartsWith,   // text starts with
+    NotStartWith, // text not starts with
+    EndsWith,     // text ends with
+    NotEndsWith,  // text not ends with
+    Exists,       // value exists
+    Matches,      // value matches specified regex
 }
 
 impl TryFrom<&str> for Operator {
@@ -28,11 +34,17 @@ impl TryFrom<&str> for Operator {
             "$and" => Ok(Self::And),
             "$or" => Ok(Self::Or),
             "$eq" => Ok(Self::Eq),
-            "$ne" => Ok(Self::Ne),
+            "$not_eq" => Ok(Self::Ne),
             "$in" => Ok(Self::In),
-            "$nin" => Ok(Self::Nin),
+            "$not_in" => Ok(Self::Nin),
             "$exists" => Ok(Self::Exists),
             "$matches" => Ok(Self::Matches),
+            "$contains" => Ok(Self::Contains),
+            "$not_contains" => Ok(Self::NotContains),
+            "$starts_with" => Ok(Self::StartsWith),
+            "$not_starts_with" => Ok(Self::NotStartWith),
+            "$ends_with" => Ok(Self::EndsWith),
+            "$not_ends_with" => Ok(Self::NotEndsWith),
             _ => return Err(*DakiaError::create_unknown_msg("Invalid operator!")),
         }
     }
