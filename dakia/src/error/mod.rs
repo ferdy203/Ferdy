@@ -122,6 +122,21 @@ impl DakiaError {
         Box::new(Error::DakiaError(de))
     }
 
+    /// Simply create the error. See other functions that provide less verbose interfaces.
+    #[inline]
+    pub fn create_unknown_msg(msg: &str) -> BError {
+        let context = ImmutStr::Owned(msg.to_string().into_boxed_str());
+
+        let de = DakiaError {
+            etype: ErrorType::UnknownError,
+            source: ErrorSource::Unknown,
+            cause: None,
+            context: Some(context),
+        };
+
+        Box::new(Error::DakiaError(de))
+    }
+
     #[inline]
     fn do_new(e: ErrorType, s: ErrorSource) -> BError {
         Self::create(e, s, None, None)

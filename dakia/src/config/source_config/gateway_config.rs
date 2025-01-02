@@ -1,5 +1,6 @@
 use crate::error::BError;
 use crate::error::DakiaError;
+use crate::error::DakiaResult;
 use crate::qe::query::Query;
 
 use super::DownstreamConfig;
@@ -20,23 +21,29 @@ pub struct GatewayConfig {
 }
 
 impl GatewayConfig {
-    pub fn find_router_config<F>(&self, predicate: F) -> Option<&RouterConfig>
+    pub fn find_router_config<F>(&self, predicate: F) -> DakiaResult<Option<&RouterConfig>>
     where
-        F: Fn(&Query) -> bool,
+        F: Fn(&Query) -> DakiaResult<bool>,
     {
-        self.routers
-            .iter()
-            .find(|router_config| match &router_config.filter {
-                None => true, // if no filter present for any router then it'll be considered a match
-                Some(filter) => predicate(filter),
-            })
+        for router_config in self.routers.iter() {
+            match &router_config.filter {
+                None => return Ok(Some(router_config)), // if no filter present for any router then it'll be considered a match when encountered
+                Some(filter) => {
+                    let matched = predicate(filter)?;
+                    if matched {
+                        return Ok(Some(router_config));
+                    }
+                }
+            }
+        }
+        Ok(None)
     }
 
     pub fn find_router_config_or_err<F>(&self, predicate: F) -> Result<&RouterConfig, BError>
     where
-        F: Fn(&Query) -> bool,
+        F: Fn(&Query) -> DakiaResult<bool>,
     {
-        let router_config = self.find_router_config(predicate);
+        let router_config = self.find_router_config(predicate)?;
         router_config.ok_or(DakiaError::create_unknown_context(
             crate::error::ImmutStr::Static("router config not found".into()),
         ))
