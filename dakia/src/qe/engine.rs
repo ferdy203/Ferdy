@@ -59,9 +59,26 @@ where
     Ok(result)
 }
 
-fn is_val_in_vec(ar: &Vec<Value>, supplier_val: &SupplierValue) -> DakiaResult<bool> {
+fn match_bool(operator: &Operator, qval: bool, sval: &SupplierValue) -> DakiaResult<bool> {
+    match operator {
+        Operator::Exists => {
+            if let SupplierValue::None = sval {
+                return Ok(!qval); // not exists
+            } else {
+                return Ok(qval); // exists
+            }
+        }
+        _ => {
+            return Err(DakiaError::i_explain(format!(
+                "Invalid operator {operator:?} for boolean argumetns "
+            )))
+        }
+    }
+}
+
+fn is_val_in_vec(ar: &Vec<Value>, sval: &SupplierValue) -> DakiaResult<bool> {
     for val in ar.iter() {
-        let matched = exec_operator(&Operator::Eq, val, supplier_val)?;
+        let matched = exec_operator(&Operator::Eq, val, sval)?;
         if matched {
             return Ok(true);
         }
@@ -88,17 +105,18 @@ fn exec_operator(operator: &Operator, qval: &Value, sval: &SupplierValue) -> Dak
     match qval {
         Value::Scaler(scaler_val) => match scaler_val {
             Scaler::String(qstr) => match sval {
-                SupplierValue::I32(sint) => Err(DakiaError::i_explain(format!(
-                    "expected string and found {sint:?} !"
-                ))),
                 SupplierValue::Str(sstr) => match_str(operator, &qstr, &sstr),
+                _ => Err(DakiaError::i_explain(format!(
+                    "expected string and found {sval:?} !"
+                ))),
             },
             Scaler::I32(qint) => match sval {
                 SupplierValue::I32(sint) => match_int(operator, qint, sint),
-                SupplierValue::Str(sstr) => Err(DakiaError::i_explain(format!(
-                    "expected integer and found {sstr:?} !"
+                _ => Err(DakiaError::i_explain(format!(
+                    "expected integer and found {sval:?} !"
                 ))),
             },
+            Scaler::Bool(b) => match_bool(operator, *b, sval),
         },
         Value::Composite(composite_val) => match composite_val {
             Composite::Map(_) => Err(DakiaError::i_explain(format!("{qval:?} can not be map!"))),

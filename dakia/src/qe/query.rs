@@ -62,6 +62,7 @@ pub enum Value {
 pub enum Scaler {
     String(String),
     I32(i32),
+    Bool(bool),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -77,4 +78,5 @@ pub enum SupplierValue<'a> {
     I32(i32),
     // TODO: change Str to byte to support non UTF-8 characters
     Str(&'a str),
+    None,
 }
