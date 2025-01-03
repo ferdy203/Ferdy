@@ -25,9 +25,9 @@ _______
 
 ## Features
 
-- **Fully Programmable**: Tailor the API Gateway to your specific needs with custom plugins and middleware in multiple languages.
 - **Configurable**: Easily manage API configurations using various formats like YAML, JSON, and HTTP API calls.
 - **Extensible**: Add new functionality with support for custom middleware and plugins, written in any programming language (Rust, Java, C++, etc.).
+- **Fully Programmable**: Tailor the API Gateway to your specific needs with custom plugins and middleware in multiple languages.
 - **Zero Downtime Upgrades**: Perform upgrades and restarts without affecting the availability of your services.
 - **Dynamic Middleware**: Add, remove, or modify middleware on the fly without disrupting service.
 - **Request and Response Management**: Modify requests before they reach the upstream or read/write responses to meet your application's needs.
