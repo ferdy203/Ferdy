@@ -2,7 +2,7 @@ use crate::{
     config::source_config::GatewayConfig,
     error::{DakiaError, DakiaResult},
     proxy::http::helpers::get_inet_addr_from_backend,
-    qe::engine::{exec_match, SupplierValue},
+    qe::{engine::exec, query::SupplierValue},
     shared::{config_store, pattern_registry::PatternRegistryType},
 };
 
@@ -98,7 +98,7 @@ impl ProxyHttp for Proxy {
         let gateway_config = _ctx.config.find_gateway_config_or_err(&self.name)?;
 
         let router_config = gateway_config.find_router_config_or_err(|filter| {
-            exec_match(filter, |param_path| {
+            exec(filter, |param_path| {
                 let path_value = get_path(_session, param_path);
                 Ok(SupplierValue::Str(path_value))
             })
