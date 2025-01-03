@@ -8,7 +8,7 @@ pub type Map = HashMap<String, Value>;
 pub type Array = Vec<Value>;
 pub type Query = Map;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum Operator {
     And,          // logical and
     Or,           // logical or
@@ -69,4 +69,12 @@ pub enum Scaler {
 pub enum Composite {
     Map(Map),
     Array(Array),
+}
+
+// fields of enum SupplierValue should be equivalent to Scaler enum fields of Query
+#[derive(Debug)]
+pub enum SupplierValue<'a> {
+    I32(i32),
+    // TODO: change Str to byte to support non UTF-8 characters
+    Str(&'a str),
 }

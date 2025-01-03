@@ -178,6 +178,17 @@ impl DakiaError {
         Self::create(e, ErrorSource::Unknown, Some(context.into()), None)
     }
 
+    // Create an internal error with context but no direct causing error
+    #[inline]
+    pub fn i_explain<S: Into<ImmutStr>>(context: S) -> BError {
+        Self::create(
+            ErrorType::InternalError,
+            ErrorSource::Unknown,
+            Some(context.into()),
+            None,
+        )
+    }
+
     // Short for Err(Self::explain)
     #[inline]
     pub fn e_explain<T, S: Into<ImmutStr>>(e: ErrorType, context: S) -> Result<T> {
