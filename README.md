@@ -48,6 +48,7 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 
 - **Security** - Written in rust, so it's more memory safe than services written in c/c++
 - **Customization** - You need ultimate customization, you can configure, extend and even further program in multiple languages
+- **Battle Tested Engine** - Built on top of [pingora](https://github.com/cloudflare/pingora), a battle tested protocol implemention, as it has been serving more than 40 million Internet requests per second for more than a few years
 
 ## 📊 Progress Tracker
 
@@ -73,81 +74,4 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 | TCP/UDP Proxy                                                                                                             | Pending |
 | Web Socket Proxy                                                                                                          | Pending |
 | gRPC Proxy                                                                                                                | Pending |
-
-## How to run?
-
-- Download the binary from https://github.com/ats1999/dakia/releases/tag/0.0.0
-  > This binary file is not platform independent, in case you are using different platform then build from soure directly
-- Execute the binary by typing `./dakia`
-- Optionally create a config file `/etc/dakia/config.yaml` and write below yaml content into config file. Modify according to your need.
-
-```yaml
-daemon: true
-error_log: "/var/log/dakia/error.log"
-pid_file: "/var/run/dakia.pid"
-upgrade_sock: "/var/run/dakia.sock"
-user: "dakia_user"
-group: "dakia_group"
-threads: 4
-work_stealing: true
-grace_period_seconds: 60
-graceful_shutdown_timeout_seconds: 30
-upstream_keepalive_pool_size: 10
-upstream_connect_offload_threadpools: 2
-upstream_connect_offload_thread_per_pool: 5
-upstream_debug_ssl_keylog: false
-router_config:
-  gateways:
-    - bind_addresses:
-        - host: "0.0.0.0"
-          port: 8080
-        - host: "0.0.0.0"
-          port: 80
-      downstreams:
-        - host: "w3worker.net"
-        - host: "localhost"
-      backends:
-        - name: "payment"
-          default: false
-          traffic_distribution_policy:
-            selection_algorithm: "RoundRobin"
-          upstreams:
-            - address:
-                host: "0.0.0.0"
-                port: 3000
-              tls: false
-              sni: null
-              weight: 1
-            - address:
-                host: "0.0.0.0"
-                port: 3001
-              tls: false
-              sni: null
-              weight: 2
-        - name: "search"
-          default: false
-          upstreams:
-            - address:
-                host: "0.0.0.0"
-                port: 3002
-              tls: false
-              sni: null
-        - name: "content"
-          default: true
-          upstreams:
-            - address:
-                host: "0.0.0.0"
-                port: 3003
-              tls: false
-              sni: null
-      routes:
-        - pattern: "*/pay"
-          pattern_type: "Wildcard"
-          backend: "payment"
-        - pattern: "*/query"
-          pattern_type: "Wildcard"
-          backend: "payment"
-        - pattern: "*"
-          pattern_type: "Wildcard"
-          backend: "content"
-```
+| Docs                                                                                                                      | Pending |
