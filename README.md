@@ -57,7 +57,6 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 | Load Balancer                                                                                                             | Done ✅ |
 | Filter (MongoDB like query support)                                                                                       | Done ✅ |
 | Dakia CLI                                                                                                                 | Done ✅ |
-| Docker Image                                                                                                              | Done ✅ |
 | Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                              | Pending |
 | Extension,Interceptor(Rust,Java, JavaScript)                                                                              | Pending |
 | [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                          | Pending |
