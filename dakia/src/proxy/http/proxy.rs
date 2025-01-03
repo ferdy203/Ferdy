@@ -8,7 +8,7 @@ use crate::{
 
 use super::{
     builder,
-    helpers::{self, get_path, is_valid_ds_host},
+    helpers::{self, is_valid_ds_host, part_supplier},
     lb, DakiaHttpGatewayCtx,
 };
 use async_trait::async_trait;
@@ -65,25 +65,29 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<bool, Box<Error>> {
-        let host = helpers::get_header(_session, "host");
+        let host = helpers::part_supplier("ds.req.header.host", &_ctx, &_session)?;
 
         match host {
-            None => {
-                // TODO: add option to customize http response status and body
-                helpers::write_response_ds(_session, 400, None).await?;
-                return Ok(true);
-            }
-
-            Some(x) => {
-                let is_valid_ds_host =
-                    is_valid_ds_host(&_ctx.config, &self.name, &self.ds_host_pattern_registry, x)
-                        .await?;
+            SupplierValue::Str(host) => {
+                let is_valid_ds_host = is_valid_ds_host(
+                    &_ctx.config,
+                    &self.name,
+                    &self.ds_host_pattern_registry,
+                    host,
+                )
+                .await?;
 
                 if !is_valid_ds_host {
                     // TODO: add option to customize http response status and body
                     helpers::write_response_ds(_session, 403, None).await?;
                     return Ok(true);
                 }
+            }
+
+            _ => {
+                // TODO: add option to customize http response status and body
+                helpers::write_response_ds(_session, 400, None).await?;
+                return Ok(true);
             }
         };
 
@@ -98,10 +102,7 @@ impl ProxyHttp for Proxy {
         let gateway_config = _ctx.config.find_gateway_config_or_err(&self.name)?;
 
         let router_config = gateway_config.find_router_config_or_err(|filter| {
-            exec(filter, |param_path| {
-                let path_value = get_path(_session, param_path);
-                Ok(SupplierValue::Str(path_value))
-            })
+            exec(filter, |path| part_supplier(path, _ctx, _session))
         })?;
 
         let upstream_name = &router_config.upstream;
@@ -112,7 +113,10 @@ impl ProxyHttp for Proxy {
         };
 
         // TODO: return 404 if not lb found
-        let lb = lb.ok_or(DakiaError::create_internal())?;
+        let lb = lb.ok_or(DakiaError::i_explain(format!(
+            "load balacer not found for upstream {upstream_name}"
+        )))?;
+
         let backend = lb.select(b"", 256).unwrap(); // hash doesn't matter
 
         let inet_address = get_inet_addr_from_backend(&backend);
