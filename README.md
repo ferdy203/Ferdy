@@ -45,30 +45,29 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 
 ## 📊 Progress Tracker
 
-| Task                                                                               | Status      |
-| ---------------------------------------------------------------------------------- | ----------- |
-| Configurable(Only yaml supported for now)                                          | Done ✅     |
-| Virtual Host                                                                       | Done ✅     |
-| Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards)) | Done ✅     |
-| Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))         | Done ✅     |
-| Proxy                                                                              | Done ✅     |
-| HTTP Protocol Suport                                                               | Done ✅     |
-| [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)       | Done ✅     |
-| Load Balancer                                                                      | In-Progress |
-| Extension(Rust,Java, JavaScript)                                                   | Pending     |
-| Middleware(Rust,Java, JavaScript)                                                  | Pending     |
-| SSL Support                                                                        | Pending     |
-| Certbot Integration                                                                | Pending     |
-| Controller(API to manage dakia over REST)                                          | Pending     |
-| Docker Image (Docker image to quicky play with dakia)                              | Pending     |
-| Regex support in host and route pattern                                            | Pending     |
-| TCP Protocol Support                                                               | Pending     |
-| Dakia CLI                                                                          | Pending     |
-| UDP Protocol Support                                                               | Pending     |
-| Web Socket Protocol Support                                                        | Pending     |
-| HTTP/2 and HTTP/3 Protocol Support                                                 | Pending     |
-| gRPC Protocol Support                                                              | Pending     |
-| UDS Support                                                                        | Pending     |
+| Task                                                                                                                      | Status  |
+| ------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Configurable(Only yaml supported for now)                                                                                 | Done ✅ |
+| Virtual Host                                                                                                              | Done ✅ |
+| Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                        | Done ✅ |
+| Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                                | Done ✅ |
+| Proxy                                                                                                                     | Done ✅ |
+| HTTP Protocol Suport                                                                                                      | Done ✅ |
+| [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)                                              | Done ✅ |
+| Load Balancer                                                                                                             | Done ✅ |
+| Filter (MongoDB like query support)                                                                                       | Done ✅ |
+| Dakia CLI                                                                                                                 | Done ✅ |
+| Docker Image                                                                                                              | Done ✅ |
+| Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                              | Pending |
+| Extension,Interceptor(Rust,Java, JavaScript)                                                                              | Pending |
+| [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                          | Pending |
+| Load Balancer Algoriths (Least connection, Least response time, IP/Url hash, [Service Discovery](http://bakerstreet.io/)) | Pending |
+| SSL Support                                                                                                               | Pending |
+| Certbot Integration                                                                                                       | Pending |
+| Controller(API to manage dakia over REST)                                                                                 | Pending |
+| TCP/UDP Proxy                                                                                                             | Pending |
+| Web Socket Proxy                                                                                                          | Pending |
+| gRPC Proxy                                                                                                                | Pending |
 
 ## How to run?
 
