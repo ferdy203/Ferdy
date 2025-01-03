@@ -16,19 +16,20 @@ _______
 -->
 
 <!-- canva logo url -> https://www.canva.com/design/DAGZAdY1d9c/YCHWZRD78H5j0CAWaaF6gw/edit -->
+
 ![1](https://github.com/user-attachments/assets/9348db35-f589-4dc4-9a03-24924d6d8f2d)
 
+# Dakia: The Developer-Centric API Gateway
 
-# Dakia is an API Gateway that’s Fully Programmable, Configurable, and Extensible!
-
-**Dakia** is a powerful and flexible API Gateway designed for modern web applications.
+**Dakia** is an advanced API Gateway designed with developers in mind, offering a fully configurable, extensible and programmable solution. With Dakia, developers are treated as first-class citizens, enabling them to customize and tailor the gateway to fit the unique needs...
 
 ## Limitations
 
-- Works with only `UTF-8` character encoding
-- Only round robin load balancing algorithm is supported for now
-- Works with only IPv4 addresses, IPv6 is not supported as of now
-- We use Mutex and RwLock at multiple places
+> These limitations will be addressed over time as we continue to improve the dakia.
+
+- Currently supports only `UTF-8` character encoding.
+- Only the round-robin load balancing algorithm is available at the moment.
+- IPv6 addresses are not supported at this time; only IPv4 is supported.
 
 ## Features
 
@@ -67,7 +68,7 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 | Web Socket Protocol Support                                                        | Pending     |
 | HTTP/2 and HTTP/3 Protocol Support                                                 | Pending     |
 | gRPC Protocol Support                                                              | Pending     |
-| gRPC Protocol Support                                                              | Pending     |
+| UDS Support                                                                        | Pending     |
 
 ## How to run?
 
