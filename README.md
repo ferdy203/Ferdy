@@ -46,32 +46,88 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 
 ## Reasons to use `Dakia`
 
-- **Security** - Written in rust, so it's more memory safe than services written in c/c++
-- **Customization** - You need ultimate customization, you can configure, extend and even further program in multiple languages
-- **Battle Tested Engine** - Built on top of [pingora](https://github.com/cloudflare/pingora), a battle tested protocol implemention, as it has been serving more than 40 million Internet requests per second for more than a few years
+- **Security** - Built with Rust, Dakia ensures enhanced memory safety and reduces vulnerabilities compared to services written in C/C++.
+- **Performance** - Powered by [pingora](https://github.com/cloudflare/pingora), a battle tested protocol implemention, as it has been serving more than 40 million Internet requests per second for more than a few years.
+- **Customization** - You need ultimate customization, you can configure, extend and even further program in multiple languages.
+- **Asynchronous and Multi-Threaded** – Dakia is designed to handle tasks concurrently, ensuring efficient and high-performance request processing by default.
+
+## Architecture
+
+```mermaid
+flowchart TD
+ subgraph Downstream["Downstream"]
+        direction BT
+        A["Client"]
+  end
+ subgraph Components["Components"]
+        Router["Router"]
+        Filter["Filter"]
+        Interceptor["Interceptor"]
+        Extension["Extension"]
+        LoadBalancer["Load Balancer"]
+        ConfigManager["Configuration Manager"]
+        Telemetry["Logging & Monitoring"]
+  end
+ subgraph ForeignEngine["Foreign Engine"]
+        LuaJIT["Lua Jit"]
+        JVM["JVM"]
+        V8["V8"]
+  end
+ subgraph Proxy["Proxy & Phases"]
+    direction TB
+        Init["Init"]
+        RequestFilter["Request Filter"]
+        UpstreamPeerSelection["Upstream Peer Selection"]
+        BeforeUpstreamRequest["Before Upstream Request"]
+        BeforeDownstreamResponse["Before Downstream Response"]
+        Exit["Exist"]
+  end
+ subgraph Dakia["Dakia"]
+    direction TB
+        Components
+        Proxy
+        ForeignEngine
+  end
+ subgraph Upstream["Upstream"]
+    direction TB
+        C1["Backend 1"]
+        C2["Backend 2"]
+        C3["Backend 3"]
+  end
+    Downstream -- Request --> Dakia
+    Init -- Filter requests & write responses directly --> RequestFilter
+    RequestFilter -- Select Peer to Proxy --> UpstreamPeerSelection
+    UpstreamPeerSelection -- Modify Downstream Request --> BeforeUpstreamRequest
+    BeforeUpstreamRequest -- Modify Upstream Response --> BeforeDownstreamResponse
+    BeforeDownstreamResponse --> Exit
+    Components --> RequestFilter & UpstreamPeerSelection & BeforeUpstreamRequest & BeforeDownstreamResponse & ForeignEngine
+    Dakia -- Request --> Upstream
+    Upstream -- Response --> Dakia
+    Dakia -- Response --> Downstream
+```
 
 ## 📊 Progress Tracker
 
-| Task                                                                                                                      | Status  |
-| ------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Configurable(Only yaml supported for now)                                                                                 | Done ✅ |
-| Virtual Host                                                                                                              | Done ✅ |
-| Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                        | Done ✅ |
-| Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                                | Done ✅ |
-| Proxy                                                                                                                     | Done ✅ |
-| HTTP Protocol Suport                                                                                                      | Done ✅ |
-| [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)                                              | Done ✅ |
-| Load Balancer                                                                                                             | Done ✅ |
-| Filter (MongoDB like query support)                                                                                       | Done ✅ |
-| Dakia CLI                                                                                                                 | Done ✅ |
-| Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                              | Pending |
-| Extension,Interceptor(Rust,Java, JavaScript)                                                                              | Pending |
-| [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                          | Pending |
-| Load Balancer Algoriths (Least connection, Least response time, IP/Url hash, [Service Discovery](http://bakerstreet.io/)) | Pending |
-| SSL Support                                                                                                               | Pending |
-| Certbot Integration                                                                                                       | Pending |
-| Controller (API to manage dakia over REST)                                                                                | Pending |
-| TCP/UDP Proxy                                                                                                             | Pending |
-| Web Socket Proxy                                                                                                          | Pending |
-| gRPC Proxy                                                                                                                | Pending |
-| Docs                                                                                                                      | Pending |
+| Task                                                                                                                      | Status         |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| Configurable(Only yaml supported for now)                                                                                 | Done ✅        |
+| Virtual Host                                                                                                              | Done ✅        |
+| Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                        | Done ✅        |
+| Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                                | Done ✅        |
+| Proxy                                                                                                                     | Done ✅        |
+| HTTP Protocol Suport                                                                                                      | Done ✅        |
+| [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)                                              | Done ✅        |
+| Load Balancer                                                                                                             | Done ✅        |
+| Filter (MongoDB like query support)                                                                                       | Done ✅        |
+| Dakia CLI                                                                                                                 | Done ✅        |
+| Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                              | In-Progress 🚀 |
+| Extension,Interceptor(Rust,Java, JavaScript)                                                                              | Pending        |
+| [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                          | Pending        |
+| Load Balancer Algoriths (Least connection, Least response time, IP/Url hash, [Service Discovery](http://bakerstreet.io/)) | Pending        |
+| SSL Support                                                                                                               | Pending        |
+| Certbot Integration                                                                                                       | Pending        |
+| Controller (API to manage dakia over REST)                                                                                | Pending        |
+| TCP/UDP Proxy                                                                                                             | Pending        |
+| Web Socket Proxy                                                                                                          | Pending        |
+| gRPC Proxy                                                                                                                | Pending        |
+| Docs                                                                                                                      | Pending        |
