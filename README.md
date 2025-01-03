@@ -23,14 +23,6 @@ _______
 
 **Dakia** is an advanced API Gateway designed with developers in mind, offering a fully configurable, extensible and programmable solution. With Dakia, developers are treated as first-class citizens, enabling them to customize and tailor the gateway to fit the unique needs...
 
-## Limitations ☠️
-
-> These limitations will be addressed over time as we continue to improve the dakia.
-
-- Currently supports only `UTF-8` character encoding.
-- Only the round-robin load balancing algorithm is available at the moment.
-- IPv6 addresses are not supported at this time; only IPv4 is supported.
-
 ## Features
 
 - **Fully Programmable**: Tailor the API Gateway to your specific needs with custom plugins and middleware in multiple languages.
@@ -42,6 +34,14 @@ _______
 - **Real-Time Configuration**: Modify your gateway configuration in real time with no downtime, using HTTP API calls.
 
 Dakia ensures your services stay performant, reliable, and highly customizable, giving you full control.
+
+## Limitations ☠️
+
+> These limitations will be addressed over time as we continue to improve the dakia.
+
+- Currently supports only `UTF-8` character encoding.
+- Only the round-robin load balancing algorithm is available at the moment.
+- IPv6 addresses are not supported at this time; only IPv4 is supported.
 
 ## 📊 Progress Tracker
 
