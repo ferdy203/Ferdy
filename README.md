@@ -23,7 +23,7 @@ _______
 
 **Dakia** is an advanced API Gateway designed with developers in mind, offering a fully configurable, extensible and programmable solution. With Dakia, developers are treated as first-class citizens, enabling them to customize and tailor the gateway to fit the unique needs...
 
-## Features
+## Feature highlights
 
 - **Configurable**: Easily manage API configurations using various formats like YAML, JSON, and HTTP API calls.
 - **Extensible**: Add new functionality with support for custom middleware and plugins, written in any programming language (Rust, Java, C++, etc.).
@@ -43,6 +43,11 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 - Only the round-robin load balancing algorithm is available at the moment.
 - IPv6 addresses are not supported at this time; only IPv4 is supported.
 - Currently it supports only `HTTP` protocol
+
+## Reasons to use `Dakia`
+
+- **Security** - Written in rust, so it's more memory safe than services written in c/c++
+- **Customization** - You need ultimate customization, you can configure, extend and even further program in multiple languages
 
 ## 📊 Progress Tracker
 
