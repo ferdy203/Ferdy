@@ -23,7 +23,7 @@ _______
 
 **Dakia** is an advanced API Gateway designed with developers in mind, offering a fully configurable, extensible and programmable solution. With Dakia, developers are treated as first-class citizens, enabling them to customize and tailor the gateway to fit the unique needs...
 
-## Limitations
+## Limitations ☠️
 
 > These limitations will be addressed over time as we continue to improve the dakia.
 
