@@ -42,6 +42,7 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 - Currently supports only `UTF-8` character encoding.
 - Only the round-robin load balancing algorithm is available at the moment.
 - IPv6 addresses are not supported at this time; only IPv4 is supported.
+- Currently it supports only `HTTP` protocol
 
 ## 📊 Progress Tracker
 
@@ -63,7 +64,7 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 | Load Balancer Algoriths (Least connection, Least response time, IP/Url hash, [Service Discovery](http://bakerstreet.io/)) | Pending |
 | SSL Support                                                                                                               | Pending |
 | Certbot Integration                                                                                                       | Pending |
-| Controller(API to manage dakia over REST)                                                                                 | Pending |
+| Controller (API to manage dakia over REST)                                                                                | Pending |
 | TCP/UDP Proxy                                                                                                             | Pending |
 | Web Socket Proxy                                                                                                          | Pending |
 | gRPC Proxy                                                                                                                | Pending |
