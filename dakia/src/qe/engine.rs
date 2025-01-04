@@ -5,25 +5,26 @@ use super::query::{Composite, Map, Operator, Query, Scaler, SupplierValue, Value
 static OPERATOR_IDENTIFIRE: &str = "$";
 static LOGICAL_OPERATOR: [Operator; 2] = [Operator::And, Operator::Or];
 
-fn match_str(operator: &Operator, query_str: &str, supplier_str: &str) -> DakiaResult<bool> {
+fn match_str(operator: &Operator, qval: &str, sval: &str) -> DakiaResult<bool> {
     let matched = match operator {
-        Operator::Eq => query_str == supplier_str,
-        Operator::Ne => query_str != supplier_str,
-        Operator::Contains => supplier_str.contains(query_str),
-        Operator::NotContains => !supplier_str.contains(query_str),
-        Operator::StartsWith => supplier_str.starts_with(query_str),
-        Operator::NotStartWith => !supplier_str.starts_with(query_str),
-        Operator::EndsWith => supplier_str.ends_with(query_str),
-        Operator::NotEndsWith => !supplier_str.ends_with(query_str),
+        Operator::Eq => qval == sval,
+        Operator::Ne => qval != sval,
+        Operator::Contains => sval.contains(qval),
+        Operator::NotContains => !sval.contains(qval),
+        Operator::StartsWith => sval.starts_with(qval),
+        Operator::NotStartWith => !sval.starts_with(qval),
+        Operator::EndsWith => sval.ends_with(qval),
+        Operator::NotEndsWith => !sval.ends_with(qval),
         Operator::Matches => {
             // TODO: create regex registry after once dakia will be moved to shared nothing arch..
-            // registry will allow here to reuse the same compiled regex multiple throughout the application
-            let regex = pcre2::bytes::Regex::new(query_str)?;
-            regex.is_match(supplier_str.as_bytes())?
+            // registry will allow us to reuse the same compiled regex multiple times throughout the application
+            // make sure to consider thread sefty
+            let regex = pcre2::bytes::Regex::new(qval)?;
+            regex.is_match(sval.as_bytes())?
         }
         _ => {
             return Err(DakiaError::i_explain(format!(
-                "Invalid operator {operator:?} for string {query_str}"
+                "Invalid operator {operator:?} for string {qval}"
             )))
         }
     };
@@ -31,13 +32,13 @@ fn match_str(operator: &Operator, query_str: &str, supplier_str: &str) -> DakiaR
     Ok(matched)
 }
 
-fn match_int<T, U>(operator: &Operator, a: T, b: U) -> DakiaResult<bool>
+fn match_int<T, U>(operator: &Operator, qval: T, sval: U) -> DakiaResult<bool>
 where
     T: PartialOrd<U>,
 {
     let result = match operator {
-        Operator::Eq => a == b,
-        Operator::Ne => a != b,
+        Operator::Eq => qval == sval,
+        Operator::Ne => qval != sval,
         _ => {
             return Err(DakiaError::i_explain(format!(
                 "Invalid operator {operator:?} for integer argumetns "
@@ -65,8 +66,8 @@ fn match_bool(operator: &Operator, qval: bool, sval: &SupplierValue) -> DakiaRes
     }
 }
 
-fn is_val_in_vec(ar: &Vec<Value>, sval: &SupplierValue) -> DakiaResult<bool> {
-    for val in ar.iter() {
+fn is_val_in_vec(vec: &Vec<Value>, sval: &SupplierValue) -> DakiaResult<bool> {
+    for val in vec.iter() {
         let matched = exec_operator(&Operator::Eq, val, sval)?;
         if matched {
             return Ok(true);
