@@ -33,3 +33,4 @@ replay_pid*
 todo.txt
 /example*
 /local_gateway_config*
+/design/*
