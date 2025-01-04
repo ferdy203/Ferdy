@@ -1,20 +1,9 @@
 use crate::error::{DakiaError, DakiaResult};
 
 use super::query::{Composite, Map, Operator, Query, Scaler, SupplierValue, Value};
+
 static OPERATOR_IDENTIFIRE: &str = "$";
 static LOGICAL_OPERATOR: [Operator; 2] = [Operator::And, Operator::Or];
-static SCALER_OPERATOR: [Operator; 9] = [
-    Operator::Eq,
-    Operator::Ne,
-    Operator::Contains,
-    Operator::NotContains,
-    Operator::StartsWith,
-    Operator::NotStartWith,
-    Operator::EndsWith,
-    Operator::NotEndsWith,
-    Operator::Matches,
-];
-static ARRAY_OPERATOR: [Operator; 2] = [Operator::In, Operator::Nin];
 
 fn match_str(operator: &Operator, query_str: &str, supplier_str: &str) -> DakiaResult<bool> {
     let matched = match operator {
