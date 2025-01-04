@@ -101,6 +101,7 @@ impl ProxyHttp for Proxy {
     ) -> Result<Box<HttpPeer>, Box<Error>> {
         let gateway_config = _ctx.config.find_gateway_config_or_err(&self.name)?;
 
+        // TODO: return 404 if router config not found
         let router_config = gateway_config.find_router_config_or_err(|filter| {
             exec(filter, |path| part_supplier(path, _ctx, _session))
         })?;
@@ -112,7 +113,6 @@ impl ProxyHttp for Proxy {
             Some(lb) => Some(lb),
         };
 
-        // TODO: return 404 if not lb found
         let lb = lb.ok_or(DakiaError::i_explain(format!(
             "load balacer not found for upstream {upstream_name}"
         )))?;
