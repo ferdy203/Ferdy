@@ -1,8 +1,5 @@
 mod args;
 mod dakia_config;
-mod downstream;
-mod filter;
-mod pattern;
 mod upstream;
 
 pub mod source_config;
