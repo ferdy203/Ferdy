@@ -216,9 +216,10 @@ where
         if let Value::Scaler(_) = qval {
             let sval = supplier(key.as_str())?;
             let matched = exec_operator(&Operator::Eq, qval, &sval)?;
-
             if !matched {
                 return Ok(false);
+            } else {
+                continue;
             }
         }
 
