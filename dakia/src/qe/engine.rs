@@ -157,8 +157,13 @@ where
                 return Ok(false);
             }
             // if operator is $or then return true if any match is true
-            else if matched {
+            if !and && matched {
                 return Ok(true);
+            }
+
+            // match other conditions
+            if and && matched {
+                continue;
             }
         }
 
@@ -187,6 +192,11 @@ where
     F: Fn(&'a str) -> DakiaResult<SupplierValue<'a>>,
 {
     for (key, qval) in query.iter() {
+        #[cfg(debug_assertions)]
+        {
+            println!("exac() ->  key: {key}, value: {qval:?}");
+        }
+
         if key.starts_with(OPERATOR_IDENTIFIRE) {
             let operator = Operator::try_from(key.as_str())?;
 
