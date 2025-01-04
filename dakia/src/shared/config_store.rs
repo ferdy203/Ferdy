@@ -8,6 +8,7 @@ pub struct GlobalConfigStore {
     config: Arc<DakiaConfig>,
 }
 
+// TODO: remove static global, use any lock free data structure instead
 static CONFIG_STORE: Lazy<RwLock<GlobalConfigStore>> =
     Lazy::new(|| RwLock::new(GlobalConfigStore::new()));
 

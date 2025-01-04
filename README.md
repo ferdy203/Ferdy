@@ -125,6 +125,7 @@ flowchart BT
 | Load Balancer                                                                                                             | Done ✅        |
 | Filter (MongoDB like query support)                                                                                       | Done ✅        |
 | Dakia CLI                                                                                                                 | Done ✅        |
+| [PCRE](https://www.pcre.org/) support for pattern matching                                                                | Done ✅        |
 | Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                              | In-Progress 🚀 |
 | Extension,Interceptor(Rust,Java, JavaScript)                                                                              | Pending        |
 | [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                          | Pending        |

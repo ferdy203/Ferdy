@@ -41,7 +41,7 @@ fn main() {
     // TODO: add support for TCP, WebSocket and gRPC gateway
     let gateways: Arc<Mutex<Vec<HttpGateway>>> = Arc::new(Mutex::new(vec![]));
 
-    // clone data to pass to tokio inside runtime
+    // clone data for passing to the tokio runtime
     let gateways_cloned = gateways.clone();
     let dakia_config_cloned = dakia_config.clone();
 
@@ -62,7 +62,7 @@ fn main() {
 
     runtime.block_on(handle).unwrap();
 
-    // we no longer this runtime, use pingora runtime instead
+    // we no longer this runtime, pingora runtime will be used instead
     runtime.shutdown_background();
 
     let mut server = Server::new_with_opt_and_conf(
