@@ -54,56 +54,66 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 ## Architecture
 
 ```mermaid
-flowchart BT
+flowchart TB
  subgraph Downstream["Downstream"]
-        direction BT
-        A["Client"]
-  end
- subgraph Components["Components"]
-        Router["Router"]
-        Filter["Filter"]
-        Interceptor["Interceptor"]
-        Extension["Extension"]
-        LoadBalancer["Load Balancer"]
-        ConfigManager["Configuration Manager"]
-        Telemetry["Logging & Monitoring"]
-  end
- subgraph ForeignEngine["Foreign Engine"]
-        LuaJIT["Lua Jit"]
-        JVM["JVM"]
-        V8["V8"]
-  end
- subgraph Proxy["Proxy & Phases"]
     direction TB
-        Init["Init"]
+        n1["Client 1"]
+        n2["Client 2"]
+  end
+ subgraph Proxy["Proxy"]
+        direction TB
+        Start["Start"]
         RequestFilter["Request Filter"]
         UpstreamPeerSelection["Upstream Peer Selection"]
         BeforeUpstreamRequest["Before Upstream Request"]
+        AfterUpstreamResponse["After Upstream Response"]
         BeforeDownstreamResponse["Before Downstream Response"]
-        Exit["Exist"]
+        End["End"]
   end
  subgraph Dakia["Dakia"]
-    direction TB
-        Components
+        direction TB
         Proxy
-        ForeignEngine
+        subgraph Components["Dynamic Modules"]
+            direction TB
+            Interceptor
+            Filter
+            Extension
+        end
+
+        LoadBalancer["Load Balancer"]
+        Router
+
+        subgraph ConfigManager
+            Storage
+        end
+
+        Proxy --> Components
+        Extension & Interceptor --> Filter
+        Proxy & LoadBalancer --> ConfigManager
+        Router --> LoadBalancer & Components
+
   end
  subgraph Upstream["Upstream"]
     direction TB
-        C1["Backend 1"]
-        C2["Backend 2"]
-        C3["Backend 3"]
+        server1[" "]
+        server2[" "]
+        server3[" "]
   end
-    Downstream -- Request --> Dakia
-    Init -- Filter requests & write responses directly --> RequestFilter
-    RequestFilter -- Select Peer to Proxy --> UpstreamPeerSelection
-    UpstreamPeerSelection -- Modify Downstream Request --> BeforeUpstreamRequest
-    BeforeUpstreamRequest -- Modify Upstream Response --> BeforeDownstreamResponse
-    BeforeDownstreamResponse --> Exit
-    Components --> RequestFilter & UpstreamPeerSelection & BeforeUpstreamRequest & BeforeDownstreamResponse & ForeignEngine
-    Dakia -- Request --> Upstream
-    Upstream -- Response --> Dakia
-    Dakia -- Response --> Downstream
+    Start --> RequestFilter
+    RequestFilter --> UpstreamPeerSelection
+    UpstreamPeerSelection --> BeforeUpstreamRequest & Router
+    BeforeUpstreamRequest --> AfterUpstreamResponse
+    AfterUpstreamResponse --> BeforeDownstreamResponse
+    BeforeDownstreamResponse --> End
+    Downstream <--> Dakia
+    Dakia <--> Upstream
+
+    n1@{ icon: "azure:intune-app-protection", pos: "b"}
+    n2@{ icon: "azure:intune-app-protection", pos: "b"}
+    server1@{ icon: "aws:res-servers", pos: "b"}
+    server2@{ icon: "aws:res-servers", pos: "b"}
+    server3@{ icon: "aws:res-servers", pos: "b"}
+    style Downstream color:none
 ```
 
 ## Getting started
