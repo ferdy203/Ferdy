@@ -209,6 +209,8 @@ where
 
             if !matched {
                 return Ok(false);
+            } else {
+                continue;
             }
         }
 
