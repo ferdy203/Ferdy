@@ -34,6 +34,14 @@ impl From<Box<Error>> for Box<pingora_core::Error> {
     fn from(value: Box<Error>) -> Box<pingora_core::Error> {
         match *value {
             Error::PingoraError(pe) => Box::new(pe),
+            Error::DakiaError(de) => {
+                // TODO: handle translation between pingora and dakia error
+                // pass status code correctly
+                // currently, it'll just print error message. Which is enough for debugging for now...
+                let error_msg = de.to_string();
+                let pe = pingora_core::Error::explain(pingora::ErrorType::InternalError, error_msg);
+                pe
+            }
             // TODO: implement conversion for other errors
             _ => pingora_core::Error::new(pingora::ErrorType::InternalError),
         }
