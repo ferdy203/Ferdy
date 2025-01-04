@@ -29,10 +29,9 @@ impl Registry<Arc<LB>> for LoadBalancerRegistry {
 
     async fn get(&self, key: &str) -> DakiaResult<Option<Arc<LB>>> {
         let read_guard = self.registry.read().await;
-        let arc_lb = read_guard
-            .get(key)
-            // TODO: add context
-            .ok_or(DakiaError::create_internal())?;
+        let arc_lb = read_guard.get(key).ok_or(DakiaError::i_explain(format!(
+            "Load balancer {key:?} not found."
+        )))?;
         Ok(Some(arc_lb.clone()))
     }
 }

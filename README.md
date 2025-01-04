@@ -47,7 +47,7 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 ## Reasons to use `Dakia`
 
 - **Security** - Built with Rust, Dakia ensures enhanced memory safety and reduces vulnerabilities compared to services written in C/C++.
-- **Performance** - Powered by [pingora](https://github.com/cloudflare/pingora), a battle tested protocol implemention, as it has been serving more than **_40M+_** Internet requests per second for more than a few years.
+- **Performance** - Powered by [pingora](https://github.com/cloudflare/pingora), a battle tested protocol implemention, as it has been serving more than **_40M+_** internet requests per second for more than a few years.
 - **Customization** - You need ultimate customization, you can configure, extend and even further program in multiple languages.
 - **Asynchronous and Multi-Threaded** – Dakia is designed to handle tasks concurrently, ensuring efficient and high-performance request processing by default.
 
