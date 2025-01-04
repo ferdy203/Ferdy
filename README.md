@@ -106,6 +106,11 @@ flowchart BT
     Dakia -- Response --> Downstream
 ```
 
+## Getting started
+
+- See our [quick starting guide](/docs/quick_start.md)
+- See our [docs](/docs/README.md)
+
 ## 📊 Progress Tracker
 
 | Task                                                                                                                      | Status         |
