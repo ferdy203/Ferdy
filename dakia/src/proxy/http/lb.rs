@@ -46,13 +46,13 @@ impl LoadBalancerRegistry {
 }
 
 pub fn build_lb(upstream_config: &UpstreamConfig) -> DakiaResult<LB> {
-    let x: Vec<String> = upstream_config
+    let addrs: Vec<String> = upstream_config
         .upstream_nodes
         .iter()
         .map(|node| node.address.get_formatted_address())
         .collect();
 
-    let lb: LoadBalancer<Weighted<RoundRobin>> = LoadBalancer::try_from_iter(x)?;
+    let lb: LoadBalancer<Weighted<RoundRobin>> = LoadBalancer::try_from_iter(addrs)?;
     Ok(lb)
 }
 
