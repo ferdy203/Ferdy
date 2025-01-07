@@ -110,7 +110,7 @@ fn exec_operator(operator: &Operator, qval: &Value, sval: &SupplierValue) -> Dak
         },
         Value::Composite(composite_val) => match composite_val {
             Composite::Map(_) => Err(DakiaError::i_explain(format!("{qval:?} can not be map!"))),
-            Composite::Array(vec) => match_vec(operator, vec, sval),
+            Composite::Vector(vec) => match_vec(operator, vec, sval),
         },
     }
 }
@@ -141,39 +141,43 @@ fn exec_logical<'a, F>(query_map: &'a Map, and: bool, supplier: &F) -> DakiaResu
 where
     F: Fn(&'a str) -> DakiaResult<SupplierValue<'a>>,
 {
-    for (key, value) in query_map.iter() {
-        if key.starts_with(OPERATOR_IDENTIFIRE) {
-            return Err(DakiaError::i_explain(
-                "No operator should appear directly after logical operator.",
-            ));
-        }
+    for (key, qval) in query_map.iter() {
+        let matched = if key.starts_with(OPERATOR_IDENTIFIRE) {
+            // TODO: add support for nested logical operator - https://github.com/rust-lang/rust/issues/43520
+            return Err(DakiaError::i_explain(format!(
+                "Support for nested logical operator is not yet available"
+            )));
 
-        // scaler values are matched like $eq operator
-        if let Value::Scaler(_) = value {
-            let sval = supplier(key.as_str())?;
-            let matched = exec_operator(&Operator::Eq, value, &sval)?;
-            // if operator is $and then return false if any match is false
-            if and && !matched {
-                return Ok(false);
-            }
-            // if operator is $or then return true if any match is true
-            if !and && matched {
-                return Ok(true);
-            }
+            // let operator = Operator::try_from(key.as_str())?;
+            // if !LOGICAL_OPERATOR.contains(&operator) {
+            //     return Err(DakiaError::i_explain(
+            //         "No operator should appear directly after logical operator.",
+            //     ));
+            // }
 
-            // match other conditions
-            if and && matched {
-                continue;
+            // // value must be operator map because it's logical
+            // match qval {
+            //     Value::Composite(Composite::Map(omap)) => {
+            //         exec_logical(omap, matches!(operator, Operator::And), &supplier)
+            //     }
+            //     _ => Err(DakiaError::i_explain(format!(
+            //         "a map was expected, found {qval:?}"
+            //     ))),
+            // }?
+        } else {
+            match qval {
+                Value::Scaler(_) => {
+                    let sval = supplier(key.as_str())?;
+                    exec_operator(&Operator::Eq, qval, &sval)?
+                }
+                Value::Composite(Composite::Map(omap)) => exec_omap(&key, omap, supplier)?,
+                _ => {
+                    return Err(DakiaError::i_explain(format!(
+                        "Invalid value {qval:?} found for key {key}"
+                    )))
+                }
             }
-        }
-
-        // value must be operator map
-        let matched = match value {
-            Value::Composite(Composite::Map(omap)) => exec_omap(&key, omap, supplier),
-            _ => Err(DakiaError::i_explain(format!(
-                "a map was expected, found {value:?}"
-            ))),
-        }?;
+        };
 
         // if operator is $and then return false if any match is false
         if and && !matched {
@@ -184,7 +188,8 @@ where
             return Ok(true);
         }
     }
-    Ok(false)
+
+    Ok(true)
 }
 
 pub fn exec<'a, F>(query: &'a Query, supplier: F) -> DakiaResult<bool>
@@ -192,12 +197,7 @@ where
     F: Fn(&'a str) -> DakiaResult<SupplierValue<'a>>,
 {
     for (key, qval) in query.iter() {
-        #[cfg(debug_assertions)]
-        {
-            println!("exac() ->  key: {key}, value: {qval:?}");
-        }
-
-        if key.starts_with(OPERATOR_IDENTIFIRE) {
+        let matched = if key.starts_with(OPERATOR_IDENTIFIRE) {
             let operator = Operator::try_from(key.as_str())?;
 
             // only logical operator can be specified at the root level
@@ -208,40 +208,28 @@ where
             }
 
             // value must be operator map because it's logical
-            let matched = match qval {
+            match qval {
                 Value::Composite(Composite::Map(omap)) => {
                     exec_logical(omap, matches!(operator, Operator::And), &supplier)
                 }
                 _ => Err(DakiaError::i_explain(format!(
                     "a map was expected, found {qval:?}"
                 ))),
-            }?;
-
-            if !matched {
-                return Ok(false);
-            } else {
-                continue;
+            }?
+        } else {
+            match qval {
+                Value::Scaler(_) => {
+                    let sval = supplier(key.as_str())?;
+                    exec_operator(&Operator::Eq, qval, &sval)?
+                }
+                Value::Composite(Composite::Map(omap)) => exec_omap(&key, omap, &supplier)?,
+                _ => {
+                    return Err(DakiaError::i_explain(format!(
+                        "Invalid value {qval:?} found for key {key}"
+                    )))
+                }
             }
-        }
-
-        // scaler values are matched like $eq operator
-        if let Value::Scaler(_) = qval {
-            let sval = supplier(key.as_str())?;
-            let matched = exec_operator(&Operator::Eq, qval, &sval)?;
-            if !matched {
-                return Ok(false);
-            } else {
-                continue;
-            }
-        }
-
-        // key is not logical operator, value is not scaler then it must be an operator map
-        let matched = match qval {
-            Value::Composite(Composite::Map(omap)) => exec_omap(&key, omap, &supplier),
-            _ => Err(DakiaError::i_explain(format!(
-                "a map was expected, found {qval:?}"
-            ))),
-        }?;
+        };
 
         if !matched {
             return Ok(false);

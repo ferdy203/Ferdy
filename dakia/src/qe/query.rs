@@ -69,7 +69,7 @@ pub enum Scaler {
 #[serde(untagged)]
 pub enum Composite {
     Map(Map),
-    Array(Array),
+    Vector(Array),
 }
 
 // fields of enum SupplierValue should be equivalent to Scaler enum fields of Query
