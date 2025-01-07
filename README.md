@@ -19,10 +19,11 @@ _______
 
 ![1](https://github.com/user-attachments/assets/9348db35-f589-4dc4-9a03-24924d6d8f2d)
 
-# Dakia: The Developer-Centric API Gateway
+# Dakia: A cloud native API Gateway
+**Dakia** is a cloud native API Gateway designed with developers experience in mind, offering a fully configurable, extensible and programmable network solution. **Dakia** enabling developers to customize and tailor the gateway to fit their unique needs...
 
-**Dakia** is an advanced API Gateway designed with developers in mind, offering a fully configurable, extensible and programmable solution. With Dakia, developers are treated as first-class citizens, enabling them to customize and tailor the gateway to fit the unique needs...
-
+> It's under construction 🦺 🪚 🏗️ 🚧 🔨 
+>
 ## Feature highlights
 
 - **Configurable**: Easily manage API configurations using various formats like YAML, JSON, and HTTP API calls.
