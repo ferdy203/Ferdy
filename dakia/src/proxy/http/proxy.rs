@@ -129,6 +129,7 @@ impl ProxyHttp for Proxy {
         let sni = upstream_node_config.clone().sni.unwrap_or("".to_string());
 
         let peer = Box::new(HttpPeer::new(backend.addr, tls, sni));
+
         Ok(peer)
     }
 }
