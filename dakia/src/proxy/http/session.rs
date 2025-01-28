@@ -2,7 +2,7 @@
 // they can not modify downstream request, because it'll be written by client
 // they can not modify upstream response, because it'll be written by upstreamm server
 
-use http::HeaderName;
+use http::StatusCode;
 use pingora_http::{RequestHeader as PRequestHeader, ResponseHeader as PResponseHeader};
 use pingora_proxy::Session as PSession;
 
@@ -92,6 +92,14 @@ impl<'a> DownstreamRequest<'a> {
         self.psession.as_downstream().req_header().method.as_str()
     }
 
+    pub fn path(&self) -> &str {
+        self.psession.as_downstream().req_header().uri.path()
+    }
+
+    pub fn query(&self) -> Option<&str> {
+        self.psession.as_downstream().req_header().uri.query()
+    }
+
     pub fn header(&self, header_name: &str) -> Option<&[u8]> {
         let header_value = self
             .psession
@@ -102,8 +110,12 @@ impl<'a> DownstreamRequest<'a> {
         Some(header_value.as_bytes())
     }
 
-    pub fn path(&self) -> &str {
-        self.psession.as_downstream().req_header().uri.path()
+    pub fn path_and_query(&self) -> Option<&http::uri::PathAndQuery> {
+        self.psession
+            .as_downstream()
+            .req_header()
+            .uri
+            .path_and_query()
     }
 
     pub fn _body(&self) {
@@ -132,7 +144,27 @@ impl<'a> DownstreamResponse<'a> {
         }?;
         Ok(())
     }
+
+    pub fn _set_body(&mut self) {
+        todo!()
+    }
+
+    pub fn _set_http_status_code(&mut self, status_code: u16) -> DakiaResult<()> {
+        match &mut self.pupstream_response {
+            Some(response_header) => {
+                let status = StatusCode::from_u16(status_code)?;
+                response_header.set_status(status)?
+            }
+            None => {
+                return Err(DakiaError::create_internal_context(
+                    "Something went wrong! Upstream response required here!",
+                ));
+            }
+        };
+        Ok(())
+    }
 }
+
 pub struct UpstreamSession<'a> {
     pub req: UpstreamRequest<'a>,
     pub res: UpstreamResponse<'a>,
@@ -187,20 +219,16 @@ pub struct UpstreamResponse<'a> {
 impl<'a> UpstreamResponse<'a> {
     pub fn header(&self, header_name: &str) -> DakiaResult<Option<&[u8]>> {
         match &self.pupstream_response {
-            Some(response_header) => {
-                let header_value = response_header.headers.get(header_name)?;
-                Ok(Some(header_value.as_bytes()))
-            }
+            Some(response_header) => match response_header.headers.get(header_name) {
+                Some(header_value) => Ok(Some(header_value.as_bytes())),
+                None => Ok(None),
+            },
             None => {
                 return Err(DakiaError::create_internal_context(
                     "Something went wrong! Upstream response required here!",
                 ))
             }
         }
-    }
-
-    pub fn _body(&self) {
-        todo!()
     }
 
     pub fn status_code(&self) -> DakiaResult<http::StatusCode> {
@@ -212,5 +240,9 @@ impl<'a> UpstreamResponse<'a> {
                 ))
             }
         }
+    }
+
+    pub fn _body(&self) {
+        todo!()
     }
 }
