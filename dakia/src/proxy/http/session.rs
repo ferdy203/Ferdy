@@ -58,7 +58,9 @@ impl<'a> SessionBuilder<'a> {
             req: UpstreamRequest {
                 pupstream_request: self.upstream_request,
             },
-            res: UpstreamResponse {},
+            res: UpstreamResponse {
+                pupstream_response: None,
+            },
         };
 
         Session {
@@ -103,6 +105,14 @@ impl<'a> DownstreamRequest<'a> {
     pub fn path(&self) -> &str {
         self.psession.as_downstream().req_header().uri.path()
     }
+
+    pub fn _body(&self) {
+        todo!()
+    }
+
+    pub fn _http_version(&self) {
+        todo!()
+    }
 }
 
 // allow to write only response headers, response body
@@ -125,7 +135,7 @@ impl<'a> DownstreamResponse<'a> {
 }
 pub struct UpstreamSession<'a> {
     pub req: UpstreamRequest<'a>,
-    pub res: UpstreamResponse,
+    pub res: UpstreamResponse<'a>,
 }
 
 pub struct UpstreamRequest<'a> {
@@ -164,6 +174,43 @@ impl<'a> UpstreamRequest<'a> {
         }?;
         Ok(())
     }
+
+    pub fn _set_body(&mut self) {
+        todo!()
+    }
 }
 
-pub struct UpstreamResponse {}
+pub struct UpstreamResponse<'a> {
+    pupstream_response: Option<&'a mut PResponseHeader>,
+}
+
+impl<'a> UpstreamResponse<'a> {
+    pub fn header(&self, header_name: &str) -> DakiaResult<Option<&[u8]>> {
+        match &self.pupstream_response {
+            Some(response_header) => {
+                let header_value = response_header.headers.get(header_name)?;
+                Ok(Some(header_value.as_bytes()))
+            }
+            None => {
+                return Err(DakiaError::create_internal_context(
+                    "Something went wrong! Upstream response required here!",
+                ))
+            }
+        }
+    }
+
+    pub fn _body(&self) {
+        todo!()
+    }
+
+    pub fn status_code(&self) -> DakiaResult<http::StatusCode> {
+        match &self.pupstream_response {
+            Some(response_header) => Ok(response_header.status),
+            None => {
+                return Err(DakiaError::create_internal_context(
+                    "Something went wrong! Upstream response required here!",
+                ))
+            }
+        }
+    }
+}
