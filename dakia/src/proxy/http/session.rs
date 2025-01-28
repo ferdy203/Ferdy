@@ -113,8 +113,12 @@ pub struct UpstreamRequest<'a> {
 }
 
 impl<'a> UpstreamRequest<'a> {
-    pub fn set_path_and_query(&mut self, path: &str, query: &str) -> DakiaResult<()> {
-        let pnq = format!("{}{}", path, query);
+    pub fn set_path_and_query(&mut self, path: &str, query: Option<&str>) -> DakiaResult<()> {
+        let pnq = match query {
+            Some(query) => format!("{}?{}", path, query),
+            None => path.to_string(),
+        };
+
         let uri = http::Uri::builder().path_and_query(pnq).build()?;
 
         let _ = match &mut self.pupstream_request {
