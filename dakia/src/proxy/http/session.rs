@@ -2,73 +2,74 @@
 // they can not modify downstream request, because it'll be written by client
 // they can not modify upstream response, because it'll be written by upstreamm server
 
+use pingora_http::RequestHeader as PRequestHeader;
 use pingora_proxy::Session as PSession;
+
+use crate::error::{DakiaError, DakiaResult};
+
+pub enum Phase {
+    RequestFilter,
+    UpstreamPeerSelection,
+    PreUpstreamRequest,
+    PreDownstreamResponse,
+}
 
 pub struct Session<'a> {
     psession: &'a PSession,
+    upstream_request: Option<&'a mut PRequestHeader>,
     pub ds: DownstreamSession<'a>,
-    pub us: UpstreamSession,
+    pub us: UpstreamSession<'a>,
+    phase: Phase,
 }
 
-impl<'a> Session<'a> {
-    pub fn build(psession: &'a PSession) -> Self {
+pub struct SessionBuilder<'a> {
+    phase: Phase,
+    psession: &'a PSession,
+    upstream_request: Option<&'a mut PRequestHeader>,
+}
+
+impl<'a> SessionBuilder<'a> {
+    pub fn new(phase: Phase, psession: &'a PSession) -> Self {
+        SessionBuilder {
+            phase,
+            psession: psession,
+            upstream_request: None,
+        }
+    }
+
+    pub fn pupstream_request(mut self, upstream_request: &'a mut PRequestHeader) -> Self {
+        self.upstream_request = Some(upstream_request);
+        self
+    }
+
+    pub fn build(self) -> Session<'a> {
         let ds = DownstreamSession {
-            req: DownstreamRequest { psession },
+            req: DownstreamRequest {
+                psession: self.psession,
+            },
             res: DownstreamResponse {},
         };
 
         let us = UpstreamSession {
-            req: UpstreamRequest {},
+            req: UpstreamRequest {
+                pupstream_request: self.upstream_request,
+            },
             res: UpstreamResponse {},
         };
 
-        Self { psession, ds, us }
-    }
-}
-
-pub enum StreamType {
-    Ds,
-    Us,
-}
-
-pub struct StreamSession {
-    // session: &'a Session<'a>,
-    stream_type: StreamType,
-}
-
-impl<'a> StreamSession {
-    pub fn req(&self) -> HttpRequest {
-        HttpRequest { ss: self }
-    }
-
-    pub fn res(&self) -> HttpResponse {
-        todo!()
-    }
-    pub fn session(&self) -> &Session {
-        // self.session
-        todo!()
-    }
-}
-
-pub struct HttpRequest<'a> {
-    ss: &'a StreamSession,
-}
-
-impl<'a> HttpRequest<'a> {
-    pub fn method(&self) -> &'a str {
-        let ps = self.ss.session().psession;
-        match self.ss.stream_type {
-            StreamType::Ds => ps.as_downstream().req_header().method.as_str(),
-            StreamType::Us => todo!(),
+        Session {
+            psession: self.psession,
+            ds,
+            us,
+            phase: self.phase,
+            upstream_request: None,
         }
     }
 }
 
-pub struct HttpResponse<'a> {
-    ss: &'a StreamSession,
+impl<'a> Session<'a> {
+    // TODO: implement required functions
 }
-
-impl<'a> HttpResponse<'a> {}
 
 pub struct DownstreamSession<'a> {
     pub req: DownstreamRequest<'a>,
@@ -99,11 +100,48 @@ impl<'a> DownstreamRequest<'a> {
     }
 }
 
+// allow to write only response headers, response body
 pub struct DownstreamResponse {} // read & write
 
-pub struct UpstreamSession {
-    pub req: UpstreamRequest,
+pub struct UpstreamSession<'a> {
+    pub req: UpstreamRequest<'a>,
     pub res: UpstreamResponse,
 }
-pub struct UpstreamRequest {} // read & write
+
+pub struct UpstreamRequest<'a> {
+    pupstream_request: Option<&'a mut PRequestHeader>,
+}
+
+impl<'a> UpstreamRequest<'a> {
+    pub fn set_path_and_query(&mut self, path: &str, query: &str) -> DakiaResult<()> {
+        let pnq = format!("{}{}", path, query);
+        let uri = http::Uri::builder().path_and_query(pnq).build()?;
+
+        let _ = match &mut self.pupstream_request {
+            Some(request_header) => request_header.set_uri(uri),
+            None => {
+                return Err(DakiaError::create_internal_context(
+                    "Something went wrong! Upstream request required here!",
+                ))
+            }
+        };
+
+        Ok(())
+    }
+
+    pub fn header(&mut self, header_name: &str, header_value: &[u8]) -> DakiaResult<()> {
+        match &mut self.pupstream_request {
+            Some(request_header) => {
+                request_header.append_header(header_name.to_string(), header_value)
+            }
+            None => {
+                return Err(DakiaError::create_internal_context(
+                    "Something went wrong! Upstream request required here!",
+                ));
+            }
+        }?;
+        Ok(())
+    }
+}
+
 pub struct UpstreamResponse {} // read only
