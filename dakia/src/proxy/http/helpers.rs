@@ -11,8 +11,6 @@ use crate::{
 
 use super::DakiaHttpGatewayCtx;
 
-
-
 pub fn add_dakia_header(response_header: &mut ResponseHeader) -> Result<(), Box<pingora::Error>> {
     // TODO:cotrol addition this header via flag
     let server_header = String::from("dakia/") + get_dakia_version();
@@ -58,7 +56,7 @@ pub async fn is_valid_ds_host(
     dakia_config: &DakiaConfig,
     gateway_name: &str,
     ds_host_pattern_registry: &PatternRegistryType,
-    ds_host: &str,
+    ds_host: &[u8],
 ) -> DakiaResult<bool> {
     let ds_addrs = get_ds_addrs(dakia_config, gateway_name);
 

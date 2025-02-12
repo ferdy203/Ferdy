@@ -111,6 +111,19 @@ impl DakiaError {
 
     /// Simply create the error. See other functions that provide less verbose interfaces.
     #[inline]
+    pub fn create_internal_context(context: &'static str) -> BError {
+        let de = DakiaError {
+            etype: ErrorType::InternalError,
+            source: ErrorSource::Internal,
+            cause: None,
+            context: Some(ImmutStr::Static(context)),
+        };
+
+        Box::new(Error::DakiaError(de))
+    }
+
+    /// Simply create the error. See other functions that provide less verbose interfaces.
+    #[inline]
     pub fn create_unknown_context(context: ImmutStr) -> BError {
         let de = DakiaError {
             etype: ErrorType::UnknownError,

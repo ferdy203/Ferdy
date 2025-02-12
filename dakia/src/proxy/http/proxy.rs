@@ -1,15 +1,17 @@
 use crate::{
     config::source_config::GatewayConfig,
     error::{DakiaError, DakiaResult},
-    proxy::http::helpers::get_inet_addr_from_backend,
-    qe::{engine::exec, query::SupplierValue},
+    proxy::http::{helpers::get_inet_addr_from_backend, session::Phase},
+    qe::engine::exec,
     shared::{config_store, pattern_registry::PatternRegistryType},
 };
 
 use super::{
     builder,
     helpers::{self, is_valid_ds_host, part_supplier},
-    lb, DakiaHttpGatewayCtx,
+    lb,
+    session::{self},
+    DakiaHttpGatewayCtx,
 };
 use async_trait::async_trait;
 use pingora::{
@@ -17,6 +19,7 @@ use pingora::{
     proxy::{ProxyHttp, Session},
     Error,
 };
+use pingora_http::{RequestHeader, ResponseHeader};
 
 #[derive(Clone)]
 pub struct Proxy {
@@ -65,10 +68,11 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<bool, Box<Error>> {
-        let host = helpers::part_supplier("ds.req.header.host", &_ctx, &_session)?;
+        let mut session = session::Session::build(Phase::RequestFilter, _session);
+        let host = session.ds().req()?.header("host")?;
 
         match host {
-            SupplierValue::Str(host) => {
+            Some(host) => {
                 let is_valid_ds_host = is_valid_ds_host(
                     &_ctx.config,
                     &self.name,
@@ -84,9 +88,10 @@ impl ProxyHttp for Proxy {
                 }
             }
 
-            _ => {
+            None => {
                 // TODO: add option to customize http response status and body
-                helpers::write_response_ds(_session, 400, None).await?;
+                // helpers::write_response_ds(_session, 400, None).await?;
+                // session.ds.res.set_header(header_name, header_value)
                 return Ok(true);
             }
         };

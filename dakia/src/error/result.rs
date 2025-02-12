@@ -24,6 +24,20 @@ impl From<pingora_core::Error> for Error {
     }
 }
 
+impl From<Box<pingora::Error>> for Box<Error> {
+    fn from(err: Box<pingora_core::Error>) -> Self {
+        // TODO: format this error
+        err.into()
+    }
+}
+
+impl From<http::status::InvalidStatusCode> for Box<Error> {
+    fn from(err: http::status::InvalidStatusCode) -> Self {
+        // TODO: format this error
+        err.into()
+    }
+}
+
 impl From<DakiaError> for Error {
     fn from(err: DakiaError) -> Self {
         Error::DakiaError(err)
@@ -57,6 +71,13 @@ impl From<std::io::Error> for Box<Error> {
 
 impl From<pcre2::Error> for Box<Error> {
     fn from(value: pcre2::Error) -> Self {
+        let message = value.to_string().into_boxed_str();
+        DakiaError::create_unknown_context(ImmutStr::Owned(message))
+    }
+}
+
+impl From<http::Error> for Box<Error> {
+    fn from(value: http::Error) -> Self {
         let message = value.to_string().into_boxed_str();
         DakiaError::create_unknown_context(ImmutStr::Owned(message))
     }

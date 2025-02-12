@@ -15,12 +15,12 @@ impl Pcre2PatternMatcher {
 }
 
 impl PatternMatcher for Pcre2PatternMatcher {
-    fn is_match(&self, text: &str) -> Result<bool, BErrorStd> {
-        let is_matched = self.regex.is_match(text.as_bytes())?;
+    fn is_match(&self, text: &[u8]) -> Result<bool, BErrorStd> {
+        let is_matched = self.regex.is_match(text)?;
         Ok(is_matched)
     }
 }
 
 pub trait PatternMatcher: Send + Sync {
-    fn is_match(&self, text: &str) -> Result<bool, BErrorStd>;
+    fn is_match(&self, text: &[u8]) -> Result<bool, BErrorStd>;
 }
