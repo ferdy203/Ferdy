@@ -1,3 +1,18 @@
+/*
+- Downstream request
+    - it's read only
+    - user's can read downstream request in any phase
+- Upstream request
+    - it's read & write request
+    - user's can read it in and after PreUpstreamRequest phase
+    - user's can write it only in PreUpstreamRequest, there should be error for any write attempt after PreUpstreamRequest phase
+- Downstream response
+    - user's can write it in any phase
+- Upstream response is read only
+    - it's read only
+    - users's can access upstream response in PreDownstreamResponse phase
+-
+*/
 use std::fmt::{self};
 
 use http::{uri::PathAndQuery, StatusCode};
