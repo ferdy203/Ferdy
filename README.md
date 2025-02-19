@@ -53,69 +53,8 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 - **Asynchronous and Multi-Threaded** – Dakia is designed to handle tasks concurrently, ensuring efficient and high-performance request processing by default.
 
 ## Architecture
+![flow](https://github.com/user-attachments/assets/581b8dd2-c313-4a38-85a1-fd1429104f6a)
 
-```mermaid
-flowchart TB
- subgraph Downstream["Downstream"]
-    direction TB
-        n1["Client 1"]
-        n2["Client 2"]
-  end
- subgraph Proxy["Proxy"]
-        direction TB
-        Start["Start"]
-        RequestFilter["Request Filter"]
-        UpstreamPeerSelection["Upstream Peer Selection"]
-        BeforeUpstreamRequest["Before Upstream Request"]
-        AfterUpstreamResponse["After Upstream Response"]
-        BeforeDownstreamResponse["Before Downstream Response"]
-        End["End"]
-  end
- subgraph Dakia["Dakia"]
-        direction TB
-        Proxy
-        subgraph Components["Dynamic Modules"]
-            direction TB
-            Interceptor
-            Filter
-            Extension
-        end
-
-        LoadBalancer["Load Balancer"]
-        Router
-
-        subgraph ConfigManager
-            Storage
-        end
-
-        Proxy --> Components
-        Extension & Interceptor --> Filter
-        Proxy & LoadBalancer --> ConfigManager
-        Router --> LoadBalancer & Components
-
-  end
- subgraph Upstream["Upstream"]
-    direction TB
-        server1[" "]
-        server2[" "]
-        server3[" "]
-  end
-    Start --> RequestFilter
-    RequestFilter --> UpstreamPeerSelection
-    UpstreamPeerSelection --> BeforeUpstreamRequest & Router
-    BeforeUpstreamRequest --> AfterUpstreamResponse
-    AfterUpstreamResponse --> BeforeDownstreamResponse
-    BeforeDownstreamResponse --> End
-    Downstream <--> Dakia
-    Dakia <--> Upstream
-
-    n1@{ icon: "azure:intune-app-protection", pos: "b"}
-    n2@{ icon: "azure:intune-app-protection", pos: "b"}
-    server1@{ icon: "aws:res-servers", pos: "b"}
-    server2@{ icon: "aws:res-servers", pos: "b"}
-    server3@{ icon: "aws:res-servers", pos: "b"}
-    style Downstream color:none
-```
 
 ## Getting started
 
