@@ -13,7 +13,11 @@
     - users's can access upstream response in PreDownstreamResponse phase
 -
 */
-use std::fmt::{self};
+use std::{
+    collections::HashMap,
+    fmt::{self},
+    mem::take,
+};
 
 use http::{uri::PathAndQuery, StatusCode};
 use pingora_http::{RequestHeader as PRequestHeader, ResponseHeader as PResponseHeader};
@@ -23,19 +27,19 @@ use crate::error::{DakiaError, DakiaResult, ImmutStr};
 
 #[derive(PartialEq, Clone, Debug, Eq)]
 pub enum Phase {
-    RequestFilter,
-    UpstreamPeerSelection,
+    Filter,
+    UpstreamProxyFilter,
     PreUpstreamRequest,
-    PreDownstreamResponse,
+    PostUpstreamResponse,
 }
 
 impl Phase {
     fn to_number(&self) -> u8 {
         match self {
-            Phase::RequestFilter => 1,
-            Phase::UpstreamPeerSelection => 2,
+            Phase::Filter => 1,
+            Phase::UpstreamProxyFilter => 2,
             Phase::PreUpstreamRequest => 3,
-            Phase::PreDownstreamResponse => 4,
+            Phase::PostUpstreamResponse => 4,
         }
     }
 }
@@ -55,10 +59,10 @@ impl PartialOrd for Phase {
 impl fmt::Display for Phase {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let phase_str = match self {
-            Phase::RequestFilter => "Request Filter",
-            Phase::UpstreamPeerSelection => "Upstream Peer Selection",
-            Phase::PreUpstreamRequest => "Pre-Upstream Request",
-            Phase::PreDownstreamResponse => "Pre-Downstream Response",
+            Phase::Filter => "filter",
+            Phase::UpstreamProxyFilter => "upstream_proxy_filter",
+            Phase::PreUpstreamRequest => "pre_upstream_request",
+            Phase::PostUpstreamResponse => "post_upstream_response",
         };
         write!(f, "{}", phase_str)
     }
@@ -82,6 +86,8 @@ pub struct Session<'a> {
     phase: Phase,
     stream: Stream,
     channel: Channel,
+    ds_hbuf: HashMap<String, &'a [u8]>,
+    ds_status_code: StatusCode,
 }
 
 pub struct SessionBuilder<'a> {
@@ -99,6 +105,8 @@ impl<'a> Session<'a> {
             stream: Stream::Downstream,
             upstream_request: None,
             downstream_respons: None,
+            ds_hbuf: HashMap::new(),
+            ds_status_code: StatusCode::OK,
         }
     }
 
@@ -138,10 +146,10 @@ impl<'a> Session<'a> {
         // upstream response is made available in PreDownstreamResponse phase
         if let Stream::Upstream = self.stream {
             assert(
-                self.phase >= Phase::PreDownstreamResponse,
+                self.phase >= Phase::PostUpstreamResponse,
                 format!(
                     "Upstream response is not ready! It can be accessed only in and after {} phase",
-                    Phase::PreDownstreamResponse
+                    Phase::PostUpstreamResponse
                 ),
             )?;
         }
@@ -233,17 +241,42 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    fn set_us_header(&self, header_name: String, header_value: &[u8]) -> DakiaResult<()> {
+    fn set_us_header(&self, header_name: String, header_value: &[u8]) {
         // TODO: upstream header can be only added in PreUpstreamRequest phase
         todo!()
     }
 
-    fn set_ds_header(&self, header_name: String, header_value: &[u8]) -> DakiaResult<()> {
-        // TODO: downstream header can be written in Any phase
-        todo!()
+    fn set_ds_header(&mut self, header_name: String, header_value: &'a [u8]) {
+        self.ds_hbuf.insert(header_name, &header_value);
     }
 
-    pub fn set_header(&self, header_name: String, header_value: &[u8]) -> DakiaResult<()> {
+    pub async fn write_header(&mut self) -> DakiaResult<()> {
+        if let Stream::Upstream = self.stream {
+            // No action is needed for upstream headers.
+            // Header writing is only enforced for downstream because we allow writing the body
+            // only in the downstream stream. To ensure proper sequencing, the header must be
+            // written before the body.
+            // This method ensures that dakia internal headers are also written along with client's header
+            // This method is designed to support body writing for upstream streams in the future.
+            return Ok(());
+        }
+
+        // TODO: implement header writing for other phases
+        let mut header = PResponseHeader::build(self.ds_status_code, None).unwrap();
+
+        let headers = take(&mut self.ds_hbuf);
+        for (header_name, header_value) in headers.into_iter() {
+            header.insert_header(header_name, header_value)?;
+        }
+
+        self.psession
+            .write_response_header(Box::new(header), false)
+            .await?;
+
+        Ok(())
+    }
+
+    pub fn set_header(&mut self, header_name: String, header_value: &'a [u8]) {
         match &self.stream {
             Stream::Upstream => self.set_us_header(header_name, header_value),
             Stream::Downstream => self.set_ds_header(header_name, header_value),
@@ -251,6 +284,21 @@ impl<'a> Session<'a> {
     }
 }
 
+impl<'a> Session<'a> {
+    fn set_ds_status(&mut self, status_code: StatusCode) -> DakiaResult<()> {
+        self.ds_status_code = status_code;
+        Ok(())
+    }
+
+    pub fn set_status(&mut self, status_code: StatusCode) -> DakiaResult<()> {
+        match &self.stream {
+            Stream::Upstream => Err(DakiaError::i_explain(ImmutStr::Static(
+                "Cannot set upstream status code; only downstream status codes are allowed.",
+            ))),
+            Stream::Downstream => self.set_ds_status(status_code),
+        }
+    }
+}
 // TODO: move this assert into shared module
 fn assert(cond: bool, msg: String) -> DakiaResult<()> {
     Ok(if !cond {
