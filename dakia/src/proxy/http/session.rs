@@ -116,95 +116,45 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub fn ds(&mut self) -> &'a mut Session {
-        self.stream = Stream::Downstream;
-        self
-    }
-
-    pub fn us(&mut self) -> DakiaResult<&'a mut Session> {
-        assert(
-            self.phase >= Phase::PreUpstreamRequest && self.upstream_request.is_some(),
-            format!(
-                "Upstream is not ready! It can be accessed only in and after {} phase",
-                Phase::PreUpstreamRequest
-            ),
-        )?;
-
-        self.stream = Stream::Upstream;
-        Ok(self)
-    }
-}
-
-// http setter
-impl<'a> Session<'a> {
-    pub fn req(&mut self) -> DakiaResult<&'a mut Session> {
-        self.channel = Channel::Request;
-        Ok(self)
-    }
-
-    pub fn res(&mut self) -> DakiaResult<&'a mut Session> {
-        // upstream response is made available in PreDownstreamResponse phase
-        if let Stream::Upstream = self.stream {
-            assert(
-                self.phase >= Phase::PostUpstreamResponse,
-                format!(
-                    "Upstream response is not ready! It can be accessed only in and after {} phase",
-                    Phase::PostUpstreamResponse
-                ),
-            )?;
-        }
-
-        self.channel = Channel::Response;
-        Ok(self)
-    }
-}
-
-impl<'a> Session<'a> {
-    fn ds_method(&self) -> DakiaResult<&str> {
+    pub fn ds_req_method(&self) -> DakiaResult<&str> {
         Ok(self.psession.as_downstream().req_header().method.as_str())
     }
 
-    fn us_method(&self) -> DakiaResult<&str> {
+    pub fn us_req_method(&self) -> DakiaResult<&str> {
         Ok(self.upstream_request.as_ref().unwrap().method.as_str())
-    }
-
-    pub fn method(&self) -> DakiaResult<&str> {
-        match self.stream {
-            Stream::Downstream => self.ds_method(),
-            Stream::Upstream => self.us_method(),
-        }
     }
 }
 
 impl<'a> Session<'a> {
-    pub fn path(&self) -> &str {
+    pub fn ds_req_path(&self) -> &str {
         self.psession.as_downstream().req_header().uri.path()
     }
 }
 
 impl<'a> Session<'a> {
-    pub fn query(&self) -> DakiaResult<Option<&str>> {
-        match self.stream {
-            Stream::Downstream => Ok(self.psession.as_downstream().req_header().uri.query()),
-            Stream::Upstream => Ok(self.upstream_request.as_ref().unwrap().uri.query()),
-        }
+    pub fn ds_req_query(&self) -> DakiaResult<Option<&str>> {
+        Ok(self.psession.as_downstream().req_header().uri.query())
     }
 
-    pub fn path_and_query(&self) -> Option<&PathAndQuery> {
-        match self.stream {
-            Stream::Downstream => self
-                .psession
-                .as_downstream()
-                .req_header()
-                .uri
-                .path_and_query(),
-            Stream::Upstream => self.upstream_request.as_ref().unwrap().uri.path_and_query(),
-        }
+    pub fn us_req_query(&self) -> DakiaResult<Option<&str>> {
+        Ok(self.upstream_request.as_ref().unwrap().uri.query())
+    }
+
+    pub fn ds_req_path_and_query(&self) -> Option<&PathAndQuery> {
+        self.psession
+            .as_downstream()
+            .req_header()
+            .uri
+            .path_and_query()
+    }
+
+    pub fn us_req_path_and_query(&self) -> Option<&PathAndQuery> {
+        self.upstream_request.as_ref().unwrap().uri.path_and_query()
     }
 }
 
 impl<'a> Session<'a> {
-    fn us_header(&self, header_name: &str) -> DakiaResult<Option<&[u8]>> {
+    pub fn us_req_header(&self, header_name: &str) -> DakiaResult<Option<&[u8]>> {
         let header_value = self
             .upstream_request
             .as_ref()
@@ -218,7 +168,7 @@ impl<'a> Session<'a> {
         }
     }
 
-    fn ds_header(&self, header_name: &str) -> DakiaResult<Option<&[u8]>> {
+    pub fn ds_req_header(&self, header_name: &str) -> DakiaResult<Option<&[u8]>> {
         let header_value = self
             .psession
             .as_downstream()
@@ -229,13 +179,6 @@ impl<'a> Session<'a> {
         match header_value {
             Some(value) => Ok(Some(value.as_bytes())),
             None => Ok(None),
-        }
-    }
-
-    pub fn header(&self, header_name: &str) -> DakiaResult<Option<&[u8]>> {
-        match &self.stream {
-            Stream::Upstream => self.us_header(header_name),
-            Stream::Downstream => self.ds_header(header_name),
         }
     }
 }
@@ -250,7 +193,7 @@ impl<'a> Session<'a> {
         self.ds_hbuf.insert(header_name, &header_value);
     }
 
-    pub async fn write_header(&mut self) -> DakiaResult<()> {
+    pub async fn flush_ds_res_header(&mut self) -> DakiaResult<()> {
         if let Stream::Upstream = self.stream {
             // No action is needed for upstream headers.
             // Header writing is only enforced for downstream because we allow writing the body
@@ -261,7 +204,10 @@ impl<'a> Session<'a> {
             return Ok(());
         }
 
-        // TODO: implement header writing for other phases
+        // TODO: allow to configure keepalive once bug is fixed in pingora itself
+        // https://github.com/cloudflare/pingora/issues/540
+        self.psession.set_keepalive(None);
+
         let mut header = PResponseHeader::build(self.ds_status_code, None).unwrap();
 
         let headers = take(&mut self.ds_hbuf);
@@ -275,28 +221,12 @@ impl<'a> Session<'a> {
 
         Ok(())
     }
-
-    pub fn set_header(&mut self, header_name: String, header_value: &'a [u8]) {
-        match &self.stream {
-            Stream::Upstream => self.set_us_header(header_name, header_value),
-            Stream::Downstream => self.set_ds_header(header_name, header_value),
-        }
-    }
 }
 
 impl<'a> Session<'a> {
-    fn set_ds_status(&mut self, status_code: StatusCode) -> DakiaResult<()> {
+    pub fn set_ds_res_status(&mut self, status_code: StatusCode) -> DakiaResult<()> {
         self.ds_status_code = status_code;
         Ok(())
-    }
-
-    pub fn set_status(&mut self, status_code: StatusCode) -> DakiaResult<()> {
-        match &self.stream {
-            Stream::Upstream => Err(DakiaError::i_explain(ImmutStr::Static(
-                "Cannot set upstream status code; only downstream status codes are allowed.",
-            ))),
-            Stream::Downstream => self.set_ds_status(status_code),
-        }
     }
 }
 // TODO: move this assert into shared module
