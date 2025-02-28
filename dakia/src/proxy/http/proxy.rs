@@ -8,18 +8,18 @@ use crate::{
 
 use super::{
     builder,
-    helpers::{self, is_valid_ds_host, part_supplier},
+    helpers::{is_valid_ds_host, part_supplier},
     lb,
     session::{self},
     DakiaHttpGatewayCtx,
 };
 use async_trait::async_trait;
+use http::StatusCode;
 use pingora::{
     prelude::HttpPeer,
     proxy::{ProxyHttp, Session},
     Error,
 };
-use pingora_http::{RequestHeader, ResponseHeader};
 
 #[derive(Clone)]
 pub struct Proxy {
@@ -68,8 +68,8 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<bool, Box<Error>> {
-        let mut session = session::Session::build(Phase::RequestFilter, _session);
-        let host = session.ds().req()?.header("host")?;
+        let mut session = session::Session::build(Phase::Filter, _session);
+        let host = session.ds_req_header("host")?;
 
         match host {
             Some(host) => {
@@ -82,16 +82,16 @@ impl ProxyHttp for Proxy {
                 .await?;
 
                 if !is_valid_ds_host {
-                    // TODO: add option to customize http response status and body
-                    helpers::write_response_ds(_session, 403, None).await?;
+                    session.set_ds_res_status(StatusCode::FORBIDDEN)?;
+                    session.flush_ds_res_header().await?;
                     return Ok(true);
                 }
             }
 
             None => {
-                // TODO: add option to customize http response status and body
-                // helpers::write_response_ds(_session, 400, None).await?;
-                // session.ds.res.set_header(header_name, header_value)
+                // host is required header
+                session.set_ds_res_status(StatusCode::BAD_REQUEST)?;
+                session.flush_ds_res_header().await?;
                 return Ok(true);
             }
         };
