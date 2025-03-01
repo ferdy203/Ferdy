@@ -68,24 +68,11 @@ impl fmt::Display for Phase {
     }
 }
 
-enum Stream {
-    Downstream,
-    Upstream,
-}
-
-#[derive(PartialEq, Debug, Eq)]
-enum Channel {
-    Request,
-    Response,
-}
-
 pub struct Session<'a> {
     psession: &'a mut PSession,
     upstream_request: Option<&'a mut PRequestHeader>,
     downstream_respons: Option<&'a mut PResponseHeader>,
     phase: Phase,
-    stream: Stream,
-    channel: Channel,
     ds_hbuf: HashMap<String, &'a [u8]>,
     ds_status_code: StatusCode,
 }
@@ -101,8 +88,6 @@ impl<'a> Session<'a> {
         Session {
             phase,
             psession,
-            channel: Channel::Request,
-            stream: Stream::Downstream,
             upstream_request: None,
             downstream_respons: None,
             ds_hbuf: HashMap::new(),
@@ -194,16 +179,6 @@ impl<'a> Session<'a> {
     }
 
     pub async fn flush_ds_res_header(&mut self) -> DakiaResult<()> {
-        if let Stream::Upstream = self.stream {
-            // No action is needed for upstream headers.
-            // Header writing is only enforced for downstream because we allow writing the body
-            // only in the downstream stream. To ensure proper sequencing, the header must be
-            // written before the body.
-            // This method ensures that dakia internal headers are also written along with client's header
-            // This method is designed to support body writing for upstream streams in the future.
-            return Ok(());
-        }
-
         // TODO: allow to configure keepalive once bug is fixed in pingora itself
         // https://github.com/cloudflare/pingora/issues/540
         self.psession.set_keepalive(None);
