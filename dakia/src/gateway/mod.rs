@@ -1,5 +1,5 @@
-mod interceptor;
-mod interceptors;
+pub mod interceptor;
+pub mod interceptors;
 pub mod state;
 
 use super::Proxy;
