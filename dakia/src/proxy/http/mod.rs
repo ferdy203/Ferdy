@@ -1,7 +1,7 @@
-mod builder;
+pub mod builder;
 mod ctx;
 mod helpers;
-mod lb;
+pub mod lb;
 mod proxy;
 mod session;
 

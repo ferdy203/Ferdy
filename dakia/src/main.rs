@@ -13,7 +13,7 @@ use std::{
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
-use gateway::state::GatewayState;
+use gateway::state::build_gateway_state;
 use gateway::state::GatewayStateStore;
 use gateway::HttpGateway;
 
@@ -50,11 +50,13 @@ fn main() {
     let handle = runtime.spawn(async move {
         for gateway_config in &dakia_config_cloned.gateways {
             let x = gateway_config.clone();
-            let gs = GatewayState::new(x);
-            let gss = Arc::new(GatewayStateStore::new(gs));
+
+            // dakia can not work without state, so unwrap is not a problem
+            let gateway_state = build_gateway_state(x).await.unwrap();
+            let gateway_state_store = Arc::new(GatewayStateStore::new(gateway_state));
 
             let server_conf: ServerConf = dakia_config_cloned.into_ref();
-            let gateway = gateway::build_http(gss, Arc::new(server_conf))
+            let gateway = gateway::build_http(gateway_state_store, Arc::new(server_conf))
                 .await
                 .unwrap();
 

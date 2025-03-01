@@ -5,13 +5,10 @@ use crate::{
     gateway::state::GatewayStateStore,
     proxy::http::{helpers::get_inet_addr_from_backend, session::Phase},
     qe::engine::exec,
-    shared::pattern_registry::PatternRegistryType,
 };
 
 use super::{
-    builder,
     helpers::{is_valid_ds_host, part_supplier},
-    lb,
     session::{self},
     DakiaHttpGatewayCtx,
 };
@@ -25,22 +22,12 @@ use pingora::{
 
 #[derive(Clone)]
 pub struct Proxy {
-    ds_host_pattern_registry: PatternRegistryType,
-    lb_registry: lb::LbRegistryType,
     gateway_state_store: Arc<GatewayStateStore>,
 }
 
 impl Proxy {
     pub async fn build(gateway_state_store: Arc<GatewayStateStore>) -> DakiaResult<Proxy> {
-        let gateway_state = gateway_state_store.get_state();
-        let gateway_config = gateway_state.get_gateway_config();
-        let ds_host_pattern_registry =
-            builder::build_ds_host_pattern_registry(gateway_config).await?;
-        let lb_registry = builder::build_lb_registry(gateway_config).await?;
-
         let proxy = Proxy {
-            ds_host_pattern_registry,
-            lb_registry,
             gateway_state_store,
         };
 
@@ -52,7 +39,8 @@ impl Proxy {
 impl ProxyHttp for Proxy {
     type CTX = DakiaHttpGatewayCtx;
     fn new_ctx(&self) -> Self::CTX {
-        DakiaHttpGatewayCtx::new()
+        let gateway_state = self.gateway_state_store.get_state();
+        DakiaHttpGatewayCtx::new(gateway_state)
     }
 
     async fn early_request_filter(
@@ -60,10 +48,6 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<(), Box<Error>> {
-        // update config into context
-        let gateway_state = self.gateway_state_store.get_state();
-        _ctx.gateway_state = gateway_state;
-
         Ok(())
     }
 
@@ -79,7 +63,7 @@ impl ProxyHttp for Proxy {
             Some(host) => {
                 let is_valid_ds_host = is_valid_ds_host(
                     &_ctx.gateway_state.get_gateway_config(),
-                    &self.ds_host_pattern_registry,
+                    &self.gateway_state_store.get_state().get_pattern_registry(),
                     host,
                 )
                 .await?;
@@ -115,9 +99,13 @@ impl ProxyHttp for Proxy {
         })?;
 
         let upstream_name = &router_config.upstream;
-        let mut lb = self.lb_registry.get(&upstream_name).await?;
+
+        let gateway_state = self.gateway_state_store.get_state();
+        let lb_registry = gateway_state.get_lb_registry();
+
+        let mut lb = lb_registry.get(&upstream_name).await?;
         lb = match lb {
-            None => self.lb_registry.get("default").await?,
+            None => lb_registry.get("default").await?,
             Some(lb) => Some(lb),
         };
 
