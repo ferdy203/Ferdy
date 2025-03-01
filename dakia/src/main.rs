@@ -13,10 +13,12 @@ use std::{
 use clap::Parser;
 use config::{DakiaArgs, DakiaConfig};
 use error::DakiaError;
+use gateway::state::GatewayState;
+use gateway::state::GatewayStateStore;
 use gateway::HttpGateway;
+
 use pingora::server::{configuration::ServerConf, Server};
 use shared::common::get_dakia_ascii_art;
-use shared::dakia_state;
 
 use proxy::http::Proxy;
 use shared::into::IntoRef;
@@ -46,11 +48,13 @@ fn main() {
     let dakia_config_cloned = dakia_config.clone();
 
     let handle = runtime.spawn(async move {
-        let _ = dakia_state::store(dakia_config_cloned.clone()).await;
-
         for gateway_config in &dakia_config_cloned.gateways {
+            let x = gateway_config.clone();
+            let gs = GatewayState::new(x);
+            let gss = Arc::new(GatewayStateStore::new(gs));
+
             let server_conf: ServerConf = dakia_config_cloned.into_ref();
-            let gateway = gateway::build_http(gateway_config, &Arc::new(server_conf))
+            let gateway = gateway::build_http(gss, Arc::new(server_conf))
                 .await
                 .unwrap();
 

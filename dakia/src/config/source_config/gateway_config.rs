@@ -88,3 +88,15 @@ impl GatewayConfig {
         )
     }
 }
+
+impl Default for GatewayConfig {
+    fn default() -> Self {
+        Self {
+            name: Default::default(),
+            bind_addresses: Default::default(),
+            downstreams: Default::default(),
+            upstreams: Default::default(),
+            routers: Default::default(),
+        }
+    }
+}

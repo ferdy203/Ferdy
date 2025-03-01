@@ -1,9 +1,11 @@
+use std::sync::Arc;
+
 use crate::{
-    config::source_config::GatewayConfig,
     error::{DakiaError, DakiaResult},
+    gateway::state::GatewayStateStore,
     proxy::http::{helpers::get_inet_addr_from_backend, session::Phase},
     qe::engine::exec,
-    shared::{dakia_state, pattern_registry::PatternRegistryType},
+    shared::pattern_registry::PatternRegistryType,
 };
 
 use super::{
@@ -23,21 +25,23 @@ use pingora::{
 
 #[derive(Clone)]
 pub struct Proxy {
-    name: String,
     ds_host_pattern_registry: PatternRegistryType,
     lb_registry: lb::LbRegistryType,
+    gateway_state_store: Arc<GatewayStateStore>,
 }
 
 impl Proxy {
-    pub async fn build(gateway_config: &GatewayConfig) -> DakiaResult<Proxy> {
+    pub async fn build(gateway_state_store: Arc<GatewayStateStore>) -> DakiaResult<Proxy> {
+        let gateway_state = gateway_state_store.get_state();
+        let gateway_config = gateway_state.get_gateway_config();
         let ds_host_pattern_registry =
             builder::build_ds_host_pattern_registry(gateway_config).await?;
         let lb_registry = builder::build_lb_registry(gateway_config).await?;
 
         let proxy = Proxy {
-            name: gateway_config.name.clone(),
             ds_host_pattern_registry,
             lb_registry,
+            gateway_state_store,
         };
 
         Ok(proxy)
@@ -57,8 +61,8 @@ impl ProxyHttp for Proxy {
         _ctx: &mut Self::CTX,
     ) -> Result<(), Box<Error>> {
         // update config into context
-        let c = dakia_state::get().await;
-        _ctx.config = c;
+        let gateway_state = self.gateway_state_store.get_state();
+        _ctx.gateway_state = gateway_state;
 
         Ok(())
     }
@@ -74,8 +78,7 @@ impl ProxyHttp for Proxy {
         match host {
             Some(host) => {
                 let is_valid_ds_host = is_valid_ds_host(
-                    &_ctx.config,
-                    &self.name,
+                    &_ctx.gateway_state.get_gateway_config(),
                     &self.ds_host_pattern_registry,
                     host,
                 )
@@ -104,7 +107,7 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
-        let gateway_config = _ctx.config.find_gateway_config_or_err(&self.name)?;
+        let gateway_config = _ctx.gateway_state.get_gateway_config();
 
         // TODO: return 404 if router config not found
         let router_config = gateway_config.find_router_config_or_err(|filter| {

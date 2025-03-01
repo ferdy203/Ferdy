@@ -32,19 +32,8 @@ pub async fn write_response_ds(
     Ok(())
 }
 
-fn get_gateway_config<'a>(
-    dakia_config: &'a DakiaConfig,
-    gateway_name: &'a str,
-) -> Option<&'a GatewayConfig> {
-    dakia_config
-        .gateways
-        .iter()
-        .find(|g| g.name == gateway_name)
-}
-
-fn get_ds_addrs(dakia_config: &DakiaConfig, gateway_name: &str) -> Vec<String> {
+fn get_ds_addrs(gateway_config: &GatewayConfig) -> Vec<String> {
     // safe to unwrap
-    let gateway_config = get_gateway_config(dakia_config, gateway_name).unwrap();
     gateway_config
         .downstreams
         .iter()
@@ -53,12 +42,11 @@ fn get_ds_addrs(dakia_config: &DakiaConfig, gateway_name: &str) -> Vec<String> {
 }
 
 pub async fn is_valid_ds_host(
-    dakia_config: &DakiaConfig,
-    gateway_name: &str,
+    dakia_config: &GatewayConfig,
     ds_host_pattern_registry: &PatternRegistryType,
     ds_host: &[u8],
 ) -> DakiaResult<bool> {
-    let ds_addrs = get_ds_addrs(dakia_config, gateway_name);
+    let ds_addrs = get_ds_addrs(dakia_config);
 
     for ds_addr in ds_addrs {
         let pattern = ds_host_pattern_registry

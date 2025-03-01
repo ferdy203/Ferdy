@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
-use crate::config::DakiaConfig;
+use crate::{config::source_config::GatewayConfig, gateway::state::GatewayState};
 
 pub struct DakiaHttpGatewayCtx {
-    pub config: Arc<DakiaConfig>,
+    pub gateway_state: Arc<GatewayState>,
 }
 
 impl DakiaHttpGatewayCtx {
     pub fn new() -> DakiaHttpGatewayCtx {
         DakiaHttpGatewayCtx {
-            config: Arc::new(DakiaConfig::default()),
+            gateway_state: Arc::new(GatewayState::new(GatewayConfig::default())),
         }
     }
 }
