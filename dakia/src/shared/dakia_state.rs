@@ -12,9 +12,9 @@ pub struct GlobalConfigStore {
 static CONFIG_STORE: Lazy<RwLock<GlobalConfigStore>> =
     Lazy::new(|| RwLock::new(GlobalConfigStore::new()));
 
-pub trait ConfigStore: Send + Sync {
-    fn store_config(&mut self, new_config: DakiaConfig) -> ();
-    fn get_config(&self) -> Arc<DakiaConfig>;
+pub trait DakiaState: Send + Sync {
+    fn update_state(&mut self, new_config: DakiaConfig) -> ();
+    fn get_state(&self) -> Arc<DakiaConfig>;
     fn get_inner(&self) -> DakiaConfig;
 }
 
@@ -26,32 +26,32 @@ impl GlobalConfigStore {
     }
 }
 
-impl ConfigStore for GlobalConfigStore {
-    fn store_config(&mut self, new_config: DakiaConfig) -> () {
+impl DakiaState for GlobalConfigStore {
+    fn update_state(&mut self, new_config: DakiaConfig) -> () {
         let mut cloned_config = new_config.clone();
         cloned_config.version = new_config.version + 1;
 
         self.config = Arc::new(cloned_config);
     }
 
-    fn get_config(&self) -> Arc<DakiaConfig> {
+    fn get_state(&self) -> Arc<DakiaConfig> {
         self.config.clone()
     }
 
     fn get_inner(&self) -> DakiaConfig {
-        let arc_config = self.get_config();
+        let arc_config = self.get_state();
         (*arc_config).clone()
     }
 }
 
 pub async fn get() -> Arc<DakiaConfig> {
     let read_guard = CONFIG_STORE.read().await;
-    read_guard.get_config()
+    read_guard.get_state()
 }
 
 pub async fn store(config: DakiaConfig) -> () {
     let mut write_guard = CONFIG_STORE.write().await;
-    write_guard.store_config(config);
+    write_guard.update_state(config);
 }
 
 pub async fn inner() -> DakiaConfig {

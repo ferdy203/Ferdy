@@ -3,7 +3,7 @@ use crate::{
     error::{DakiaError, DakiaResult},
     proxy::http::{helpers::get_inet_addr_from_backend, session::Phase},
     qe::engine::exec,
-    shared::{config_store, pattern_registry::PatternRegistryType},
+    shared::{dakia_state, pattern_registry::PatternRegistryType},
 };
 
 use super::{
@@ -57,7 +57,7 @@ impl ProxyHttp for Proxy {
         _ctx: &mut Self::CTX,
     ) -> Result<(), Box<Error>> {
         // update config into context
-        let c = config_store::get().await;
+        let c = dakia_state::get().await;
         _ctx.config = c;
 
         Ok(())

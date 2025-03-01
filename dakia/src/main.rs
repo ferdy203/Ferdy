@@ -16,7 +16,7 @@ use error::DakiaError;
 use gateway::HttpGateway;
 use pingora::server::{configuration::ServerConf, Server};
 use shared::common::get_dakia_ascii_art;
-use shared::config_store;
+use shared::dakia_state;
 
 use proxy::http::Proxy;
 use shared::into::IntoRef;
@@ -46,7 +46,7 @@ fn main() {
     let dakia_config_cloned = dakia_config.clone();
 
     let handle = runtime.spawn(async move {
-        let _ = config_store::store(dakia_config_cloned.clone()).await;
+        let _ = dakia_state::store(dakia_config_cloned.clone()).await;
 
         for gateway_config in &dakia_config_cloned.gateways {
             let server_conf: ServerConf = dakia_config_cloned.into_ref();

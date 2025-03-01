@@ -1,8 +1,10 @@
-use std::sync::Arc;
+mod interceptor;
+mod interceptors;
 
 use super::Proxy;
 use pingora::{server::configuration::ServerConf, services::listening::Service};
 use pingora_proxy::{http_proxy_service_with_name, HttpProxy};
+use std::sync::Arc;
 
 use crate::{config::source_config::GatewayConfig, error::DakiaResult};
 
