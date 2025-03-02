@@ -70,7 +70,7 @@ impl ProxyHttp for Proxy {
                 .await?;
 
                 if !is_valid_ds_host {
-                    session.set_ds_res_status(StatusCode::FORBIDDEN);
+                    session.set_res_status(StatusCode::FORBIDDEN);
                     session.flush_ds_header().await?;
                     return Ok(true);
                 }
@@ -78,7 +78,7 @@ impl ProxyHttp for Proxy {
 
             None => {
                 // host is required header
-                session.set_ds_res_status(StatusCode::BAD_REQUEST);
+                session.set_res_status(StatusCode::BAD_REQUEST);
                 session.flush_ds_header().await?;
                 return Ok(true);
             }
@@ -158,7 +158,7 @@ impl ProxyHttp for Proxy {
         if code > 0 {
             let mut session = session::Session::build(Phase::PreDownstreamResponse, session, _ctx);
             let status_code = StatusCode::from_u16(code).unwrap();
-            session.set_ds_res_status(status_code);
+            session.set_res_status(status_code);
             session.flush_ds_header().await.unwrap();
         }
         code

@@ -141,7 +141,7 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub fn set_ds_res_status(&mut self, status_code: StatusCode) {
+    pub fn set_res_status(&mut self, status_code: StatusCode) {
         self.ds_status_code = status_code;
     }
 }
