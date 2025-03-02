@@ -5,21 +5,21 @@ use crate::{
     error::DakiaResult,
     gateway::{
         interceptor::Interceptor, interceptor_builder::InterceptorBuilder,
-        interceptors::version::VersionInterceptor,
+        interceptors::server::ServerInterceptor,
     },
 };
 
-pub struct VersionBuilder {}
+pub struct ServerInterceptorBuilder {}
 
-impl Default for VersionBuilder {
+impl Default for ServerInterceptorBuilder {
     fn default() -> Self {
         Self {}
     }
 }
 
-impl InterceptorBuilder for VersionBuilder {
+impl InterceptorBuilder for ServerInterceptorBuilder {
     fn build(&self, interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>> {
-        let interceptor = VersionInterceptor {};
+        let interceptor = ServerInterceptor {};
         Ok(Arc::new(interceptor))
     }
 }

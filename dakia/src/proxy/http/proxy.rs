@@ -70,7 +70,7 @@ impl ProxyHttp for Proxy {
 
                 if !is_valid_ds_host {
                     session.set_ds_res_status(StatusCode::FORBIDDEN)?;
-                    session.flush_ds_res_header().await?;
+                    session.flush_ds_header().await?;
                     return Ok(true);
                 }
             }
@@ -78,12 +78,12 @@ impl ProxyHttp for Proxy {
             None => {
                 // host is required header
                 session.set_ds_res_status(StatusCode::BAD_REQUEST)?;
-                session.flush_ds_res_header().await?;
+                session.flush_ds_header().await?;
                 return Ok(true);
             }
         };
 
-        Ok(false)
+        Ok(session.execute_interceptors()?)
     }
 
     async fn upstream_peer(

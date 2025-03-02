@@ -1,3 +1,5 @@
+use crate::error::{DakiaError, DakiaResult, ImmutStr};
+
 include!(concat!(env!("OUT_DIR"), "/ascii_version.rs"));
 include!(concat!(env!("OUT_DIR"), "/dakia_ascii_art.rs"));
 
@@ -15,4 +17,10 @@ pub fn get_ascii_version() -> &'static str {
 
 pub fn get_dakia_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
+}
+
+pub fn _assert(cond: bool, msg: String) -> DakiaResult<()> {
+    Ok(if !cond {
+        return Err(DakiaError::i_explain(ImmutStr::Owned(msg.into_boxed_str())));
+    })
 }
