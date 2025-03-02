@@ -3,6 +3,7 @@ use crate::error::DakiaError;
 use crate::error::DakiaResult;
 use crate::qe::query::Query;
 
+use super::interceptor_config::InterceptorConfig;
 use super::DownstreamConfig;
 use super::InetAddress;
 use super::RouterConfig;
@@ -18,6 +19,9 @@ pub struct GatewayConfig {
 
     #[serde(default)]
     pub routers: Vec<RouterConfig>,
+
+    #[serde(default)]
+    pub interceptors: Vec<InterceptorConfig>,
 }
 
 impl GatewayConfig {
@@ -97,6 +101,7 @@ impl Default for GatewayConfig {
             downstreams: Default::default(),
             upstreams: Default::default(),
             routers: Default::default(),
+            interceptors: Default::default(),
         }
     }
 }
