@@ -1,6 +1,6 @@
 [package]
 name = "dakia"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Rahul Kumar"]
 description = "Dakia is a powerful and flexible API Gateway designed for modern web applications"

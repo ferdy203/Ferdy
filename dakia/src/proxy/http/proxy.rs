@@ -17,7 +17,8 @@ use http::StatusCode;
 use pingora::{
     prelude::HttpPeer,
     proxy::{ProxyHttp, Session},
-    Error,
+    Error, ErrorSource,
+    ErrorType::HTTPStatus,
 };
 
 #[derive(Clone)]
@@ -69,7 +70,7 @@ impl ProxyHttp for Proxy {
                 .await?;
 
                 if !is_valid_ds_host {
-                    session.set_ds_res_status(StatusCode::FORBIDDEN)?;
+                    session.set_ds_res_status(StatusCode::FORBIDDEN);
                     session.flush_ds_header().await?;
                     return Ok(true);
                 }
@@ -77,7 +78,7 @@ impl ProxyHttp for Proxy {
 
             None => {
                 // host is required header
-                session.set_ds_res_status(StatusCode::BAD_REQUEST)?;
+                session.set_ds_res_status(StatusCode::BAD_REQUEST);
                 session.flush_ds_header().await?;
                 return Ok(true);
             }
@@ -127,5 +128,39 @@ impl ProxyHttp for Proxy {
         let peer = Box::new(HttpPeer::new(backend.addr, tls, sni));
 
         Ok(peer)
+    }
+
+    async fn fail_to_proxy(&self, session: &mut Session, e: &Error, _ctx: &mut Self::CTX) -> u16
+    where
+        Self::CTX: Send + Sync,
+    {
+        let code = match e.etype() {
+            HTTPStatus(code) => *code,
+            _ => {
+                match e.esource() {
+                    ErrorSource::Upstream => 502,
+                    ErrorSource::Downstream => {
+                        match e.etype() {
+                            pingora::ErrorType::WriteError
+                            | pingora::ErrorType::ReadError
+                            | pingora::ErrorType::ConnectionClosed => {
+                                /* conn already dead */
+                                0
+                            }
+                            _ => 400,
+                        }
+                    }
+                    ErrorSource::Internal | ErrorSource::Unset => 500,
+                }
+            }
+        };
+
+        if code > 0 {
+            let mut session = session::Session::build(Phase::PreDownstreamResponse, session, _ctx);
+            let status_code = StatusCode::from_u16(code).unwrap();
+            session.set_ds_res_status(status_code);
+            session.flush_ds_header().await.unwrap();
+        }
+        code
     }
 }

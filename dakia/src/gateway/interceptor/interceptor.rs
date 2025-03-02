@@ -27,4 +27,8 @@ pub trait Interceptor: Send + Sync {
     fn post_upstream_response(&self, _session: &mut Session) -> PhaseResult {
         Ok(false)
     }
+
+    fn pre_downstream_response(&self, _session: &mut Session) -> PhaseResult {
+        Ok(false)
+    }
 }

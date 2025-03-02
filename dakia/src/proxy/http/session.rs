@@ -141,16 +141,14 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub fn set_ds_res_status(&mut self, status_code: StatusCode) -> DakiaResult<()> {
+    pub fn set_ds_res_status(&mut self, status_code: StatusCode) {
         self.ds_status_code = status_code;
-        Ok(())
     }
 }
 
 impl<'a> Session<'a> {
     fn execute_hooked_interceptors(&mut self, cur_hook_mask: HookMask) -> PhaseResult {
         let interceptors = self.ctx.gateway_state.interceptors();
-
         for interceptor in interceptors {
             let is_phase_enabled: bool = match interceptor.phase_mask() {
                 // TODO: create method in Phase for checking if flag is on or not
@@ -172,12 +170,7 @@ impl<'a> Session<'a> {
                 return Ok(true);
             }
 
-            match self.phase {
-                Phase::RequestFilter => interceptor.request_filter(self),
-                Phase::UpstreamProxyFilter => interceptor.upstream_proxy_filter(self),
-                Phase::PreUpstreamRequest => interceptor.pre_upstream_request(self),
-                Phase::PostUpstreamResponse => interceptor.post_upstream_response(self),
-            }?;
+            self.execute_interceptor(interceptor)?;
         }
         Ok(false)
     }
@@ -188,6 +181,7 @@ impl<'a> Session<'a> {
             Phase::UpstreamProxyFilter => interceptor.upstream_proxy_filter(self),
             Phase::PreUpstreamRequest => interceptor.pre_upstream_request(self),
             Phase::PostUpstreamResponse => interceptor.post_upstream_response(self),
+            Phase::PreDownstreamResponse => interceptor.pre_downstream_response(self),
         }
     }
 

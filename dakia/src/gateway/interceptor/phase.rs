@@ -8,6 +8,7 @@ pub enum Phase {
     UpstreamProxyFilter = 0x02,
     PreUpstreamRequest = 0x03,
     PostUpstreamResponse = 0x04,
+    PreDownstreamResponse = 0x05,
 }
 
 impl Phase {
@@ -48,6 +49,7 @@ impl fmt::Display for Phase {
             Phase::UpstreamProxyFilter => "upstream_proxy_filter",
             Phase::PreUpstreamRequest => "pre_upstream_request",
             Phase::PostUpstreamResponse => "post_upstream_response",
+            Phase::PreDownstreamResponse => "pre_downstream_response",
         };
         write!(f, "{}", phase_str)
     }
