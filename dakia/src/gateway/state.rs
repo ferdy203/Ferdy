@@ -67,7 +67,7 @@ impl GatewayStateStore {
 }
 
 impl GatewayStateStore {
-    pub fn update_state(&mut self, new_state: GatewayState) -> () {
+    pub fn update_state(&self, new_state: GatewayState) -> () {
         self.state.swap(Arc::new(new_state));
     }
 
