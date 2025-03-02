@@ -1,45 +1,25 @@
+use std::sync::Arc;
+
 use crate::{
+    config::source_config::InterceptorConfig,
+    error::DakiaResult,
     gateway::{
-        interceptor::{Hook, HookMask, Interceptor, InterceptorName, Phase},
-        interceptor_builder::InterceptorBuilder,
+        interceptor::Interceptor, interceptor_builder::InterceptorBuilder,
+        interceptors::version::VersionInterceptor,
     },
-    qe::query::Query,
 };
 
-pub struct Builder {
-    hook_mask: Option<HookMask>,
-    filter: Option<Query>,
-    config: Option<Query>,
-}
+pub struct VersionBuilder {}
 
-impl Default for Builder {
+impl Default for VersionBuilder {
     fn default() -> Self {
-        Self {
-            hook_mask: Default::default(),
-            filter: Default::default(),
-            config: Default::default(),
-        }
+        Self {}
     }
 }
 
-impl InterceptorBuilder for Builder {
-    fn name(&self) -> &InterceptorName {
-        &InterceptorName::Version
-    }
-
-    fn hook(&mut self, hook: Option<HookMask>) {
-        self.hook_mask = hook;
-    }
-
-    fn filter(&mut self, filter: Option<Query>) {
-        self.filter = filter;
-    }
-
-    fn config(&mut self, config: Option<Query>) {
-        self.config = config;
-    }
-
-    fn build(&mut self) -> Box<dyn Interceptor> {
-        todo!()
+impl InterceptorBuilder for VersionBuilder {
+    fn build(&self, interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>> {
+        let interceptor = VersionInterceptor {};
+        Ok(Arc::new(interceptor))
     }
 }

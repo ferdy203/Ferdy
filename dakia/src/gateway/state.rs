@@ -16,6 +16,7 @@ pub struct GatewayState {
     ds_host_pattern_registry: PatternRegistryType,
     lb_registry: lb::LbRegistryType,
     interceptor_builder_registry: InterceptorBuilderRegistry,
+    interceptors: Vec<Arc<dyn Interceptor>>,
 }
 
 impl GatewayState {
@@ -24,6 +25,7 @@ impl GatewayState {
         ds_host_pattern_registry: PatternRegistryType,
         lb_registry: lb::LbRegistryType,
         interceptor_builder_registry: InterceptorBuilderRegistry,
+        interceptors: Vec<Arc<dyn Interceptor>>,
     ) -> Self {
         Self {
             _version: 0,
@@ -31,6 +33,7 @@ impl GatewayState {
             ds_host_pattern_registry,
             lb_registry,
             interceptor_builder_registry,
+            interceptors,
         }
     }
 
@@ -79,14 +82,14 @@ pub async fn build_gateway_state(gateway_config: GatewayConfig) -> DakiaResult<G
     let lb_registry = builder::build_lb_registry(&gateway_config).await?;
 
     let interceptor_builder_registry = InterceptorBuilderRegistry::build();
-
-    let x = build_interceptors(&gateway_config, &interceptor_builder_registry)?;
+    let interceptors = build_interceptors(&gateway_config, &interceptor_builder_registry)?;
 
     let gateway_state = GatewayState::build(
         gateway_config,
         ds_host_pattern_registry,
         lb_registry,
         interceptor_builder_registry,
+        interceptors,
     );
 
     Ok(gateway_state)
@@ -95,23 +98,27 @@ pub async fn build_gateway_state(gateway_config: GatewayConfig) -> DakiaResult<G
 fn build_interceptors(
     gateway_config: &GatewayConfig,
     interceptor_builder_registry: &InterceptorBuilderRegistry,
-) -> DakiaResult<()> {
-    let mut int: Vec<Arc<dyn Interceptor>> = vec![];
+) -> DakiaResult<Vec<Arc<dyn Interceptor>>> {
+    let mut interceptors: Vec<Arc<dyn Interceptor>> = vec![];
 
     for interceptor_config in &gateway_config.interceptors {
+        if !interceptor_config.enabled {
+            continue;
+        }
+
         let interceptor_name = &interceptor_config.name;
-        let interceptor_builder = interceptor_builder_registry.registry.get(interceptor_name);
-        match interceptor_builder {
-            Some(builder) => {
-                let mut x = builder.lock().unwrap();
-            }
+        let builder = interceptor_builder_registry.registry.get(interceptor_name);
+        let interceptor = match builder {
+            Some(builder) => builder.build(interceptor_config.clone())?,
             None => {
                 return Err(DakiaError::i_explain(format!(
                     "Invalid interceptor name {:?}. No such interceptor exists",
                     interceptor_name
                 )))
             }
-        }
+        };
+        interceptors.push(interceptor);
     }
-    Ok(())
+
+    Ok(interceptors)
 }

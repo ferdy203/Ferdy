@@ -1,21 +1,15 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
-    gateway::interceptor::{HookMask, Interceptor, InterceptorName},
-    qe::query::Query,
+    config::source_config::InterceptorConfig,
+    error::DakiaResult,
+    gateway::interceptor::{Interceptor, InterceptorName},
 };
 
 use super::interceptors::version;
 
 pub trait InterceptorBuilder: Sync + Send {
-    fn name(&self) -> &InterceptorName;
-    fn hook(&mut self, hook_mask: Option<HookMask>);
-    fn filter(&mut self, filter: Option<Query>);
-    fn config(&mut self, config: Option<Query>);
-    fn build(&mut self) -> Box<dyn Interceptor>;
+    fn build(&self, interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>>;
 }
 
 #[derive(Clone)]
@@ -27,17 +21,16 @@ pub struct InterceptorBuilderRegistry {
     - https://stackoverflow.com/questions/64725210/how-to-make-a-trait-and-a-struct-implementing-it-clonable
     */
     // Mutex does not support Clone so wrapped in Arc
-    pub registry: HashMap<InterceptorName, Arc<Mutex<Arc<dyn InterceptorBuilder>>>>,
+    pub registry: HashMap<InterceptorName, Arc<dyn InterceptorBuilder>>,
 }
 
 impl InterceptorBuilderRegistry {
     pub fn build() -> Self {
-        let mut registry: HashMap<InterceptorName, Arc<Mutex<Arc<dyn InterceptorBuilder>>>> =
-            HashMap::new();
+        let mut registry: HashMap<InterceptorName, Arc<dyn InterceptorBuilder>> = HashMap::new();
 
         registry.insert(
             InterceptorName::Version,
-            Arc::new(Mutex::new(Arc::new(version::Builder::default()))),
+            Arc::new(version::VersionBuilder::default()),
         );
 
         Self { registry }

@@ -7,7 +7,7 @@ use crate::{
 pub struct InterceptorConfig {
     pub name: InterceptorName,
     pub enabled: bool,
-    pub phase_mask: PhaseMask,
+    pub phase_mask: Option<PhaseMask>,
     pub hook_mast: Option<HookMask>,
     pub filter: Option<Query>,
     pub config: Option<Query>,
