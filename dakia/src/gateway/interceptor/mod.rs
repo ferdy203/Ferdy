@@ -5,5 +5,5 @@ mod phase;
 
 pub use hook::*;
 pub use insertceptor_name::InterceptorName;
-pub use interceptor::Interceptor;
+pub use interceptor::*;
 pub use phase::*;

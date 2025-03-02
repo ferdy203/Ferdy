@@ -14,6 +14,19 @@ impl Phase {
     pub fn eq(&self, phase: Phase) -> bool {
         ((self.clone()) as PhaseMask & phase as PhaseMask) != 0
     }
+
+    pub fn mask(&self) -> PhaseMask {
+        self.clone() as PhaseMask
+    }
+
+    pub fn all_phase_mask() -> PhaseMask {
+        let bits = Phase::RequestFilter.mask()
+            | Phase::UpstreamProxyFilter.mask()
+            | Phase::PreUpstreamRequest.mask()
+            | Phase::PostUpstreamResponse.mask();
+
+        bits as PhaseMask
+    }
 }
 
 impl Ord for Phase {
