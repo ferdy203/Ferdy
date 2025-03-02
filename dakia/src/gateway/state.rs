@@ -113,7 +113,7 @@ fn build_interceptors(
             None => {
                 return Err(DakiaError::i_explain(format!(
                     "Invalid interceptor name {:?}. No such interceptor exists",
-                    interceptor_name
+                    interceptor_name.as_str()
                 )))
             }
         };
