@@ -6,11 +6,19 @@ pub type PhaseResult = DakiaResult<bool>;
 
 pub trait Interceptor: Send + Sync {
     fn name(&self) -> InterceptorName;
-    fn hook_mask(&self) -> Option<HookMask>;
-    fn phase_mask(&self) -> Option<PhaseMask>;
+
+    fn hook_mask(&self) -> Option<HookMask> {
+        None
+    }
+
+    fn phase_mask(&self) -> Option<PhaseMask> {
+        None
+    }
 
     // if there is no filter, it'll be considered as match
-    fn filter(&self, _session: &mut Session) -> DakiaResult<bool>;
+    fn filter(&self, _session: &mut Session) -> DakiaResult<bool> {
+        Ok(true)
+    }
 
     fn request_filter(&self, _session: &mut Session) -> PhaseResult {
         Ok(false)
