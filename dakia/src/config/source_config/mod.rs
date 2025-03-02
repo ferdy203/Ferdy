@@ -1,6 +1,7 @@
 mod downstream_config;
 mod gateway_config;
 mod inet_address;
+mod interceptor_config;
 mod router_config;
 mod upstream_config;
 
