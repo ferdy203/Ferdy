@@ -37,16 +37,20 @@ impl GatewayState {
         }
     }
 
-    pub fn get_gateway_config(&self) -> &GatewayConfig {
+    pub fn gateway_config(&self) -> &GatewayConfig {
         &self.gateway_config
     }
 
-    pub fn get_pattern_registry(&self) -> &PatternRegistryType {
+    pub fn pattern_registry(&self) -> &PatternRegistryType {
         &self.ds_host_pattern_registry
     }
 
-    pub fn get_lb_registry(&self) -> &lb::LbRegistryType {
+    pub fn lb_registry(&self) -> &lb::LbRegistryType {
         &self.lb_registry
+    }
+
+    pub fn interceptors(&self) -> &Vec<Arc<dyn Interceptor>> {
+        &self.interceptors
     }
 }
 

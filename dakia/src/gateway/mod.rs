@@ -22,7 +22,7 @@ pub async fn build_http(
         http_proxy_service_with_name(&server_conf, proxy, "Dakia HTTP Proxy");
 
     let gateway_state = &gateway_state_store.get_state();
-    let bind_addresses = &gateway_state.get_gateway_config().bind_addresses;
+    let bind_addresses = &gateway_state.gateway_config().bind_addresses;
 
     for inet_address in bind_addresses {
         let addr = inet_address.get_formatted_address();
