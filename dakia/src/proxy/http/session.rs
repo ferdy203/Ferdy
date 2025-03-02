@@ -1,72 +1,15 @@
-/*
-- Downstream request
-    - it's read only
-    - user's can read downstream request in any phase
-- Upstream request
-    - it's read & write request
-    - user's can read it in and after PreUpstreamRequest phase
-    - user's can write it only in PreUpstreamRequest, there should be error for any write attempt after PreUpstreamRequest phase
-- Downstream response
-    - user's can write it in any phase
-- Upstream response is read only
-    - it's read only
-    - users's can access upstream response in PreDownstreamResponse phase
--
-*/
-use std::{
-    collections::HashMap,
-    fmt::{self},
-    mem::take,
-};
+use std::{collections::HashMap, mem::take, sync::Arc};
 
 use http::{uri::PathAndQuery, StatusCode};
 use pingora_http::{RequestHeader as PRequestHeader, ResponseHeader as PResponseHeader};
 use pingora_proxy::Session as PSession;
 
-use crate::error::{DakiaError, DakiaResult, ImmutStr};
+use crate::{
+    error::{DakiaError, DakiaResult, ImmutStr},
+    gateway::interceptor::{Hook, HookMask, Interceptor, Phase, PhaseMask, PhaseResult},
+};
 
-#[derive(PartialEq, Clone, Debug, Eq)]
-pub enum Phase {
-    Filter,
-    UpstreamProxyFilter,
-    PreUpstreamRequest,
-    PostUpstreamResponse,
-}
-
-impl Phase {
-    fn to_number(&self) -> u8 {
-        match self {
-            Phase::Filter => 1,
-            Phase::UpstreamProxyFilter => 2,
-            Phase::PreUpstreamRequest => 3,
-            Phase::PostUpstreamResponse => 4,
-        }
-    }
-}
-
-impl Ord for Phase {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.to_number().cmp(&other.to_number())
-    }
-}
-
-impl PartialOrd for Phase {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl fmt::Display for Phase {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let phase_str = match self {
-            Phase::Filter => "filter",
-            Phase::UpstreamProxyFilter => "upstream_proxy_filter",
-            Phase::PreUpstreamRequest => "pre_upstream_request",
-            Phase::PostUpstreamResponse => "post_upstream_response",
-        };
-        write!(f, "{}", phase_str)
-    }
-}
+use super::DakiaHttpGatewayCtx;
 
 pub struct Session<'a> {
     psession: &'a mut PSession,
@@ -75,16 +18,11 @@ pub struct Session<'a> {
     phase: Phase,
     ds_hbuf: HashMap<String, &'a [u8]>,
     ds_status_code: StatusCode,
-}
-
-pub struct SessionBuilder<'a> {
-    phase: Phase,
-    upstream_request: Option<&'a mut PRequestHeader>,
-    psession: &'a mut PSession,
+    ctx: &'a DakiaHttpGatewayCtx,
 }
 
 impl<'a> Session<'a> {
-    pub fn build(phase: Phase, psession: &'a mut PSession) -> Self {
+    pub fn build(phase: Phase, psession: &'a mut PSession, ctx: &'a DakiaHttpGatewayCtx) -> Self {
         Session {
             phase,
             psession,
@@ -92,6 +30,7 @@ impl<'a> Session<'a> {
             downstream_respons: None,
             ds_hbuf: HashMap::new(),
             ds_status_code: StatusCode::OK,
+            ctx,
         }
     }
 
@@ -179,6 +118,7 @@ impl<'a> Session<'a> {
     }
 
     pub async fn flush_ds_res_header(&mut self) -> DakiaResult<()> {
+        let cur_hook_mask = Hook::PreDownstreamResponseHeaderFlush.mask();
         // TODO: allow to configure keepalive once bug is fixed in pingora itself
         // https://github.com/cloudflare/pingora/issues/540
         self.psession.set_keepalive(None);
@@ -188,6 +128,12 @@ impl<'a> Session<'a> {
         let headers = take(&mut self.ds_hbuf);
         for (header_name, header_value) in headers.into_iter() {
             header.insert_header(header_name, header_value)?;
+        }
+
+        let interceptors = self.ctx.gateway_state.interceptors();
+
+        for interceptor in interceptors {
+            self.execute_hooked_interceptors(interceptor, cur_hook_mask)?;
         }
 
         self.psession
@@ -204,6 +150,42 @@ impl<'a> Session<'a> {
         Ok(())
     }
 }
+
+impl<'a> Session<'a> {
+    fn execute_hooked_interceptors(
+        &mut self,
+        interceptor: &Arc<dyn Interceptor>,
+        cur_hook_mask: HookMask,
+    ) -> PhaseResult {
+        let is_phase_enabled: bool = match interceptor.phase_mask() {
+            // TODO: create method in Phase for checking if flag is on or not
+            Some(phase_mask) => (self.phase.mask() & phase_mask) != 0,
+            None => true,
+        };
+
+        if !is_phase_enabled || !interceptor.filter(self)? {
+            return Ok(true.into());
+        }
+
+        let is_hook_enabled = match interceptor.hook_mask() {
+            // TODO: create method in Hook for checking if flag is on or not
+            Some(phase_hook_mask) => (phase_hook_mask & cur_hook_mask) != 0,
+            None => false,
+        };
+
+        if !is_hook_enabled {
+            return Ok(true.into());
+        }
+
+        match self.phase {
+            Phase::RequestFilter => interceptor.request_filter(self),
+            Phase::UpstreamProxyFilter => interceptor.upstream_proxy_filter(self),
+            Phase::PreUpstreamRequest => interceptor.pre_upstream_request(self),
+            Phase::PostUpstreamResponse => interceptor.post_upstream_response(self),
+        }
+    }
+}
+
 // TODO: move this assert into shared module
 fn assert(cond: bool, msg: String) -> DakiaResult<()> {
     Ok(if !cond {

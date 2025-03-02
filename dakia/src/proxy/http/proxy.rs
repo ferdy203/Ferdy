@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use crate::{
     error::{DakiaError, DakiaResult},
-    gateway::state::GatewayStateStore,
-    proxy::http::{helpers::get_inet_addr_from_backend, session::Phase},
+    gateway::{interceptor::Phase, state::GatewayStateStore},
+    proxy::http::helpers::get_inet_addr_from_backend,
     qe::engine::exec,
 };
 
@@ -56,14 +56,14 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<bool, Box<Error>> {
-        let mut session = session::Session::build(Phase::Filter, _session);
+        let mut session = session::Session::build(Phase::RequestFilter, _session, _ctx);
         let host = session.ds_req_header("host")?;
 
         match host {
             Some(host) => {
                 let is_valid_ds_host = is_valid_ds_host(
-                    &_ctx.gateway_state.get_gateway_config(),
-                    &self.gateway_state_store.get_state().get_pattern_registry(),
+                    &_ctx.gateway_state.gateway_config(),
+                    &self.gateway_state_store.get_state().pattern_registry(),
                     host,
                 )
                 .await?;
@@ -91,7 +91,7 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
-        let gateway_config = _ctx.gateway_state.get_gateway_config();
+        let gateway_config = _ctx.gateway_state.gateway_config();
 
         // TODO: return 404 if router config not found
         let router_config = gateway_config.find_router_config_or_err(|filter| {
@@ -101,7 +101,7 @@ impl ProxyHttp for Proxy {
         let upstream_name = &router_config.upstream;
 
         let gateway_state = self.gateway_state_store.get_state();
-        let lb_registry = gateway_state.get_lb_registry();
+        let lb_registry = gateway_state.lb_registry();
 
         let mut lb = lb_registry.get(&upstream_name).await?;
         lb = match lb {
