@@ -238,3 +238,64 @@ where
 
     Ok(true)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[derive(Debug, PartialEq)]
+    struct Query {
+        field: String,
+        operator: Operator,
+        value: Value,
+    }
+
+    impl Query {
+        fn new(field: &str, operator: Operator, value: Value) -> Self {
+            Query {
+                field: field.to_string(),
+                operator,
+                value,
+            }
+        }
+
+        fn exec(&self, data: &HashMap<String, Value>) -> bool {
+            match data.get(&self.field) {
+                Some(actual_value) => match self.operator {
+                    Operator::Eq => actual_value == &self.value,
+                    Operator::Ne => actual_value != &self.value,
+                    Operator::Exists => data.contains_key(&self.field),
+                    _ => false, // Extend for other operators
+                },
+                None => false,
+            }
+        }
+    }
+
+    #[test]
+    fn test_query_execution() {
+        let mut data = HashMap::new();
+        data.insert(
+            "name".to_string(),
+            Value::Scaler(Scaler::String("Alice".to_string())),
+        );
+
+        let query = Query::new(
+            "name",
+            Operator::Eq,
+            Value::Scaler(Scaler::String("Alice".to_string())),
+        );
+        assert!(query.exec(&data));
+
+        let query = Query::new(
+            "name",
+            Operator::Ne,
+            Value::Scaler(Scaler::String("Bob".to_string())),
+        );
+        assert!(query.exec(&data));
+
+        let query = Query::new("age", Operator::Exists, Value::Scaler(Scaler::I32(25)));
+        assert!(!query.exec(&data)); // "age" doesn't exist in the data
+    }
+}
