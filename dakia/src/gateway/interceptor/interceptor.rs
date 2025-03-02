@@ -1,6 +1,6 @@
 use crate::{error::DakiaResult, proxy::http::Session, qe::query::Query};
 
-use super::{HookMask, InterceptorName};
+use super::{HookMask, InterceptorName, PhaseMask};
 
 pub enum PhaseResultValue {
     Bool(bool),
@@ -17,24 +17,25 @@ pub type PhaseResult = DakiaResult<PhaseResultValue>;
 
 pub trait Interceptor: Send + Sync {
     fn name(&self) -> InterceptorName;
-    fn hook(&self) -> Option<HookMask>;
+    fn hook_mask(&self) -> Option<HookMask>;
+    fn phase_mask(&self) -> Option<PhaseMask>;
 
     // if there is no filter, it'll be considered as match
     fn filter(&self, _session: &Session) -> DakiaResult<bool>;
 
-    fn request_filter(&mut self, _session: &Session) -> PhaseResult {
+    fn request_filter(&self, _session: &Session) -> PhaseResult {
         Ok(false.into())
     }
 
-    fn upstream_proxy_filter(&mut self, _session: &Session) -> PhaseResult {
+    fn upstream_proxy_filter(&self, _session: &Session) -> PhaseResult {
         Ok(false.into())
     }
 
-    fn pre_upstream_request(&mut self, _session: &Session) -> PhaseResult {
+    fn pre_upstream_request(&self, _session: &Session) -> PhaseResult {
         Ok(false.into())
     }
 
-    fn post_upstream_response(&mut self, _session: &Session) -> PhaseResult {
+    fn post_upstream_response(&self, _session: &Session) -> PhaseResult {
         Ok(false.into())
     }
 }
