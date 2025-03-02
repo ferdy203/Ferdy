@@ -1,6 +1,5 @@
 use crate::{
-    error::DakiaResult,
-    gateway::interceptor::{Hook, HookMask, Interceptor, InterceptorName, PhaseMask, PhaseResult},
+    gateway::interceptor::{Hook, HookMask, Interceptor, InterceptorName, PhaseResult},
     proxy::http::Session,
     shared::common::get_dakia_version,
 };
@@ -27,28 +26,8 @@ impl Interceptor for ServerVersionInterceptor {
         Some(Hook::PreDownstreamResponseHeaderFlush.mask())
     }
 
-    fn phase_mask(&self) -> Option<PhaseMask> {
-        None
-    }
-
-    fn filter(&self, _session: &mut Session) -> DakiaResult<bool> {
-        Ok(true)
-    }
-
     fn request_filter(&self, _session: &mut Session) -> PhaseResult {
         self.insert_header(_session)
-    }
-
-    fn upstream_proxy_filter(&self, _session: &mut Session) -> PhaseResult {
-        Ok(false.into())
-    }
-
-    fn pre_upstream_request(&self, _session: &mut Session) -> PhaseResult {
-        Ok(false.into())
-    }
-
-    fn post_upstream_response(&self, _session: &mut Session) -> PhaseResult {
-        Ok(false.into())
     }
 
     fn pre_downstream_response(&self, _session: &mut Session) -> PhaseResult {
