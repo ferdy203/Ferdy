@@ -1,2 +1,1 @@
-mod version;
-use super::interceptor;
+pub mod version;

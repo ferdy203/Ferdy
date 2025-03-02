@@ -1,4 +1,5 @@
 pub mod interceptor;
+pub mod interceptor_builder;
 pub mod interceptors;
 pub mod state;
 

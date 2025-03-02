@@ -28,9 +28,10 @@ fn main() {
     println!("{}", get_dakia_ascii_art());
 
     let dakia_args = DakiaArgs::parse();
-    process_args(&dakia_args).unwrap();
 
     let dakia_config = DakiaConfig::from_args(dakia_args.clone()).unwrap();
+
+    process_args(&dakia_args, &dakia_config).unwrap();
 
     // perform init steps
     init();
@@ -93,25 +94,23 @@ fn init() {
     env_logger::init();
 }
 
-fn process_args(_args: &DakiaArgs) -> Result<(), Box<DakiaError>> {
-    if _args.version {
+fn process_args(args: &DakiaArgs, dakia_config: &DakiaConfig) -> Result<(), Box<DakiaError>> {
+    if args.version {
         // version will be printed along with dakia art in the very beginning, so just exist from here
         shared::common::exit();
     }
 
-    if _args.reload {
-        // not implemented
+    if args.reload {
+        todo!();
+    }
+
+    if args.debug {
+        println!("{:?}", dakia_config);
         shared::common::exit();
     }
 
-    if _args.debug {
-        // not implemented
-        shared::common::exit();
-    }
-
-    if _args.test {
-        // not implemented
-        shared::common::exit();
+    if args.test {
+        todo!();
     }
 
     Ok(())

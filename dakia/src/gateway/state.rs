@@ -1,11 +1,13 @@
 use crate::{
     config::source_config::GatewayConfig,
-    error::DakiaResult,
+    error::{DakiaError, DakiaResult},
     proxy::http::{builder, lb},
     shared::pattern_registry::PatternRegistryType,
 };
 use arc_swap::ArcSwap;
 use std::sync::Arc;
+
+use super::{interceptor::Interceptor, interceptor_builder::InterceptorBuilderRegistry};
 
 #[derive(Clone)]
 pub struct GatewayState {
@@ -13,6 +15,7 @@ pub struct GatewayState {
     gateway_config: GatewayConfig,
     ds_host_pattern_registry: PatternRegistryType,
     lb_registry: lb::LbRegistryType,
+    interceptor_builder_registry: InterceptorBuilderRegistry,
 }
 
 impl GatewayState {
@@ -20,12 +23,14 @@ impl GatewayState {
         gateway_config: GatewayConfig,
         ds_host_pattern_registry: PatternRegistryType,
         lb_registry: lb::LbRegistryType,
+        interceptor_builder_registry: InterceptorBuilderRegistry,
     ) -> Self {
         Self {
             _version: 0,
             gateway_config,
             ds_host_pattern_registry,
             lb_registry,
+            interceptor_builder_registry,
         }
     }
 
@@ -64,7 +69,7 @@ impl GatewayStateStore {
     }
 
     pub fn get_inner(&self) -> GatewayState {
-        let arc_config = self.get_state();
+        let arc_config = self.get_state().clone();
         (*arc_config).clone()
     }
 }
@@ -72,6 +77,41 @@ impl GatewayStateStore {
 pub async fn build_gateway_state(gateway_config: GatewayConfig) -> DakiaResult<GatewayState> {
     let ds_host_pattern_registry = builder::build_ds_host_pattern_registry(&gateway_config).await?;
     let lb_registry = builder::build_lb_registry(&gateway_config).await?;
-    let gateway_state = GatewayState::build(gateway_config, ds_host_pattern_registry, lb_registry);
+
+    let interceptor_builder_registry = InterceptorBuilderRegistry::build();
+
+    let x = build_interceptors(&gateway_config, &interceptor_builder_registry)?;
+
+    let gateway_state = GatewayState::build(
+        gateway_config,
+        ds_host_pattern_registry,
+        lb_registry,
+        interceptor_builder_registry,
+    );
+
     Ok(gateway_state)
+}
+
+fn build_interceptors(
+    gateway_config: &GatewayConfig,
+    interceptor_builder_registry: &InterceptorBuilderRegistry,
+) -> DakiaResult<()> {
+    let mut int: Vec<Arc<dyn Interceptor>> = vec![];
+
+    for interceptor_config in &gateway_config.interceptors {
+        let interceptor_name = &interceptor_config.name;
+        let interceptor_builder = interceptor_builder_registry.registry.get(interceptor_name);
+        match interceptor_builder {
+            Some(builder) => {
+                let mut x = builder.lock().unwrap();
+            }
+            None => {
+                return Err(DakiaError::i_explain(format!(
+                    "Invalid interceptor name {:?}. No such interceptor exists",
+                    interceptor_name
+                )))
+            }
+        }
+    }
+    Ok(())
 }
