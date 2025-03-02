@@ -5,11 +5,11 @@ use crate::{
     shared::common::get_dakia_version,
 };
 
-pub struct ServerInterceptor {}
+pub struct ServerVersionInterceptor {}
 
-impl Interceptor for ServerInterceptor {
+impl Interceptor for ServerVersionInterceptor {
     fn name(&self) -> InterceptorName {
-        InterceptorName::Server
+        InterceptorName::ServerVersion
     }
 
     fn hook_mask(&self) -> Option<HookMask> {
