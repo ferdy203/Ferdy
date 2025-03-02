@@ -1,27 +1,24 @@
 use std::fmt;
 
+pub type PhaseMask = u8;
+
 #[derive(PartialEq, Clone, Debug, Eq)]
 pub enum Phase {
-    RequestFilter,
-    UpstreamProxyFilter,
-    PreUpstreamRequest,
-    PostUpstreamResponse,
+    RequestFilter = 0x01,
+    UpstreamProxyFilter = 0x02,
+    PreUpstreamRequest = 0x03,
+    PostUpstreamResponse = 0x04,
 }
 
 impl Phase {
-    fn to_number(&self) -> u8 {
-        match self {
-            Phase::RequestFilter => 1,
-            Phase::UpstreamProxyFilter => 2,
-            Phase::PreUpstreamRequest => 3,
-            Phase::PostUpstreamResponse => 4,
-        }
+    pub fn eq(&self, phase: Phase) -> bool {
+        ((self.clone()) as PhaseMask & phase as PhaseMask) != 0
     }
 }
 
 impl Ord for Phase {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.to_number().cmp(&other.to_number())
+        (self.clone() as PhaseMask).cmp(&(other.clone() as PhaseMask))
     }
 }
 
