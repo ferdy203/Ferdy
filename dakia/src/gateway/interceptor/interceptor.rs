@@ -1,3 +1,5 @@
+use async_trait::async_trait;
+
 use crate::{
     error::DakiaResult,
     proxy::http::{HeaderBuffer, Session},
@@ -7,6 +9,7 @@ use super::{HookMask, InterceptorName, PhaseMask};
 
 pub type PhaseResult = DakiaResult<bool>;
 
+#[async_trait]
 pub trait Interceptor: Send + Sync {
     fn name(&self) -> InterceptorName;
 
@@ -52,27 +55,27 @@ pub trait Interceptor: Send + Sync {
         Ok(true)
     }
 
-    fn request_filter(&self, _session: &mut Session) -> PhaseResult {
+    async fn request_filter(&self, _session: &mut Session) -> PhaseResult {
         Ok(false)
     }
 
-    fn upstream_proxy_filter(&self, _session: &mut Session) -> PhaseResult {
+    async fn upstream_proxy_filter(&self, _session: &mut Session) -> PhaseResult {
         Ok(false)
     }
 
-    fn pre_upstream_request(&self, _session: &mut Session) -> PhaseResult {
+    async fn pre_upstream_request(&self, _session: &mut Session) -> PhaseResult {
         Ok(false)
     }
 
-    fn post_upstream_response(&self, _session: &mut Session) -> PhaseResult {
+    async fn post_upstream_response(&self, _session: &mut Session) -> PhaseResult {
         Ok(false)
     }
 
-    fn pre_downstream_response(&self, _session: &mut Session) -> PhaseResult {
+    async fn pre_downstream_response(&self, _session: &mut Session) -> PhaseResult {
         Ok(false)
     }
 
-    fn pre_downstream_response_hook(&self, _session: &mut Session) -> PhaseResult {
+    async fn pre_downstream_response_hook(&self, _session: &mut Session) -> PhaseResult {
         Ok(false)
     }
 }

@@ -85,7 +85,7 @@ impl ProxyHttp for Proxy {
             }
         };
 
-        Ok(session.execute_interceptors()?)
+        Ok(session.execute_interceptors().await?)
     }
 
     async fn proxy_upstream_filter(
@@ -97,7 +97,7 @@ impl ProxyHttp for Proxy {
         Self::CTX: Send + Sync,
     {
         let mut session = session::Session::build(Phase::UpstreamProxyFilter, _session, _ctx);
-        Ok(!session.execute_interceptors()?)
+        Ok(!session.execute_interceptors().await?)
     }
 
     async fn upstream_peer(

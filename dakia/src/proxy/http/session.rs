@@ -160,7 +160,7 @@ impl<'a> Session<'a> {
         // https://github.com/cloudflare/pingora/issues/540
         self.psession.set_keepalive(None);
 
-        self.execute_hooked_interceptors(cur_hook)?;
+        self.execute_hooked_interceptors(cur_hook).await?;
 
         match self.phase {
             Phase::RequestFilter | Phase::UpstreamProxyFilter | Phase::PreDownstreamResponse => {
@@ -182,35 +182,35 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    fn execute_hooked_interceptors(&mut self, cur_hook: Hook) -> PhaseResult {
+    async fn execute_hooked_interceptors(&mut self, cur_hook: Hook) -> PhaseResult {
         let interceptors = self.ctx.gateway_state.interceptors();
 
         for interceptor in interceptors {
             match cur_hook {
                 Hook::PreDownstreamResponseHeaderFlush => {
-                    interceptor.pre_downstream_response_hook(self)
+                    interceptor.pre_downstream_response_hook(self).await
                 }
             }?;
         }
         Ok(false)
     }
 
-    fn execute_interceptor(&mut self, interceptor: &Arc<dyn Interceptor>) -> PhaseResult {
+    async fn execute_interceptor(&mut self, interceptor: &Arc<dyn Interceptor>) -> PhaseResult {
         match self.phase {
-            Phase::RequestFilter => interceptor.request_filter(self),
-            Phase::UpstreamProxyFilter => interceptor.upstream_proxy_filter(self),
-            Phase::PreUpstreamRequest => interceptor.pre_upstream_request(self),
-            Phase::PostUpstreamResponse => interceptor.post_upstream_response(self),
-            Phase::PreDownstreamResponse => interceptor.pre_downstream_response(self),
+            Phase::RequestFilter => interceptor.request_filter(self).await,
+            Phase::UpstreamProxyFilter => interceptor.upstream_proxy_filter(self).await,
+            Phase::PreUpstreamRequest => interceptor.pre_upstream_request(self).await,
+            Phase::PostUpstreamResponse => interceptor.post_upstream_response(self).await,
+            Phase::PreDownstreamResponse => interceptor.pre_downstream_response(self).await,
         }
     }
 
-    pub fn execute_interceptors(&mut self) -> PhaseResult {
+    pub async fn execute_interceptors(&mut self) -> PhaseResult {
         let interceptors = self.ctx.gateway_state.interceptors();
 
         for interceptor in interceptors {
             if interceptor.filter(self)? && interceptor.hook_mask().is_none() {
-                let phase_result = self.execute_interceptor(interceptor)?;
+                let phase_result = self.execute_interceptor(interceptor).await?;
                 if phase_result {
                     return Ok(true);
                 }

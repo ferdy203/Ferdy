@@ -1,5 +1,7 @@
 use std::sync::OnceLock;
 
+use async_trait::async_trait;
+
 use crate::{
     gateway::interceptor::{Hook, HookMask, Interceptor, InterceptorName, PhaseResult},
     proxy::http::Session,
@@ -23,6 +25,7 @@ impl ServerVersionInterceptor {
     }
 }
 
+#[async_trait]
 impl Interceptor for ServerVersionInterceptor {
     fn name(&self) -> InterceptorName {
         InterceptorName::ServerVersion
@@ -32,7 +35,7 @@ impl Interceptor for ServerVersionInterceptor {
         Some(Hook::PreDownstreamResponseHeaderFlush.mask())
     }
 
-    fn pre_downstream_response_hook(&self, _session: &mut Session) -> PhaseResult {
+    async fn pre_downstream_response_hook(&self, _session: &mut Session) -> PhaseResult {
         self.insert_header(_session)
     }
 }
