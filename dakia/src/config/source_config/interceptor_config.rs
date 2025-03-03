@@ -11,4 +11,5 @@ pub struct InterceptorConfig {
     pub hook_mast: Option<HookMask>,
     pub filter: Option<Query>,
     pub config: Option<Query>,
+    pub intercept: Option<Query>,
 }

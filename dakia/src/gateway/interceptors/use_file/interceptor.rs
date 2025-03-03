@@ -3,11 +3,24 @@ use crate::{
     gateway::interceptor::{
         Hook, HookMask, Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult,
     },
-    proxy::http::Session,
+    proxy::http::{HeaderBuffer, Session},
 };
 
-pub struct UseFileInterceptor {}
+pub struct UseFileInterceptor {
+    root: String,
+    ds_res_header_buffer: HeaderBuffer,
+    us_req_header_buffer: HeaderBuffer,
+}
 
+impl UseFileInterceptor {
+    pub fn build(root: String, header_buffers: (HeaderBuffer, HeaderBuffer)) -> Self {
+        UseFileInterceptor {
+            root,
+            ds_res_header_buffer: header_buffers.0,
+            us_req_header_buffer: header_buffers.1,
+        }
+    }
+}
 impl Interceptor for UseFileInterceptor {
     fn name(&self) -> InterceptorName {
         InterceptorName::UseFile

@@ -7,4 +7,4 @@ mod session;
 
 pub use ctx::DakiaHttpGatewayCtx;
 pub use proxy::Proxy;
-pub use session::Session;
+pub use session::{HeaderBuffer, Session};

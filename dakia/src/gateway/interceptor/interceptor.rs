@@ -1,4 +1,7 @@
-use crate::{error::DakiaResult, proxy::http::Session};
+use crate::{
+    error::DakiaResult,
+    proxy::http::{HeaderBuffer, Session},
+};
 
 use super::{HookMask, InterceptorName, PhaseMask};
 
@@ -13,6 +16,35 @@ pub trait Interceptor: Send + Sync {
 
     fn phase_mask(&self) -> Option<PhaseMask> {
         None
+    }
+
+    fn ds_res_header_buffer(&self) -> Option<&HeaderBuffer> {
+        None
+    }
+
+    fn us_req_header_buffer(&self) -> Option<&HeaderBuffer> {
+        None
+    }
+
+    fn init(&self, _session: &mut Session) -> DakiaResult<()> {
+        match self.ds_res_header_buffer() {
+            Some(header_buffer) => {
+                for (hkey, hval) in header_buffer {
+                    _session.set_ds_header(hkey.clone(), hval.clone());
+                }
+            }
+            None => (),
+        };
+
+        match self.us_req_header_buffer() {
+            Some(header_buffer) => {
+                for (hkey, hval) in header_buffer {
+                    _session.set_us_header(hkey.clone(), hval.clone());
+                }
+            }
+            None => (),
+        };
+        Ok(())
     }
 
     // if there is no filter, it'll be considered as match

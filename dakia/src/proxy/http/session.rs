@@ -16,7 +16,8 @@ pub struct Session<'a> {
     upstream_request: Option<&'a mut PRequestHeader>,
     upstream_response: Option<&'a mut PResponseHeader>,
     phase: Phase,
-    ds_hbuf: HashMap<String, Vec<u8>>,
+    ds_hbuf: HeaderBuffer,
+    us_hbuf: HeaderBuffer,
     ds_status_code: StatusCode,
     ctx: &'a DakiaHttpGatewayCtx,
 }
@@ -28,7 +29,8 @@ impl<'a> Session<'a> {
             psession,
             upstream_request: None,
             upstream_response: None,
-            ds_hbuf: HashMap::new(),
+            ds_hbuf: HeaderBuffer::new(),
+            us_hbuf: HeaderBuffer::new(),
             ds_status_code: StatusCode::OK,
             ctx,
         }
@@ -112,9 +114,8 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    fn set_us_header(&self, header_name: String, header_value: &[u8]) {
-        // TODO: upstream header can be only added in PreUpstreamRequest phase
-        todo!()
+    pub fn set_us_header(&mut self, header_name: String, header_value: Vec<u8>) {
+        self.us_hbuf.insert(header_name, header_value);
     }
 
     pub fn set_ds_header(&mut self, header_name: String, header_value: Vec<u8>) {
@@ -220,3 +221,5 @@ impl<'a> Session<'a> {
         Ok(false)
     }
 }
+
+pub type HeaderBuffer = HashMap<String, Vec<u8>>;
