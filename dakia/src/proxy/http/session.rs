@@ -147,7 +147,6 @@ impl<'a> Session<'a> {
         );
 
         let headers = take(&mut self.ds_hbuf);
-        println!("Headers: {}", headers.len());
         for (header_name, header_value) in headers.into_iter() {
             upstream_response.insert_header(header_name, header_value)?;
         }
