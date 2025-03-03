@@ -13,8 +13,10 @@ pub struct ServerVersionInterceptor {}
 
 impl ServerVersionInterceptor {
     fn insert_header(&self, _session: &mut Session) -> PhaseResult {
-        let header_value =
-            SERVER_HEADER_BYTES.get_or_init(|| get_dakia_version().as_bytes().to_vec());
+        let header_value = SERVER_HEADER_BYTES.get_or_init(|| {
+            let hval = format!("Dakia/{}", get_dakia_version());
+            hval.as_bytes().to_vec()
+        });
 
         _session.set_ds_header(SERVER_HEADER_NAME.to_owned(), header_value.clone());
         Ok(false)
