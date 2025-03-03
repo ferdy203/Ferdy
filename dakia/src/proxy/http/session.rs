@@ -5,8 +5,8 @@ use pingora_http::{RequestHeader as PRequestHeader, ResponseHeader as PResponseH
 use pingora_proxy::Session as PSession;
 
 use crate::{
-    error::DakiaResult,
-    gateway::interceptor::{Hook, HookMask, Interceptor, Phase, PhaseResult},
+    error::{DakiaError, DakiaResult},
+    gateway::interceptor::{Hook, Interceptor, Phase, PhaseResult},
 };
 
 use super::DakiaHttpGatewayCtx;
@@ -14,7 +14,7 @@ use super::DakiaHttpGatewayCtx;
 pub struct Session<'a> {
     psession: &'a mut PSession,
     upstream_request: Option<&'a mut PRequestHeader>,
-    downstream_respons: Option<&'a mut PResponseHeader>,
+    upstream_response: Option<&'a mut PResponseHeader>,
     phase: Phase,
     ds_hbuf: HashMap<String, Vec<u8>>,
     ds_status_code: StatusCode,
@@ -27,7 +27,7 @@ impl<'a> Session<'a> {
             phase,
             psession,
             upstream_request: None,
-            downstream_respons: None,
+            upstream_response: None,
             ds_hbuf: HashMap::new(),
             ds_status_code: StatusCode::OK,
             ctx,
@@ -36,6 +36,10 @@ impl<'a> Session<'a> {
 
     pub fn upstream_request(&mut self, upstream_request: &'a mut PRequestHeader) {
         self.upstream_request = Some(upstream_request);
+    }
+
+    pub fn upstream_response(&mut self, upstream_response: &'a mut PResponseHeader) {
+        self.upstream_response = Some(upstream_response);
     }
 }
 
@@ -117,14 +121,7 @@ impl<'a> Session<'a> {
         self.ds_hbuf.insert(header_name, header_value);
     }
 
-    pub async fn flush_ds_header(&mut self) -> DakiaResult<()> {
-        let cur_hook_mask = Hook::PreDownstreamResponseHeaderFlush.mask();
-        // TODO: allow to configure keepalive once bug is fixed in pingora itself
-        // https://github.com/cloudflare/pingora/issues/540
-        self.psession.set_keepalive(None);
-
-        self.execute_hooked_interceptors(cur_hook_mask)?;
-
+    async fn flush_header_in_ds(&mut self) -> DakiaResult<()> {
         let mut header = PResponseHeader::build(self.ds_status_code, None).unwrap();
 
         let headers = take(&mut self.ds_hbuf);
@@ -138,6 +135,44 @@ impl<'a> Session<'a> {
 
         Ok(())
     }
+
+    async fn flush_header_in_us_res(&mut self) -> DakiaResult<()> {
+        let upstream_response = self.upstream_response.as_mut().expect(
+            format!(
+                "upstream_response must be available in phase {}",
+                Phase::PostUpstreamResponse
+            )
+            .as_str(),
+        );
+
+        let headers = take(&mut self.ds_hbuf);
+        println!("Headers: {}", headers.len());
+        for (header_name, header_value) in headers.into_iter() {
+            upstream_response.insert_header(header_name, header_value)?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn flush_ds_header(&mut self) -> DakiaResult<()> {
+        let cur_hook = Hook::PreDownstreamResponseHeaderFlush;
+        // TODO: allow to configure keepalive once bug is fixed in pingora itself
+        // https://github.com/cloudflare/pingora/issues/540
+        self.psession.set_keepalive(None);
+
+        self.execute_hooked_interceptors(cur_hook)?;
+
+        match self.phase {
+            Phase::RequestFilter | Phase::UpstreamProxyFilter | Phase::PreDownstreamResponse => {
+                self.flush_header_in_ds().await
+            }
+            Phase::PreUpstreamRequest => Err(DakiaError::i_explain(format!(
+                "can not write downstream headers in {} phase",
+                Phase::PreUpstreamRequest
+            ))),
+            Phase::PostUpstreamResponse => self.flush_header_in_us_res().await,
+        }
+    }
 }
 
 impl<'a> Session<'a> {
@@ -147,30 +182,15 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    fn execute_hooked_interceptors(&mut self, cur_hook_mask: HookMask) -> PhaseResult {
+    fn execute_hooked_interceptors(&mut self, cur_hook: Hook) -> PhaseResult {
         let interceptors = self.ctx.gateway_state.interceptors();
+
         for interceptor in interceptors {
-            let is_phase_enabled: bool = match interceptor.phase_mask() {
-                // TODO: create method in Phase for checking if flag is on or not
-                Some(phase_mask) => (self.phase.mask() & phase_mask) != 0,
-                None => true,
-            };
-
-            if !is_phase_enabled || !interceptor.filter(self)? {
-                return Ok(true);
-            }
-
-            let is_hook_enabled = match interceptor.hook_mask() {
-                // TODO: create method in Hook for checking if flag is on or not
-                Some(interceptor_hook_mask) => (interceptor_hook_mask & cur_hook_mask) != 0,
-                None => false,
-            };
-
-            if !is_hook_enabled {
-                return Ok(true);
-            }
-
-            self.execute_interceptor(interceptor)?;
+            match cur_hook {
+                Hook::PreDownstreamResponseHeaderFlush => {
+                    interceptor.pre_downstream_response_hook(self)
+                }
+            }?;
         }
         Ok(false)
     }

@@ -6,7 +6,7 @@ use crate::{
     gateway::interceptor::{Interceptor, InterceptorName},
 };
 
-use super::interceptors::server_version;
+use super::interceptors::{server_version, use_file};
 
 pub trait InterceptorBuilder: Sync + Send {
     fn build(&self, interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>>;
@@ -31,6 +31,10 @@ impl InterceptorBuilderRegistry {
         registry.insert(
             InterceptorName::ServerVersion,
             Arc::new(server_version::ServerVersionInterceptorBuilder::default()),
+        );
+        registry.insert(
+            InterceptorName::UseFile,
+            Arc::new(use_file::UseFileInterceptorBuilder::default()),
         );
 
         Self { registry }

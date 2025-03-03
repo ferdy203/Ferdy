@@ -20,6 +20,7 @@ use pingora::{
     Error, ErrorSource,
     ErrorType::HTTPStatus,
 };
+use pingora_http::ResponseHeader;
 
 #[derive(Clone)]
 pub struct Proxy {
@@ -87,6 +88,18 @@ impl ProxyHttp for Proxy {
         Ok(session.execute_interceptors()?)
     }
 
+    async fn proxy_upstream_filter(
+        &self,
+        _session: &mut Session,
+        _ctx: &mut Self::CTX,
+    ) -> Result<bool, Box<Error>>
+    where
+        Self::CTX: Send + Sync,
+    {
+        let mut session = session::Session::build(Phase::UpstreamProxyFilter, _session, _ctx);
+        Ok(!session.execute_interceptors()?)
+    }
+
     async fn upstream_peer(
         &self,
         _session: &mut Session,
@@ -130,7 +143,7 @@ impl ProxyHttp for Proxy {
         Ok(peer)
     }
 
-    async fn fail_to_proxy(&self, session: &mut Session, e: &Error, _ctx: &mut Self::CTX) -> u16
+    async fn fail_to_proxy(&self, _session: &mut Session, e: &Error, _ctx: &mut Self::CTX) -> u16
     where
         Self::CTX: Send + Sync,
     {
@@ -156,11 +169,26 @@ impl ProxyHttp for Proxy {
         };
 
         if code > 0 {
-            let mut session = session::Session::build(Phase::PreDownstreamResponse, session, _ctx);
+            let mut session = session::Session::build(Phase::PreDownstreamResponse, _session, _ctx);
             let status_code = StatusCode::from_u16(code).unwrap();
             session.set_res_status(status_code);
             session.flush_ds_header().await.unwrap();
         }
         code
+    }
+
+    async fn response_filter(
+        &self,
+        _session: &mut Session,
+        _upstream_response: &mut ResponseHeader,
+        _ctx: &mut Self::CTX,
+    ) -> Result<(), Box<Error>>
+    where
+        Self::CTX: Send + Sync,
+    {
+        let mut session = session::Session::build(Phase::PostUpstreamResponse, _session, _ctx);
+        session.upstream_response(_upstream_response);
+        session.flush_ds_header().await?;
+        Ok(())
     }
 }
