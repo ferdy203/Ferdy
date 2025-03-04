@@ -1,6 +1,8 @@
 pub mod interceptor;
 pub mod interceptor_builder;
 pub mod interceptors;
+pub mod lb;
+pub mod registry_builder;
 pub mod state;
 
 use super::Proxy;

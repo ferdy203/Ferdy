@@ -1,15 +1,14 @@
 use crate::{
-    config::source_config::GatewayConfig,
-    error::{DakiaError, DakiaResult},
-    proxy::http::{builder, lb},
+    config::source_config::GatewayConfig, error::DakiaResult,
     shared::pattern_registry::PatternRegistryType,
 };
 use arc_swap::ArcSwap;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use super::{
     interceptor::Interceptor,
-    interceptor_builder::{self, InterceptorBuilderRegistry},
+    interceptor_builder::{utils::build_interceptors, InterceptorBuilderRegistry},
+    lb, registry_builder,
 };
 
 #[derive(Clone)]
@@ -85,8 +84,9 @@ impl GatewayStateStore {
 }
 
 pub async fn build_gateway_state(gateway_config: GatewayConfig) -> DakiaResult<GatewayState> {
-    let ds_host_pattern_registry = builder::build_ds_host_pattern_registry(&gateway_config).await?;
-    let lb_registry = builder::build_lb_registry(&gateway_config).await?;
+    let ds_host_pattern_registry =
+        registry_builder::build_ds_host_pattern_registry(&gateway_config).await?;
+    let lb_registry = registry_builder::build_lb_registry(&gateway_config).await?;
 
     let interceptor_builder_registry = InterceptorBuilderRegistry::build();
     let interceptors = build_interceptors(&gateway_config, &interceptor_builder_registry)?;
@@ -100,37 +100,4 @@ pub async fn build_gateway_state(gateway_config: GatewayConfig) -> DakiaResult<G
     );
 
     Ok(gateway_state)
-}
-
-fn build_interceptors(
-    gateway_config: &GatewayConfig,
-    interceptor_builder_registry: &InterceptorBuilderRegistry,
-) -> DakiaResult<Vec<Arc<dyn Interceptor>>> {
-    let mut interceptors: Vec<Arc<dyn Interceptor>> = vec![];
-
-    for interceptor_config in &gateway_config.interceptors {
-        if !interceptor_config.enabled {
-            continue;
-        }
-
-        let interceptor_name = &interceptor_config.name;
-        let builder = interceptor_builder_registry.registry.get(interceptor_name);
-        let header_buffers = match &interceptor_config.intercept {
-            Some(query) => interceptor_builder::utils::extract_headers(query)?,
-            None => (HashMap::new(), HashMap::new()),
-        };
-
-        let interceptor = match builder {
-            Some(builder) => builder.build(interceptor_config.clone(), header_buffers)?,
-            None => {
-                return Err(DakiaError::i_explain(format!(
-                    "Invalid interceptor name {:?}. No such interceptor exists",
-                    interceptor_name.as_str()
-                )))
-            }
-        };
-        interceptors.push(interceptor);
-    }
-
-    Ok(interceptors)
 }

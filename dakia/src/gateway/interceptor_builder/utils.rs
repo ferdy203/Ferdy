@@ -1,10 +1,14 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
+    config::source_config::{GatewayConfig, InterceptorConfig},
     error::{DakiaError, DakiaResult},
+    gateway::interceptor::Interceptor,
     proxy::http::HeaderBuffer,
     qe::query::{self, Query, Value},
 };
+
+use super::InterceptorBuilderRegistry;
 
 fn pull_str_or_err<'a>(qkey: &'a str, qval: &'a Value) -> DakiaResult<&'a str> {
     let dakia_error = DakiaError::i_explain(format!("expected string value for header {}", qkey));
@@ -43,4 +47,45 @@ pub fn extract_headers(intercept_query: &Query) -> DakiaResult<(HeaderBuffer, He
     }
 
     Ok((ds_res_header_buf, us_req_header_buf))
+}
+
+pub fn build_interceptor(
+    interceptor_config: &InterceptorConfig,
+    interceptor_builder_registry: &InterceptorBuilderRegistry,
+) -> DakiaResult<Arc<dyn Interceptor>> {
+    let interceptor_name = &interceptor_config.name;
+    let builder = interceptor_builder_registry.registry.get(interceptor_name);
+    let header_buffers = match &interceptor_config.intercept {
+        Some(query) => extract_headers(query)?,
+        None => (HashMap::new(), HashMap::new()),
+    };
+
+    let interceptor = match builder {
+        Some(builder) => builder.build(interceptor_config.clone(), header_buffers)?,
+        None => {
+            return Err(DakiaError::i_explain(format!(
+                "Invalid interceptor name {:?}. No such interceptor exists",
+                interceptor_name.as_str()
+            )))
+        }
+    };
+    Ok(interceptor)
+}
+
+pub fn build_interceptors(
+    gateway_config: &GatewayConfig,
+    interceptor_builder_registry: &InterceptorBuilderRegistry,
+) -> DakiaResult<Vec<Arc<dyn Interceptor>>> {
+    let mut interceptors: Vec<Arc<dyn Interceptor>> = vec![];
+
+    for interceptor_config in &gateway_config.interceptors {
+        if !interceptor_config.enabled {
+            continue;
+        }
+
+        let interceptor = build_interceptor(interceptor_config, interceptor_builder_registry)?;
+        interceptors.push(interceptor);
+    }
+
+    Ok(interceptors)
 }

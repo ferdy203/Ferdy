@@ -1,36 +1,14 @@
 use pingora::lb::Backend;
-use pingora_http::ResponseHeader;
 use pingora_proxy::Session;
 
 use crate::{
-    config::{source_config::GatewayConfig, DakiaConfig, InetAddress},
+    config::{source_config::GatewayConfig, InetAddress},
     error::{DakiaError, DakiaResult},
     qe::query::SupplierValue,
-    shared::{common::get_dakia_version, pattern_registry::PatternRegistryType},
+    shared::pattern_registry::PatternRegistryType,
 };
 
 use super::DakiaHttpGatewayCtx;
-
-pub fn add_dakia_header(response_header: &mut ResponseHeader) -> Result<(), Box<pingora::Error>> {
-    // TODO:cotrol addition this header via flag
-    let server_header = String::from("dakia/") + get_dakia_version();
-    response_header.insert_header("Server", server_header)?;
-    Ok(())
-}
-
-pub async fn write_response_ds(
-    session: &mut Session,
-    code: u16,
-    keepalive: Option<u64>,
-) -> Result<(), Box<pingora::Error>> {
-    let mut response_header = ResponseHeader::build(code, None)?;
-    add_dakia_header(&mut response_header)?;
-    session.set_keepalive(keepalive);
-    session
-        .write_response_header(Box::new(response_header), true)
-        .await?;
-    Ok(())
-}
 
 fn get_ds_addrs(gateway_config: &GatewayConfig) -> Vec<String> {
     // safe to unwrap
