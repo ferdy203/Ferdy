@@ -7,10 +7,17 @@ use crate::{
     gateway::interceptor::{Interceptor, InterceptorName},
 };
 
-use super::interceptors::{server_version, use_file};
+use super::{
+    interceptor::HeaderBuffers,
+    interceptors::{server_version, use_file},
+};
 
 pub trait InterceptorBuilder: Sync + Send {
-    fn build(&self, interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>>;
+    fn build(
+        &self,
+        _interceptor_config: InterceptorConfig,
+        _header_buffers: HeaderBuffers,
+    ) -> DakiaResult<Arc<dyn Interceptor>>;
 }
 
 #[derive(Clone)]

@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
+    config::source_config::InterceptorConfig,
     error::DakiaResult,
     proxy::http::{HeaderBuffer, Session},
 };
@@ -8,6 +9,7 @@ use crate::{
 use super::{HookMask, InterceptorName, PhaseMask};
 
 pub type PhaseResult = DakiaResult<bool>;
+pub type HeaderBuffers = (HeaderBuffer, HeaderBuffer);
 
 #[async_trait]
 pub trait Interceptor: Send + Sync {
@@ -21,32 +23,7 @@ pub trait Interceptor: Send + Sync {
         None
     }
 
-    fn ds_res_header_buffer(&self) -> Option<&HeaderBuffer> {
-        None
-    }
-
-    fn us_req_header_buffer(&self) -> Option<&HeaderBuffer> {
-        None
-    }
-
-    fn init(&self, _session: &mut Session) -> DakiaResult<()> {
-        match self.ds_res_header_buffer() {
-            Some(header_buffer) => {
-                for (hkey, hval) in header_buffer {
-                    _session.set_ds_header(hkey.clone(), hval.clone());
-                }
-            }
-            None => (),
-        };
-
-        match self.us_req_header_buffer() {
-            Some(header_buffer) => {
-                for (hkey, hval) in header_buffer {
-                    _session.set_us_header(hkey.clone(), hval.clone());
-                }
-            }
-            None => (),
-        };
+    fn _init(&mut self, _interceptor_config: &InterceptorConfig) -> DakiaResult<()> {
         Ok(())
     }
 

@@ -5,9 +5,12 @@ use crate::{
     shared::pattern_registry::PatternRegistryType,
 };
 use arc_swap::ArcSwap;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
-use super::{interceptor::Interceptor, interceptor_builder::InterceptorBuilderRegistry};
+use super::{
+    interceptor::Interceptor,
+    interceptor_builder::{self, InterceptorBuilderRegistry},
+};
 
 #[derive(Clone)]
 pub struct GatewayState {
@@ -112,8 +115,13 @@ fn build_interceptors(
 
         let interceptor_name = &interceptor_config.name;
         let builder = interceptor_builder_registry.registry.get(interceptor_name);
+        let header_buffers = match &interceptor_config.intercept {
+            Some(query) => interceptor_builder::utils::extract_headers(query)?,
+            None => (HashMap::new(), HashMap::new()),
+        };
+
         let interceptor = match builder {
-            Some(builder) => builder.build(interceptor_config.clone())?,
+            Some(builder) => builder.build(interceptor_config.clone(), header_buffers)?,
             None => {
                 return Err(DakiaError::i_explain(format!(
                     "Invalid interceptor name {:?}. No such interceptor exists",

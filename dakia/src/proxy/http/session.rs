@@ -1,5 +1,6 @@
 use std::{collections::HashMap, mem::take, sync::Arc};
 
+use bytes::Bytes;
 use http::{uri::PathAndQuery, StatusCode};
 use pingora_http::{RequestHeader as PRequestHeader, ResponseHeader as PResponseHeader};
 use pingora_proxy::Session as PSession;
@@ -181,6 +182,18 @@ impl<'a> Session<'a> {
     }
 }
 
+impl<'a> Session<'a> {
+    pub async fn write_res_body(
+        &mut self,
+        body: Option<Bytes>,
+        end_of_stream: bool,
+    ) -> DakiaResult<()> {
+        self.psession
+            .write_response_body(body, end_of_stream)
+            .await?;
+        Ok(())
+    }
+}
 impl<'a> Session<'a> {
     async fn execute_hooked_interceptors(&mut self, cur_hook: Hook) -> PhaseResult {
         let interceptors = self.ctx.gateway_state.interceptors();

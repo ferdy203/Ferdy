@@ -1,11 +1,11 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     config::source_config::InterceptorConfig,
     error::{DakiaError, DakiaResult},
     gateway::{
-        interceptor::{Interceptor, InterceptorName},
-        interceptor_builder::{self, InterceptorBuilder},
+        interceptor::{HeaderBuffers, Interceptor, InterceptorName},
+        interceptor_builder::InterceptorBuilder,
     },
     qe::query,
 };
@@ -56,13 +56,12 @@ impl UseFileInterceptorBuilder {
 }
 
 impl InterceptorBuilder for UseFileInterceptorBuilder {
-    fn build(&self, interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>> {
+    fn build(
+        &self,
+        interceptor_config: InterceptorConfig,
+        header_buffers: HeaderBuffers,
+    ) -> DakiaResult<Arc<dyn Interceptor>> {
         let root = self.extract_root(&interceptor_config)?;
-        let header_buffers = match &interceptor_config.intercept {
-            Some(query) => interceptor_builder::utils::extract_headers(query)?,
-            None => (HashMap::new(), HashMap::new()),
-        };
-
         let interceptor = UseFileInterceptor::build(root, header_buffers);
         Ok(Arc::new(interceptor))
     }

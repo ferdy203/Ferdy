@@ -4,7 +4,8 @@ use crate::{
     config::source_config::InterceptorConfig,
     error::DakiaResult,
     gateway::{
-        interceptor::Interceptor, interceptor_builder::InterceptorBuilder,
+        interceptor::{HeaderBuffers, Interceptor},
+        interceptor_builder::InterceptorBuilder,
         interceptors::server_version::ServerVersionInterceptor,
     },
 };
@@ -18,7 +19,11 @@ impl Default for ServerVersionInterceptorBuilder {
 }
 
 impl InterceptorBuilder for ServerVersionInterceptorBuilder {
-    fn build(&self, interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>> {
+    fn build(
+        &self,
+        _interceptor_config: InterceptorConfig,
+        _header_buffers: HeaderBuffers,
+    ) -> DakiaResult<Arc<dyn Interceptor>> {
         let interceptor = ServerVersionInterceptor {};
         Ok(Arc::new(interceptor))
     }
