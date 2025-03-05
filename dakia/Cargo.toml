@@ -30,6 +30,7 @@ dashmap = "6.1.0"
 crossbeam-epoch = "0.9.18"
 rand = "0.8.5"
 pcre2 = "0.2.9"
+base64 = "0.22.1"
 
 [build-dependencies]
 figlet-rs = "0.1.5"

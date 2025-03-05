@@ -9,7 +9,7 @@ use crate::{
 
 use super::{
     interceptor::HeaderBuffers,
-    interceptors::{server_version, use_file},
+    interceptors::{basic_auth::BasicAuthInterceptorBuilder, server_version, use_file},
 };
 
 pub trait InterceptorBuilder: Sync + Send {
@@ -43,6 +43,10 @@ impl InterceptorBuilderRegistry {
         registry.insert(
             InterceptorName::UseFile,
             Arc::new(use_file::UseFileInterceptorBuilder::default()),
+        );
+        registry.insert(
+            InterceptorName::BasicAuth,
+            Arc::new(BasicAuthInterceptorBuilder::default()),
         );
 
         Self { registry }

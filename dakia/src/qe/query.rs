@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::{DakiaError, Error};
+use crate::error::{DakiaError, DakiaResult, Error};
 
 pub type Map = HashMap<String, Value>;
 pub type Array = Vec<Value>;
@@ -79,6 +79,24 @@ pub enum SupplierValue<'a> {
     // TODO: change Str to byte to support non UTF-8 characters
     Str(&'a str),
     None,
+}
+
+pub fn extract_str_or_err<'a>(query: &'a Query, qkey: &'a str) -> DakiaResult<&'a str> {
+    let mismatch_err = DakiaError::i_explain(format!("mismatched value type for key {}", qkey));
+
+    match query.get(qkey) {
+        Some(qval) => match qval {
+            Value::Scaler(scaler) => match scaler {
+                Scaler::String(strval) => Ok(strval),
+                _ => Err(mismatch_err),
+            },
+            _ => Err(mismatch_err),
+        },
+        None => Err(DakiaError::i_explain(format!(
+            "Can not extract key {}",
+            qkey
+        ))),
+    }
 }
 
 #[cfg(test)]
