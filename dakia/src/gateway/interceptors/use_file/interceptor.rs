@@ -37,8 +37,8 @@ impl Interceptor for UseFileInterceptor {
         InterceptorName::UseFile
     }
 
-    fn phase_mask(&self) -> Option<PhaseMask> {
-        Some(Phase::UpstreamProxyFilter.mask())
+    fn phase_mask(&self) -> PhaseMask {
+        Phase::UpstreamProxyFilter.mask()
     }
 
     fn filter(&self, _session: &mut Session) -> DakiaResult<bool> {

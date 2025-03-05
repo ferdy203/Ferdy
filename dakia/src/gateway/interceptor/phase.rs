@@ -12,10 +12,6 @@ pub enum Phase {
 }
 
 impl Phase {
-    pub fn eq(&self, phase: Phase) -> bool {
-        ((self.clone()) as PhaseMask & phase as PhaseMask) != 0
-    }
-
     pub fn mask(&self) -> PhaseMask {
         self.clone() as PhaseMask
     }
@@ -53,4 +49,8 @@ impl fmt::Display for Phase {
         };
         write!(f, "{}", phase_str)
     }
+}
+
+pub fn is_phase_enabled(phase_mask: PhaseMask, phase: &Phase) -> bool {
+    (phase_mask & phase.mask()) == phase.mask()
 }

@@ -3,6 +3,7 @@
 pub enum InterceptorName {
     ServerVersion,
     UseFile,
+    BasicAuth,
 }
 
 impl InterceptorName {
@@ -10,6 +11,7 @@ impl InterceptorName {
         match self {
             InterceptorName::ServerVersion => "server_version",
             InterceptorName::UseFile => "use_file",
+            InterceptorName::BasicAuth => "basic_auth",
         }
     }
 }

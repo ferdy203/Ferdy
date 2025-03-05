@@ -3,7 +3,9 @@ use std::sync::OnceLock;
 use async_trait::async_trait;
 
 use crate::{
-    gateway::interceptor::{Hook, HookMask, Interceptor, InterceptorName, PhaseResult},
+    gateway::interceptor::{
+        Hook, HookMask, Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult,
+    },
     proxy::http::Session,
     shared::common::get_dakia_version,
 };
@@ -31,8 +33,12 @@ impl Interceptor for ServerVersionInterceptor {
         InterceptorName::ServerVersion
     }
 
-    fn hook_mask(&self) -> Option<HookMask> {
-        Some(Hook::PreDownstreamResponseHeaderFlush.mask())
+    fn phase_mask(&self) -> PhaseMask {
+        Phase::all_phase_mask()
+    }
+
+    fn hook_mask(&self) -> HookMask {
+        Hook::PreDownstreamResponseHeaderFlush.mask()
     }
 
     async fn pre_downstream_response_hook(&self, _session: &mut Session) -> PhaseResult {

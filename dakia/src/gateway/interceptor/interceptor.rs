@@ -15,12 +15,12 @@ pub type HeaderBuffers = (HeaderBuffer, HeaderBuffer);
 pub trait Interceptor: Send + Sync {
     fn name(&self) -> InterceptorName;
 
-    fn hook_mask(&self) -> Option<HookMask> {
-        None
+    fn phase_mask(&self) -> PhaseMask {
+        0 // no phase will be executed
     }
 
-    fn phase_mask(&self) -> Option<PhaseMask> {
-        None
+    fn hook_mask(&self) -> HookMask {
+        0 // no hook will be executed
     }
 
     fn _init(&mut self, _interceptor_config: &InterceptorConfig) -> DakiaResult<()> {

@@ -7,7 +7,9 @@ use pingora_proxy::Session as PSession;
 
 use crate::{
     error::{DakiaError, DakiaResult},
-    gateway::interceptor::{Hook, Interceptor, Phase, PhaseResult},
+    gateway::interceptor::{
+        is_hook_enabled, is_phase_enabled, Hook, Interceptor, Phase, PhaseResult,
+    },
 };
 
 use super::DakiaHttpGatewayCtx;
@@ -161,7 +163,7 @@ impl<'a> Session<'a> {
         // https://github.com/cloudflare/pingora/issues/540
         self.psession.set_keepalive(None);
 
-        self.execute_hooked_interceptors(cur_hook).await?;
+        self.execute_interceptors_hook(cur_hook).await?;
 
         match self.phase {
             Phase::RequestFilter | Phase::UpstreamProxyFilter | Phase::PreDownstreamResponse => {
@@ -195,20 +197,46 @@ impl<'a> Session<'a> {
     }
 }
 impl<'a> Session<'a> {
-    async fn execute_hooked_interceptors(&mut self, cur_hook: Hook) -> PhaseResult {
+    async fn execute_interceptor_hook(
+        &mut self,
+        cur_hook: &Hook,
+        interceptor: &Arc<dyn Interceptor>,
+    ) -> PhaseResult {
+        let is_hook_enabled = is_hook_enabled(interceptor.hook_mask(), &cur_hook);
+        let is_filter_matched = interceptor.filter(self)?;
+        if !is_hook_enabled || !is_filter_matched {
+            return Ok(false);
+        }
+
+        match cur_hook {
+            Hook::PreDownstreamResponseHeaderFlush => {
+                interceptor.pre_downstream_response_hook(self).await
+            }
+        }?;
+
+        Ok(false)
+    }
+    async fn execute_interceptors_hook(&mut self, cur_hook: Hook) -> PhaseResult {
         let interceptors = self.ctx.gateway_state.interceptors();
 
         for interceptor in interceptors {
-            match cur_hook {
-                Hook::PreDownstreamResponseHeaderFlush => {
-                    interceptor.pre_downstream_response_hook(self).await
-                }
-            }?;
+            self.execute_interceptor_hook(&cur_hook, interceptor)
+                .await?;
         }
+
         Ok(false)
     }
 
-    async fn execute_interceptor(&mut self, interceptor: &Arc<dyn Interceptor>) -> PhaseResult {
+    async fn execute_interceptor_phase(
+        &mut self,
+        interceptor: &Arc<dyn Interceptor>,
+    ) -> PhaseResult {
+        let is_phase_enabled = is_phase_enabled(interceptor.phase_mask(), &self.phase);
+        let is_filter_matched = interceptor.filter(self)?;
+        if !is_phase_enabled || !is_filter_matched {
+            return Ok(false);
+        }
+
         match self.phase {
             Phase::RequestFilter => interceptor.request_filter(self).await,
             Phase::UpstreamProxyFilter => interceptor.upstream_proxy_filter(self).await,
@@ -218,15 +246,13 @@ impl<'a> Session<'a> {
         }
     }
 
-    pub async fn execute_interceptors(&mut self) -> PhaseResult {
+    pub async fn execute_interceptors_phase(&mut self) -> PhaseResult {
         let interceptors = self.ctx.gateway_state.interceptors();
 
         for interceptor in interceptors {
-            if interceptor.filter(self)? && interceptor.hook_mask().is_none() {
-                let phase_result = self.execute_interceptor(interceptor).await?;
-                if phase_result {
-                    return Ok(true);
-                }
+            let phase_result = self.execute_interceptor_phase(interceptor).await?;
+            if phase_result {
+                return Ok(true);
             }
         }
 
