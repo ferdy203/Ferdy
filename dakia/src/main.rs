@@ -18,7 +18,7 @@ use gateway::state::GatewayStateStore;
 use gateway::HttpGateway;
 
 use pingora::server::{configuration::ServerConf, Server};
-use shared::common::get_dakia_ascii_art;
+use shared::{common::get_dakia_ascii_art, dakia_state::DAKIA_STATE_STORE};
 
 use proxy::http::Proxy;
 use shared::into::IntoRef;
@@ -30,6 +30,10 @@ fn main() {
     let dakia_args = DakiaArgs::parse();
 
     let dakia_config = DakiaConfig::from_args(dakia_args.clone()).unwrap();
+
+    DAKIA_STATE_STORE
+        .store_dakia_config(dakia_config.clone())
+        .unwrap();
 
     process_args(&dakia_args, &dakia_config).unwrap();
 
@@ -49,6 +53,8 @@ fn main() {
     let dakia_config_cloned = dakia_config.clone();
 
     let handle = runtime.spawn(async move {
+        let mut gateway_state_stores: Vec<Arc<GatewayStateStore>> = vec![];
+
         for gateway_config in &dakia_config_cloned.gateways {
             let cloned_gateway_config = gateway_config.clone();
 
@@ -57,14 +63,19 @@ fn main() {
             let gateway_state_store = Arc::new(GatewayStateStore::new(gateway_state));
             let server_conf: ServerConf = dakia_config_cloned.into_ref();
 
-            let gateway = gateway::build_http(gateway_state_store, Arc::new(server_conf))
+            let gateway = gateway::build_http(gateway_state_store.clone(), Arc::new(server_conf))
                 .await
                 .unwrap();
 
             // rust mutex guard does not work properly across tokio await, so creating lock guard after await in each loop
             let mut gateway_vector_guard = gateways_cloned.lock().unwrap();
             gateway_vector_guard.push(gateway);
+            gateway_state_stores.push(gateway_state_store);
         }
+
+        DAKIA_STATE_STORE
+            .store_gateway_state_stores(gateway_state_stores)
+            .unwrap();
     });
 
     runtime.block_on(handle).unwrap();
@@ -112,6 +123,6 @@ fn process_args(args: &DakiaArgs, dakia_config: &DakiaConfig) -> Result<(), Box<
     if args.test {
         todo!();
     }
-
+    // TODO: use kill -HUP pid
     Ok(())
 }
