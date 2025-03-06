@@ -1,5 +1,6 @@
 use crate::{
-    config::source_config::GatewayConfig, error::DakiaResult,
+    config::{source_config::GatewayConfig, ConfigVersion},
+    error::DakiaResult,
     shared::pattern_registry::PatternRegistryType,
 };
 use arc_swap::ArcSwap;
@@ -13,16 +14,17 @@ use super::{
 
 #[derive(Clone)]
 pub struct GatewayState {
-    _version: i64,
+    version: ConfigVersion,
     gateway_config: GatewayConfig,
     ds_host_pattern_registry: PatternRegistryType,
     lb_registry: lb::LbRegistryType,
-    interceptor_builder_registry: InterceptorBuilderRegistry,
+    _interceptor_builder_registry: InterceptorBuilderRegistry,
     interceptors: Vec<Arc<dyn Interceptor>>,
 }
 
 impl GatewayState {
     pub fn build(
+        version: ConfigVersion,
         gateway_config: GatewayConfig,
         ds_host_pattern_registry: PatternRegistryType,
         lb_registry: lb::LbRegistryType,
@@ -30,11 +32,11 @@ impl GatewayState {
         interceptors: Vec<Arc<dyn Interceptor>>,
     ) -> Self {
         Self {
-            _version: 0,
+            version,
             gateway_config,
             ds_host_pattern_registry,
             lb_registry,
-            interceptor_builder_registry,
+            _interceptor_builder_registry: interceptor_builder_registry,
             interceptors,
         }
     }
@@ -53,6 +55,10 @@ impl GatewayState {
 
     pub fn interceptors(&self) -> &Vec<Arc<dyn Interceptor>> {
         &self.interceptors
+    }
+
+    pub fn version(&self) -> ConfigVersion {
+        self.version
     }
 }
 
@@ -83,7 +89,10 @@ impl GatewayStateStore {
     }
 }
 
-pub async fn build_gateway_state(gateway_config: GatewayConfig) -> DakiaResult<GatewayState> {
+pub async fn build_gateway_state(
+    gateway_config: GatewayConfig,
+    version: ConfigVersion,
+) -> DakiaResult<GatewayState> {
     let ds_host_pattern_registry =
         registry_builder::build_ds_host_pattern_registry(&gateway_config).await?;
     let lb_registry = registry_builder::build_lb_registry(&gateway_config).await?;
@@ -92,6 +101,7 @@ pub async fn build_gateway_state(gateway_config: GatewayConfig) -> DakiaResult<G
     let interceptors = build_interceptors(&gateway_config, &interceptor_builder_registry)?;
 
     let gateway_state = GatewayState::build(
+        version,
         gateway_config,
         ds_host_pattern_registry,
         lb_registry,

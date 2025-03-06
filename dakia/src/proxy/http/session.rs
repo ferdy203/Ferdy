@@ -185,7 +185,7 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub async fn write_res_body(
+    pub async fn write_ds_res_body(
         &mut self,
         body: Option<Bytes>,
         end_of_stream: bool,
@@ -196,6 +196,14 @@ impl<'a> Session<'a> {
         Ok(())
     }
 }
+
+impl<'a> Session<'a> {
+    pub async fn read_ds_req_body(&mut self) -> DakiaResult<Option<Bytes>> {
+        let body = self.psession.downstream_session.read_request_body().await?;
+        Ok(body)
+    }
+}
+
 impl<'a> Session<'a> {
     async fn execute_interceptor_hook(
         &mut self,

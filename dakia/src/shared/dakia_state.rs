@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use crate::{
     config::DakiaConfig,
     error::{DakiaError, DakiaResult},
-    gateway::state::GatewayStateStore,
+    gateway::state::{GatewayState, GatewayStateStore},
 };
 
 #[derive(Clone)]
@@ -69,6 +69,29 @@ impl DakiaStateStore {
             }
             Err(err) => Err(DakiaError::i_explain(format!(
                 "Failed to acquire lock while updating gateway state stores: {err}"
+            ))),
+        }
+    }
+
+    pub fn update_gateway_state(&self, gateway_state: GatewayState) -> DakiaResult<bool> {
+        match DAKIA_STATE.lock() {
+            Ok(dakia_state) => {
+                let cloned_gateway_state = gateway_state.clone();
+                let gateway_name = &cloned_gateway_state.gateway_config().name;
+
+                for cur_gateway_state_store in &dakia_state.gateway_state_stores {
+                    let cur_gateway_state = &cur_gateway_state_store.get_state();
+                    let cur_gateway_name = &cur_gateway_state.gateway_config().name;
+                    if cur_gateway_name == gateway_name {
+                        cur_gateway_state_store.update_state(gateway_state.clone());
+                        return Ok(true);
+                    }
+                }
+
+                Ok(false)
+            }
+            Err(err) => Err(DakiaError::i_explain(format!(
+                "Failed to acquire lock while updating gateway state store: {err}"
             ))),
         }
     }

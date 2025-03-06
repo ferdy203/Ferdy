@@ -59,7 +59,9 @@ fn main() {
             let cloned_gateway_config = gateway_config.clone();
 
             // dakia can not work without state, so unwrap is not a problem
-            let gateway_state = build_gateway_state(cloned_gateway_config).await.unwrap();
+            let gateway_state = build_gateway_state(cloned_gateway_config, dakia_config.version)
+                .await
+                .unwrap();
             let gateway_state_store = Arc::new(GatewayStateStore::new(gateway_state));
             let server_conf: ServerConf = dakia_config_cloned.into_ref();
 

@@ -61,7 +61,7 @@ impl Interceptor for UseFileInterceptor {
                 _session.flush_ds_header().await?;
 
                 _session
-                    .write_res_body(Some(Bytes::from(file_content)), true)
+                    .write_ds_res_body(Some(Bytes::from(file_content)), true)
                     .await?;
             }
             Err(err) => {
