@@ -6,9 +6,9 @@ pub type PhaseMask = u8;
 pub enum Phase {
     RequestFilter = 0x01,
     UpstreamProxyFilter = 0x02,
-    PreUpstreamRequest = 0x03,
-    PostUpstreamResponse = 0x04,
-    PreDownstreamResponse = 0x05,
+    PreUpstreamRequest = 0x04,
+    PostUpstreamResponse = 0x08,
+    PreDownstreamResponse = 0x10,
 }
 
 impl Phase {
