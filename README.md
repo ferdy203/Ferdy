@@ -53,6 +53,19 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 - **Customization** - You need ultimate customization, you can configure, extend and even further program in multiple languages.
 - **Asynchronous and Multi-Threaded** – Dakia is designed to handle tasks concurrently, ensuring efficient and high-performance request processing by default.
 
+**A naive benchmark of dakia on local computer with 8CPU core and 16GB of memory**
+
+```txt
+Running 10s test @ http://0.0.0.0:80
+  1 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   699.64us  125.23us   3.77ms   94.20%
+    Req/Sec    76.09k     3.98k   81.89k    86.14%
+  764590 requests in 10.10s, 80.94MB read
+Requests/sec:  75678.12
+Transfer/sec:      8.01MB
+```
+
 ## Architecture
 
 ![flow](https://github.com/user-attachments/assets/581b8dd2-c313-4a38-85a1-fd1429104f6a)
