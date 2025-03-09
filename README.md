@@ -20,10 +20,11 @@ _______
 ![1](https://github.com/user-attachments/assets/9348db35-f589-4dc4-9a03-24924d6d8f2d)
 
 # Dakia: A cloud native API Gateway
+
 **Dakia** is a cloud native API Gateway designed with developers experience in mind, offering a fully configurable, extensible and programmable network solution. **Dakia** enabling developers to customize and tailor the gateway to fit their unique needs...
 
-> It's under construction 🦺 🪚 🏗️ 🚧 🔨 
->
+> It's under construction 🦺 🪚 🏗️ 🚧 🔨
+
 ## Feature highlights
 
 - **Configurable**: Easily manage API configurations using various formats like YAML, JSON, and HTTP API calls.
@@ -53,8 +54,8 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 - **Asynchronous and Multi-Threaded** – Dakia is designed to handle tasks concurrently, ensuring efficient and high-performance request processing by default.
 
 ## Architecture
-![flow](https://github.com/user-attachments/assets/581b8dd2-c313-4a38-85a1-fd1429104f6a)
 
+![flow](https://github.com/user-attachments/assets/581b8dd2-c313-4a38-85a1-fd1429104f6a)
 
 ## Getting started
 
@@ -63,27 +64,27 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 
 ## 📊 Progress Tracker
 
-| Task                                                                                                                      | Status         |
-| ------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Configurable(Only yaml supported for now)                                                                                 | Done ✅        |
-| Virtual Host                                                                                                              | Done ✅        |
-| Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                        | Done ✅        |
-| Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                                | Done ✅        |
-| Proxy                                                                                                                     | Done ✅        |
-| HTTP Protocol Suport                                                                                                      | Done ✅        |
-| [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)                                              | Done ✅        |
-| Load Balancer                                                                                                             | Done ✅        |
-| Filter (MongoDB like query support)                                                                                       | Done ✅        |
-| Dakia CLI                                                                                                                 | Done ✅        |
-| [PCRE](https://www.pcre.org/) support for pattern matching                                                                | Done ✅        |
-| Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                              | In-Progress 🚀 |
-| Extension,Interceptor(Rust,Java, JavaScript)                                                                              | Pending        |
-| [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                          | Pending        |
-| Load Balancer Algoriths (Least connection, Least response time, IP/Url hash, [Service Discovery](http://bakerstreet.io/)) | Pending        |
-| SSL Support                                                                                                               | Pending        |
-| Certbot Integration                                                                                                       | Pending        |
-| Controller (API to manage dakia over REST)                                                                                | Pending        |
-| TCP/UDP Proxy                                                                                                             | Pending        |
-| Web Socket Proxy                                                                                                          | Pending        |
-| gRPC Proxy                                                                                                                | Pending        |
-| Docs                                                                                                                      | Pending        |
+| Task                                                                                                                       | Status         |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| Configurable(Only yaml supported for now)                                                                                  | Done ✅        |
+| Virtual Host                                                                                                               | Done ✅        |
+| Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                         | Done ✅        |
+| Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                                 | Done ✅        |
+| Proxy                                                                                                                      | Done ✅        |
+| HTTP Protocol Suport                                                                                                       | Done ✅        |
+| [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)                                               | Done ✅        |
+| Load Balancer                                                                                                              | Done ✅        |
+| Filter (MongoDB like query support)                                                                                        | Done ✅        |
+| Dakia CLI                                                                                                                  | Done ✅        |
+| [PCRE](https://www.pcre.org/) support for pattern matching                                                                 | Done ✅        |
+| Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                               | Done ✅        |
+| Extension,Interceptor(Rust,Java, JavaScript)                                                                               | Pending        |
+| [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                           | Pending        |
+| Load Balancer Algorithms (Least connection, Least response time, IP/Url hash, [Service Discovery](http://bakerstreet.io/)) | Pending        |
+| SSL Support                                                                                                                | Pending        |
+| Certbot Integration                                                                                                        | Pending        |
+| Controller (API to manage dakia over REST)                                                                                 | Done ✅        |
+| TCP/UDP Proxy                                                                                                              | Pending        |
+| Web Socket Proxy                                                                                                           | Pending        |
+| gRPC Proxy                                                                                                                 | Pending        |
+| Docs                                                                                                                       | In-Progress 🚀 |
