@@ -3,12 +3,12 @@ error_log: /var/log/dakia/error.log
 pid_file: /var/run/dakia.pid
 upgrade_sock: /var/run/dakia.sock
 user: dakia
-group: dakia_ji
+group: dakia
 threads: 8
 work_stealing: true
 grace_period_seconds: 60
 graceful_shutdown_timeout_seconds: 30
-upstream_keepalive_pool_size: 1000
+upstream_keepalive_pool_size: 10
 upstream_connect_offload_threadpools: 2
 upstream_connect_offload_thread_per_pool: 5
 upstream_debug_ssl_keylog: false
@@ -18,10 +18,13 @@ gateways:
       - host: 0.0.0.0
         port: 8080
       - host: 0.0.0.0
+        port: 8090
+      - host: 0.0.0.0
         port: 80
     downstreams:
       - host: example.com
       - host: localhost
+      - host: w3worker.net
     upstreams:
       - name: payment
         default: false
@@ -59,18 +62,38 @@ gateways:
         filter:
           $or:
             ds.req.path:
-              $starts_with: /pay
-            ds.req.query.type:
-              $in:
-                - pay
-                - simple-pay
-                - fake-pay
+              $or:
+                $starts_with: /pay
+                $ends_with: pay
+              $or:
+                $contains: pay
+                $contains: payment
       - upstream: search
         filter:
           $or:
             ds.req.query:
               $exists: true
           ds.req.method: POST
+    interceptors:
+      - name: server_version
+        enabled: true
+      - name: controller
+        enabled: true
+      - name: basic_auth
+        enabled: true
+        config:
+          username: dakia
+          password: dakia
+      - name: use_file
+        enabled: true
+        config:
+          root: /home/static
+        filter:
+          ds.req.path:
+            matches: "*.json"
+          ds.req.host: cdn.dakia.com
+        rewrite:
+          "ds.res.header.content-type": application/json
 # ds - downstream
 # us - upstream
 
