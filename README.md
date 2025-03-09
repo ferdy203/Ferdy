@@ -77,6 +77,8 @@ Transfer/sec:      8.01MB
 
 ## 📊 Progress Tracker
 
+[Dakia Configuration Sample](https://github.com/ats1999/dakia/blob/main/docs/config.sample.yaml)
+
 | Task                                                                                                                       | Status         |
 | -------------------------------------------------------------------------------------------------------------------------- | -------------- |
 | Configurable(Only yaml supported for now)                                                                                  | Done ✅        |
