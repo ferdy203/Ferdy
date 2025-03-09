@@ -13,6 +13,10 @@
   ```txt
   cd dakia/dakia
   ```
+- Run dakia from source in watch mode
+  ```txt
+  cargo watch -x 'run -- --dp ./local_gateway_config'
+  ```
 - Build the project
   ```txt
   cargo build --release
