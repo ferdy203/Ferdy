@@ -19,9 +19,9 @@ _______
 
 ![1](https://github.com/user-attachments/assets/9348db35-f589-4dc4-9a03-24924d6d8f2d)
 
-# Dakia: A cloud native API Gateway
+# Dakia: An API gateway tailored for modern distributed systems
 
-**Dakia** is a cloud native API Gateway designed with developers experience in mind, offering a fully configurable, extensible and programmable network solution. **Dakia** enabling developers to customize and tailor the gateway to fit their unique needs...
+**Dakia** is a high-performance API gateway built with Rust, designed for low-latency request processing. Dakia supports **dynamic configuration updates**, allowing seamless changes to routing rules, authentication settings, rate limits, and other gateway policies **without requiring a restart**. This ensures high availability and adaptability in rapidly evolving microservices architectures. Additional features include request routing, load balancing, caching, and fault tolerance, making it a robust solution for modern distributed systems.
 
 > It's under construction 🦺 🪚 🏗️ 🚧 🔨
 
