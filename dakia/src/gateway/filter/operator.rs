@@ -89,4 +89,6 @@ pub enum LogicalFilterCriteria {
     Or(Vec<PartFilterCriteria>),
 }
 
-pub type Filter = Vec<FilterCriteria>;
+pub struct Filter {
+    criteria: Vec<FilterCriteria>,
+}
