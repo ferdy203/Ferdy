@@ -4,6 +4,7 @@ use crate::{
     config::source_config::InterceptorConfig,
     error::{DakiaError, DakiaResult},
     gateway::{
+        filter::Filter,
         interceptor::{HeaderBuffers, Interceptor},
         interceptor_builder::InterceptorBuilder,
         interceptors::basic_auth::BasicAuthInterceptor,
@@ -32,10 +33,18 @@ impl InterceptorBuilder for BasicAuthInterceptorBuilder {
         _interceptor_config: InterceptorConfig,
         _header_buffers: HeaderBuffers,
     ) -> DakiaResult<Arc<dyn Interceptor>> {
+        let filter = match &_interceptor_config.filter {
+            Some(filter_config) => {
+                let filter = Filter::try_from(filter_config)?;
+                Some(filter)
+            }
+            None => None,
+        };
+
         match &_interceptor_config.config {
             Some(config) => {
                 let (username, password) = BasicAuthInterceptorBuilder::get_user_pass(config)?;
-                let interceptor = BasicAuthInterceptor::build(None, username, password);
+                let interceptor = BasicAuthInterceptor::build(filter, username, password);
                 Ok(Arc::new(interceptor))
             }
             None => Err(DakiaError::i_explain(format!(

@@ -4,6 +4,7 @@ use crate::{
     config::source_config::InterceptorConfig,
     error::DakiaResult,
     gateway::{
+        filter::Filter,
         interceptor::{HeaderBuffers, Interceptor},
         interceptor_builder::InterceptorBuilder,
     },
@@ -25,7 +26,14 @@ impl InterceptorBuilder for ControllerInterceptorBuilder {
         _interceptor_config: InterceptorConfig,
         _header_buffers: HeaderBuffers,
     ) -> DakiaResult<Arc<dyn Interceptor>> {
-        let interceptor = ControllerInterceptor::build(None);
+        let filter = match &_interceptor_config.filter {
+            Some(filter_config) => {
+                let filter = Filter::try_from(filter_config)?;
+                Some(filter)
+            }
+            None => None,
+        };
+        let interceptor = ControllerInterceptor::build(filter);
         Ok(Arc::new(interceptor))
     }
 }

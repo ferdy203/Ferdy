@@ -1,4 +1,6 @@
-use crate::shared::pattern_matcher::PatternMatcher;
+use crate::{error::Error, qe::query::Query, shared::pattern_matcher::PatternMatcher};
+
+use super::query2filter::query2filter;
 
 pub enum RelationalOperator {
     Eq(Vec<u8>),
@@ -91,4 +93,12 @@ pub enum LogicalFilterCriteria {
 
 pub struct Filter {
     criteria: Vec<FilterCriteria>,
+}
+
+impl TryFrom<&Query> for Filter {
+    type Error = Box<Error>;
+
+    fn try_from(value: &Query) -> Result<Self, Self::Error> {
+        query2filter(value)
+    }
 }
