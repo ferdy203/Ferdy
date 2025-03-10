@@ -6,18 +6,20 @@ use http::StatusCode;
 
 use crate::{
     error::DakiaResult,
-    gateway::interceptor::{Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult},
+    gateway::{
+        filter::Filter,
+        interceptor::{Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult},
+    },
     proxy::http::Session,
-    qe::query::Query,
 };
 
 pub struct BasicAuthInterceptor {
     credentials: String,
-    filter: Option<Query>,
+    filter: Option<Filter>,
 }
 
 impl BasicAuthInterceptor {
-    pub fn build(filter: Option<Query>, username: String, password: String) -> Self {
+    pub fn build(filter: Option<Filter>, username: String, password: String) -> Self {
         let user_pass = format!("{}:{}", username, password);
         let credentials = general_purpose::STANDARD.encode(user_pass.clone());
 

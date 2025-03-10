@@ -35,8 +35,7 @@ impl InterceptorBuilder for BasicAuthInterceptorBuilder {
         match &_interceptor_config.config {
             Some(config) => {
                 let (username, password) = BasicAuthInterceptorBuilder::get_user_pass(config)?;
-                let interceptor =
-                    BasicAuthInterceptor::build(_interceptor_config.filter, username, password);
+                let interceptor = BasicAuthInterceptor::build(None, username, password);
                 Ok(Arc::new(interceptor))
             }
             None => Err(DakiaError::i_explain(format!(

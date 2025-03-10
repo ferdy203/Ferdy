@@ -1,3 +1,4 @@
+pub mod filter;
 pub mod interceptor;
 pub mod interceptor_builder;
 pub mod interceptors;

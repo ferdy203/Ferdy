@@ -8,20 +8,20 @@ use crate::{
     config::{source_config::SourceDakiaRawConfig, DakiaConfig},
     error::DakiaResult,
     gateway::{
+        filter::Filter,
         interceptor::{Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult},
         state::build_gateway_state,
     },
     proxy::http::Session,
-    qe::query::Query,
     shared::dakia_state::DAKIA_STATE_STORE,
 };
 
 pub struct ControllerInterceptor {
-    filter: Option<Query>,
+    filter: Option<Filter>,
 }
 
 impl ControllerInterceptor {
-    pub fn build(filter: Option<Query>) -> Self {
+    pub fn build(filter: Option<Filter>) -> Self {
         Self { filter }
     }
 

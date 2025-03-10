@@ -55,7 +55,7 @@ pub fn build_interceptor(
 ) -> DakiaResult<Arc<dyn Interceptor>> {
     let interceptor_name = &interceptor_config.name;
     let builder = interceptor_builder_registry.registry.get(interceptor_name);
-    let header_buffers = match &interceptor_config.intercept {
+    let header_buffers = match &interceptor_config.rewrite {
         Some(query) => extract_headers(query)?,
         None => (HashMap::new(), HashMap::new()),
     };
