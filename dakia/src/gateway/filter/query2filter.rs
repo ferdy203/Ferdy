@@ -39,6 +39,7 @@ pub fn query2filter(query: &Query) -> DakiaResult<Filter> {
             };
 
             filter.criteria_list.push(filter_criteria);
+            continue;
         }
 
         if is_part_filter_criteria(&part) {
@@ -123,7 +124,7 @@ fn build_part_filter_criteria(part: &str, part_filter: &Value) -> DakiaResult<Pa
     }
 
     if is_part(part, "scheme") {
-        return Ok(PartFilterCriteria::Method(part_criteria_operator_list));
+        return Ok(PartFilterCriteria::Scheme(part_criteria_operator_list));
     }
 
     Err(DakiaError::i_explain(format!(
@@ -211,7 +212,7 @@ fn build_criteria_operators(val: &Value) -> DakiaResult<Vec<CriteriaOperator>> {
                             let bytes = extract_vec_bytes_or_err(v)?;
                             CriteriaOperator::Pattern(PatternOperator::NotEndsWith(bytes))
                         }
-                        "$Matches" => {
+                        "$matches" => {
                             let pattern = extract_string_or_err(v)?;
                             let pattern_matcher = Pcre2PatternMatcher::build(&pattern)?;
                             CriteriaOperator::Pattern(PatternOperator::Matches(Box::new(

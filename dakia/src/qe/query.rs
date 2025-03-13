@@ -81,7 +81,7 @@ pub enum SupplierValue<'a> {
     None,
 }
 
-pub fn extract_str_or_err<'a>(query: &'a Query, qkey: &'a str) -> DakiaResult<&'a str> {
+pub fn extract_key_str_or_err<'a>(query: &'a Query, qkey: &'a str) -> DakiaResult<&'a str> {
     let mismatch_err = DakiaError::i_explain(format!("mismatched value type for key {}", qkey));
 
     match query.get(qkey) {
@@ -99,6 +99,65 @@ pub fn extract_str_or_err<'a>(query: &'a Query, qkey: &'a str) -> DakiaResult<&'
     }
 }
 
+fn get_str_from_scaler(scaler: &Scaler) -> String {
+    match scaler {
+        Scaler::String(strval) => strval.to_string(),
+        Scaler::I32(intval) => intval.to_string(),
+        Scaler::Bool(boolval) => boolval.to_string(),
+    }
+}
+
+pub fn extract_vec_bytes_or_err(val: &Value) -> DakiaResult<Vec<u8>> {
+    match val {
+        Value::Scaler(scaler) => Ok(get_str_from_scaler(scaler).as_bytes().to_vec()),
+        Value::Composite(composite) => Err(DakiaError::i_explain(format!(
+            "Expected a scaler value, found {:?}",
+            composite
+        ))),
+    }
+}
+
+pub fn extract_vec_or_err(val: &Value) -> DakiaResult<&Vec<Value>> {
+    match val {
+        Value::Scaler(scaler) => Err(DakiaError::i_explain(format!(
+            "Expected a vector value, found {:?}",
+            scaler
+        ))),
+        Value::Composite(composite) => match composite {
+            Composite::Map(hash_map) => Err(DakiaError::i_explain(format!(
+                "Expected a vector value, found {:?}",
+                hash_map
+            ))),
+            Composite::Vector(values) => Ok(values),
+        },
+    }
+}
+
+pub fn extract_string_or_err(val: &Value) -> DakiaResult<String> {
+    match val {
+        Value::Scaler(scaler) => Ok(get_str_from_scaler(scaler)),
+        Value::Composite(composite) => Err(DakiaError::i_explain(format!(
+            "Expected a string value, found {:?}",
+            composite
+        ))),
+    }
+}
+
+pub fn extract_bool_or_err(val: &Value) -> DakiaResult<bool> {
+    match val {
+        Value::Scaler(scaler) => match scaler {
+            Scaler::Bool(boolval) => Ok(boolval.to_owned()),
+            _ => Err(DakiaError::i_explain(format!(
+                "Expected a boolean value, {:?}",
+                scaler
+            ))),
+        },
+        Value::Composite(composite) => Err(DakiaError::i_explain(format!(
+            "Expected a boolean value, found {:?}",
+            composite
+        ))),
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;

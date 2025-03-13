@@ -1,7 +1,10 @@
+use std::fmt::Debug;
+
 use pcre2::bytes::Regex;
 
 use crate::error::{BErrorStd, DakiaResult};
 
+#[derive(Debug)]
 pub struct Pcre2PatternMatcher {
     regex: Regex,
 }
@@ -21,6 +24,6 @@ impl PatternMatcher for Pcre2PatternMatcher {
     }
 }
 
-pub trait PatternMatcher: Send + Sync {
+pub trait PatternMatcher: Send + Sync + Debug {
     fn is_match(&self, text: &[u8]) -> Result<bool, BErrorStd>;
 }

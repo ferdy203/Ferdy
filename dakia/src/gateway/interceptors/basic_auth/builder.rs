@@ -9,15 +9,15 @@ use crate::{
         interceptor_builder::InterceptorBuilder,
         interceptors::basic_auth::BasicAuthInterceptor,
     },
-    qe::query::{extract_str_or_err, Query},
+    qe::query::{extract_key_str_or_err, Query},
 };
 
 pub struct BasicAuthInterceptorBuilder {}
 
 impl BasicAuthInterceptorBuilder {
     fn get_user_pass(config: &Query) -> DakiaResult<(String, String)> {
-        let username = extract_str_or_err(config, "username")?;
-        let password = extract_str_or_err(config, "password")?;
+        let username = extract_key_str_or_err(config, "username")?;
+        let password = extract_key_str_or_err(config, "password")?;
         Ok((username.to_string(), password.to_string()))
     }
 }
