@@ -22,6 +22,9 @@ pub struct GatewayConfig {
 
     #[serde(default)]
     pub interceptors: Vec<InterceptorConfig>,
+
+    #[serde(default)]
+    pub filters: Vec<Query>,
 }
 
 impl GatewayConfig {
@@ -102,6 +105,7 @@ impl Default for GatewayConfig {
             upstreams: Default::default(),
             routers: Default::default(),
             interceptors: Default::default(),
+            filters: Default::default(),
         }
     }
 }

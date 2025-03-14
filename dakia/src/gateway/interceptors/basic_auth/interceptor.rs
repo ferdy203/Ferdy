@@ -5,21 +5,17 @@ use base64::{engine::general_purpose, Engine};
 use http::StatusCode;
 
 use crate::{
-    error::DakiaResult,
-    gateway::{
-        filter::Filter,
-        interceptor::{Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult},
-    },
+    gateway::interceptor::{Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult},
     proxy::http::Session,
 };
 
 pub struct BasicAuthInterceptor {
     credentials: String,
-    filter: Option<Filter>,
+    filter: Option<String>,
 }
 
 impl BasicAuthInterceptor {
-    pub fn build(filter: Option<Filter>, username: String, password: String) -> Self {
+    pub fn build(filter: Option<String>, username: String, password: String) -> Self {
         let user_pass = format!("{}:{}", username, password);
         let credentials = general_purpose::STANDARD.encode(user_pass.clone());
 
@@ -48,11 +44,6 @@ impl Interceptor for BasicAuthInterceptor {
 
     fn phase_mask(&self) -> PhaseMask {
         Phase::RequestFilter.mask()
-    }
-
-    fn filter(&self, _session: &mut Session) -> DakiaResult<bool> {
-        // TODO: implement filter
-        Ok(true)
     }
 
     async fn request_filter(&self, _session: &mut Session) -> PhaseResult {

@@ -4,7 +4,6 @@ use http::StatusCode;
 use log::debug;
 
 use crate::{
-    error::DakiaResult,
     gateway::interceptor::{
         HeaderBuffers, Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult,
     },
@@ -14,13 +13,15 @@ use crate::{
 pub struct UseFileInterceptor {
     root: String,
     ds_res_header_buffer: HeaderBuffer,
+    filter: Option<String>,
 }
 
 impl UseFileInterceptor {
-    pub fn build(root: String, header_buffers: HeaderBuffers) -> Self {
+    pub fn build(root: String, header_buffers: HeaderBuffers, filter: Option<String>) -> Self {
         UseFileInterceptor {
             root,
             ds_res_header_buffer: header_buffers.0,
+            filter,
         }
     }
 
@@ -39,11 +40,6 @@ impl Interceptor for UseFileInterceptor {
 
     fn phase_mask(&self) -> PhaseMask {
         Phase::UpstreamProxyFilter.mask()
-    }
-
-    fn filter(&self, _session: &mut Session) -> DakiaResult<bool> {
-        // TODO: implement filter
-        Ok(true)
     }
 
     async fn upstream_proxy_filter(&self, _session: &mut Session) -> PhaseResult {

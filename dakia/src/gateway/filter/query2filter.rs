@@ -43,11 +43,11 @@ pub fn query2filter(query: &Query) -> DakiaResult<Filter> {
         }
 
         if is_part_filter_criteria(&part) {
-            /*
-                filter:
-                    ds.req.path:/hello
-            */
-            todo!()
+            let part_filter_criteria = build_part_filter_criteria(part, part_filter)?;
+            filter
+                .criteria_list
+                .push(FilterCriteria::PartFilterCriteria(part_filter_criteria));
+            continue;
         }
 
         return Err(DakiaError::i_explain(format!(
@@ -155,6 +155,71 @@ fn build_set_values(val: &Value) -> DakiaResult<Vec<Vec<u8>>> {
     Ok(bytes_vector)
 }
 
+fn build_criteria_operator(key: &str, value: &Value) -> DakiaResult<CriteriaOperator> {
+    let criteria_operator = match key.to_lowercase().as_str() {
+        // relational operator
+        "$eq" => {
+            let bytes = extract_vec_bytes_or_err(value)?;
+            CriteriaOperator::Relation(RelationalOperator::Eq(bytes))
+        }
+        "$ne" => {
+            let bytes = extract_vec_bytes_or_err(value)?;
+            CriteriaOperator::Relation(RelationalOperator::Ne(bytes))
+        }
+
+        // set operator
+        "$in" => {
+            let set = build_set_values(value)?;
+            CriteriaOperator::Set(SetOperator::In(set))
+        }
+        "$nin" => {
+            let set = build_set_values(value)?;
+            CriteriaOperator::Set(SetOperator::Nin(set))
+        }
+
+        // pattern operator
+        "$contains" => {
+            let bytes = extract_vec_bytes_or_err(value)?;
+            CriteriaOperator::Pattern(PatternOperator::Contains(bytes))
+        }
+        "$not_contains" => {
+            let bytes = extract_vec_bytes_or_err(value)?;
+            CriteriaOperator::Pattern(PatternOperator::NotContains(bytes))
+        }
+        "$starts_with" => {
+            let bytes = extract_vec_bytes_or_err(value)?;
+            CriteriaOperator::Pattern(PatternOperator::StartsWith(bytes))
+        }
+        "$not_starts_with" => {
+            let bytes = extract_vec_bytes_or_err(value)?;
+            CriteriaOperator::Pattern(PatternOperator::NotStartWith(bytes))
+        }
+        "$ends_with" => {
+            let bytes = extract_vec_bytes_or_err(value)?;
+            CriteriaOperator::Pattern(PatternOperator::EndsWith(bytes))
+        }
+        "$not_ends_with" => {
+            let bytes = extract_vec_bytes_or_err(value)?;
+            CriteriaOperator::Pattern(PatternOperator::NotEndsWith(bytes))
+        }
+        "$matches" => {
+            let pattern = extract_string_or_err(value)?;
+            let pattern_matcher = Pcre2PatternMatcher::build(&pattern)?;
+            CriteriaOperator::Pattern(PatternOperator::Matches(pattern_matcher))
+        }
+
+        // existance operator
+        "$exists" => {
+            let exists = extract_bool_or_err(value)?;
+            CriteriaOperator::Exists(exists)
+        }
+
+        _ => return Err(DakiaError::i_explain(format!("Invalid operator {key}"))),
+    };
+
+    Ok(criteria_operator)
+}
+
 fn build_criteria_operators(val: &Value) -> DakiaResult<Vec<CriteriaOperator>> {
     match val {
         Value::Scaler(scaler) => Err(DakiaError::i_explain(format!(
@@ -166,68 +231,7 @@ fn build_criteria_operators(val: &Value) -> DakiaResult<Vec<CriteriaOperator>> {
                 let mut criteria_operators: Vec<CriteriaOperator> = vec![];
 
                 for (k, v) in hash_map {
-                    let criteria_operator = match k.to_lowercase().as_str() {
-                        // relational operator
-                        "$eq" => {
-                            let bytes = extract_vec_bytes_or_err(v)?;
-                            CriteriaOperator::Relation(RelationalOperator::Eq(bytes))
-                        }
-                        "$ne" => {
-                            let bytes = extract_vec_bytes_or_err(v)?;
-                            CriteriaOperator::Relation(RelationalOperator::Ne(bytes))
-                        }
-
-                        // set operator
-                        "$in" => {
-                            let set = build_set_values(v)?;
-                            CriteriaOperator::Set(SetOperator::In(set))
-                        }
-                        "$nin" => {
-                            let set = build_set_values(v)?;
-                            CriteriaOperator::Set(SetOperator::Nin(set))
-                        }
-
-                        // pattern operator
-                        "$contains" => {
-                            let bytes = extract_vec_bytes_or_err(v)?;
-                            CriteriaOperator::Pattern(PatternOperator::Contains(bytes))
-                        }
-                        "$not_contains" => {
-                            let bytes = extract_vec_bytes_or_err(v)?;
-                            CriteriaOperator::Pattern(PatternOperator::NotContains(bytes))
-                        }
-                        "$starts_with" => {
-                            let bytes = extract_vec_bytes_or_err(v)?;
-                            CriteriaOperator::Pattern(PatternOperator::StartsWith(bytes))
-                        }
-                        "$not_starts_with" => {
-                            let bytes = extract_vec_bytes_or_err(v)?;
-                            CriteriaOperator::Pattern(PatternOperator::NotStartWith(bytes))
-                        }
-                        "$ends_with" => {
-                            let bytes = extract_vec_bytes_or_err(v)?;
-                            CriteriaOperator::Pattern(PatternOperator::EndsWith(bytes))
-                        }
-                        "$not_ends_with" => {
-                            let bytes = extract_vec_bytes_or_err(v)?;
-                            CriteriaOperator::Pattern(PatternOperator::NotEndsWith(bytes))
-                        }
-                        "$matches" => {
-                            let pattern = extract_string_or_err(v)?;
-                            let pattern_matcher = Pcre2PatternMatcher::build(&pattern)?;
-                            CriteriaOperator::Pattern(PatternOperator::Matches(Box::new(
-                                pattern_matcher,
-                            )))
-                        }
-
-                        // existance operator
-                        "$exists" => {
-                            let exists = extract_bool_or_err(v)?;
-                            CriteriaOperator::Exists(exists)
-                        }
-
-                        _ => return Err(DakiaError::i_explain(format!("Invalid operator {k}"))),
-                    };
+                    let criteria_operator = build_criteria_operator(k, v)?;
                     criteria_operators.push(criteria_operator);
                 }
 
@@ -261,9 +265,10 @@ fn build_part_criteria_operator_list(val: &Value) -> DakiaResult<Vec<PartCriteri
                         );
                         part_criteria_operators.push(and_operator);
                     } else {
-                        println!("Func You");
-                        // build criteria operators, like $exists, etc
-                        todo!()
+                        let criteria_operator = build_criteria_operator(key, operator)?;
+                        let part_criteria_operator =
+                            PartCriteriaOperator::CriteriaOperator(criteria_operator);
+                        part_criteria_operators.push(part_criteria_operator);
                     }
                 }
                 return Ok(part_criteria_operators);
@@ -319,13 +324,39 @@ mod tests {
 
     #[test]
     fn test_add() {
+        // let yaml = r#"
+        //     $or:
+        //         ds.req.method: GET
+        //         path:
+        //             $or:
+        //                 $eq: /hello
+        //                 $matches: bolo
+        //                 $starts_with: fuck
+        //             $and:
+        //                 $ends_with: fuck
+        //     ds.req.method: GET
+        //     $and:
+        //         scheme:
+        //             $or:
+        //                 $ne: https
+        //                 $in:
+        //                     - http
+        //                     - https
+        //     $and:
+        //         header.content-type:
+        //             $contains: application/json
+        //     scheme:
+        //         $matches: https
+        // "#;
+
         let yaml = r#"
+        scheme:
             $or:
-                ds.req.method: GET
-        "#;
+                $eq: http
+                $ne: https
+    "#;
 
         let query: Query = serde_yaml::from_str(yaml).unwrap();
-        println!("Query\n\n{:#?}\n\n", query);
         let filter = query2filter(&query).unwrap();
         println!("Filter\n{:#?}", filter);
         assert_eq!(5, 5);

@@ -4,7 +4,7 @@ use pcre2::bytes::Regex;
 
 use crate::error::{BErrorStd, DakiaResult};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pcre2PatternMatcher {
     regex: Regex,
 }

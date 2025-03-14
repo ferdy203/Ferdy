@@ -8,7 +8,6 @@ use crate::{
     config::{source_config::SourceDakiaRawConfig, DakiaConfig},
     error::DakiaResult,
     gateway::{
-        filter::Filter,
         interceptor::{Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult},
         state::build_gateway_state,
     },
@@ -17,11 +16,11 @@ use crate::{
 };
 
 pub struct ControllerInterceptor {
-    filter: Option<Filter>,
+    filter: Option<String>,
 }
 
 impl ControllerInterceptor {
-    pub fn build(filter: Option<Filter>) -> Self {
+    pub fn build(filter: Option<String>) -> Self {
         Self { filter }
     }
 
@@ -143,15 +142,8 @@ impl Interceptor for ControllerInterceptor {
         Phase::UpstreamProxyFilter.mask()
     }
 
-    // if there is no filter, it'll be considered as match
-    fn filter(&self, _session: &mut Session) -> DakiaResult<bool> {
-        // TODO: implement filter
-        /*
-        e.g
-        - host: localhost
-        - path: /controller
-        */
-        Ok(true)
+    fn filter(&self) -> &Option<String> {
+        &self.filter
     }
 
     async fn upstream_proxy_filter(&self, _session: &mut Session) -> PhaseResult {

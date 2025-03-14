@@ -1,12 +1,13 @@
 use crate::{
     config::{source_config::GatewayConfig, ConfigVersion},
     error::DakiaResult,
-    shared::pattern_registry::PatternRegistryType,
+    shared::{mutable_registry::Registry, pattern_registry::PatternRegistryType},
 };
 use arc_swap::ArcSwap;
 use std::sync::Arc;
 
 use super::{
+    filter::{build_filter_registry, Filter},
     interceptor::Interceptor,
     interceptor_builder::{utils::build_interceptors, InterceptorBuilderRegistry},
     lb, registry_builder,
@@ -20,6 +21,7 @@ pub struct GatewayState {
     lb_registry: lb::LbRegistryType,
     _interceptor_builder_registry: InterceptorBuilderRegistry,
     interceptors: Vec<Arc<dyn Interceptor>>,
+    filter_registry: Registry<Filter>,
 }
 
 impl GatewayState {
@@ -30,6 +32,7 @@ impl GatewayState {
         lb_registry: lb::LbRegistryType,
         interceptor_builder_registry: InterceptorBuilderRegistry,
         interceptors: Vec<Arc<dyn Interceptor>>,
+        filter_registry: Registry<Filter>,
     ) -> Self {
         Self {
             version,
@@ -38,6 +41,7 @@ impl GatewayState {
             lb_registry,
             _interceptor_builder_registry: interceptor_builder_registry,
             interceptors,
+            filter_registry,
         }
     }
 
@@ -55,6 +59,10 @@ impl GatewayState {
 
     pub fn interceptors(&self) -> &Vec<Arc<dyn Interceptor>> {
         &self.interceptors
+    }
+
+    pub fn filter(&self, filter_name: &str) -> Option<&Filter> {
+        self.filter_registry.get(filter_name)
     }
 
     pub fn version(&self) -> ConfigVersion {
@@ -90,7 +98,7 @@ impl GatewayStateStore {
 }
 
 pub async fn build_gateway_state(
-    gateway_config: GatewayConfig,
+    mut gateway_config: GatewayConfig,
     version: ConfigVersion,
 ) -> DakiaResult<GatewayState> {
     let ds_host_pattern_registry =
@@ -98,8 +106,8 @@ pub async fn build_gateway_state(
     let lb_registry = registry_builder::build_lb_registry(&gateway_config).await?;
 
     let interceptor_builder_registry = InterceptorBuilderRegistry::build();
+    let filter_registry = build_filter_registry(&mut gateway_config)?;
     let interceptors = build_interceptors(&gateway_config, &interceptor_builder_registry)?;
-
     let gateway_state = GatewayState::build(
         version,
         gateway_config,
@@ -107,6 +115,7 @@ pub async fn build_gateway_state(
         lb_registry,
         interceptor_builder_registry,
         interceptors,
+        filter_registry,
     );
 
     Ok(gateway_state)

@@ -28,8 +28,8 @@ pub trait Interceptor: Send + Sync {
     }
 
     // if there is no filter, it'll be considered as match
-    fn filter(&self, _session: &mut Session) -> DakiaResult<bool> {
-        Ok(true)
+    fn filter(&self) -> &Option<String> {
+        &None
     }
 
     async fn request_filter(&self, _session: &mut Session) -> PhaseResult {

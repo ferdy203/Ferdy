@@ -4,7 +4,7 @@ use crate::{gateway::interceptor::InterceptorName, qe::query::Query};
 pub struct InterceptorConfig {
     pub name: InterceptorName,
     pub enabled: bool,
-    pub filter: Option<Query>,
+    pub filter: Option<String>,
     pub config: Option<Query>,
-    pub intercept: Option<Query>,
+    pub rewrite: Option<Query>,
 }

@@ -62,7 +62,8 @@ impl InterceptorBuilder for UseFileInterceptorBuilder {
         header_buffers: HeaderBuffers,
     ) -> DakiaResult<Arc<dyn Interceptor>> {
         let root = self.extract_root(&interceptor_config)?;
-        let interceptor = UseFileInterceptor::build(root, header_buffers);
+        let interceptor =
+            UseFileInterceptor::build(root, header_buffers, interceptor_config.filter);
         Ok(Arc::new(interceptor))
     }
 }

@@ -1,20 +1,20 @@
-use crate::{error::Error, qe::query::Query, shared::pattern_matcher::PatternMatcher};
+use crate::{error::Error, qe::query::Query, shared::pattern_matcher::Pcre2PatternMatcher};
 
 use super::query2filter::query2filter;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum RelationalOperator {
     Eq(Vec<u8>),
     Ne(Vec<u8>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SetOperator {
     In(Vec<Vec<u8>>),
     Nin(Vec<Vec<u8>>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PatternOperator {
     Contains(Vec<u8>),
     NotContains(Vec<u8>),
@@ -22,10 +22,10 @@ pub enum PatternOperator {
     NotStartWith(Vec<u8>),
     EndsWith(Vec<u8>),
     NotEndsWith(Vec<u8>),
-    Matches(Box<dyn PatternMatcher>),
+    Matches(Pcre2PatternMatcher),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Header {
     Accept,
     AcceptEncoding,
@@ -66,7 +66,28 @@ impl From<&str> for Header {
     }
 }
 
-#[derive(Debug)]
+impl Header {
+    pub fn as_bytes(&self) -> &[u8] {
+        match self {
+            Header::Accept => b"accept",
+            Header::AcceptEncoding => b"accept-encoding",
+            Header::AcceptLanguage => b"accept-language",
+            Header::Authorization => b"authorization",
+            Header::CacheControl => b"cache-control",
+            Header::ContentType => b"content-type",
+            Header::ContentLength => b"content-length",
+            Header::Cookie => b"cookie",
+            Header::Host => b"host",
+            Header::Origin => b"origin",
+            Header::Referer => b"referer",
+            Header::UserAgent => b"user-agent",
+            Header::XForwardedFor => b"x-forwarded-for",
+            Header::XRequestId => b"x-request-id",
+            Header::Custom(bytes) => bytes,
+        }
+    }
+}
+#[derive(Debug, Clone)]
 pub enum CriteriaOperator {
     Relation(RelationalOperator),
     Pattern(PatternOperator),
@@ -74,37 +95,37 @@ pub enum CriteriaOperator {
     Exists(bool),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LogicalCriteriaOperator {
     And(Vec<CriteriaOperator>),
     Or(Vec<CriteriaOperator>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PartCriteriaOperator {
     CriteriaOperator(CriteriaOperator),
     LogicalCriteriaOperator(LogicalCriteriaOperator),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HeaderCriteria {
     pub name: Header,
     pub operator: Vec<PartCriteriaOperator>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct QueryCriteria {
     pub name: Vec<u8>,
     pub operator: Vec<PartCriteriaOperator>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CookieCriteria {
     pub name: Vec<u8>,
     pub operator: Vec<PartCriteriaOperator>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PartFilterCriteria {
     Header(HeaderCriteria),
     Query(QueryCriteria),
@@ -114,19 +135,19 @@ pub enum PartFilterCriteria {
     Method(Vec<PartCriteriaOperator>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum FilterCriteria {
     Logical(LogicalFilterCriteria),
     PartFilterCriteria(PartFilterCriteria),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LogicalFilterCriteria {
     And(Vec<PartFilterCriteria>),
     Or(Vec<PartFilterCriteria>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Filter {
     pub criteria_list: Vec<FilterCriteria>,
 }

@@ -26,14 +26,7 @@ impl InterceptorBuilder for ControllerInterceptorBuilder {
         _interceptor_config: InterceptorConfig,
         _header_buffers: HeaderBuffers,
     ) -> DakiaResult<Arc<dyn Interceptor>> {
-        let filter = match &_interceptor_config.filter {
-            Some(filter_config) => {
-                let filter = Filter::try_from(filter_config)?;
-                Some(filter)
-            }
-            None => None,
-        };
-        let interceptor = ControllerInterceptor::build(filter);
+        let interceptor = ControllerInterceptor::build(_interceptor_config.filter);
         Ok(Arc::new(interceptor))
     }
 }
