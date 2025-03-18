@@ -16,7 +16,10 @@ fn match_filter<'a>(filter_name: &Option<String>, session: &Session<'a>) -> Daki
 
             Ok(exec_filter(filter, session)?)
         }
-        None => Ok(true),
+        None => {
+            trace!("No filter specified, defaulting to match as true.");
+            Ok(true)
+        }
     }
 }
 
@@ -47,14 +50,19 @@ async fn execute_interceptor_phase<'a>(
     let phase = session.phase();
     let is_phase_enabled = is_phase_enabled(interceptor.phase_mask(), phase);
 
+    trace!(
+        "Executing interceptor {:?} phase: {:?}, enabled: {}",
+        interceptor.name(),
+        phase,
+        is_phase_enabled,
+    );
+
     // TODO: store filter matching status inside RwLock<HashMap<&str,bool>> inside session.ctx() to avoid doing heavy computation while filtering the same logic
     let is_filter_matched = match_filter(interceptor.filter(), session)?;
 
     trace!(
-        "Executing interceptor {:?} phase: {:?}, enabled: {}, filter matched: {}",
+        "Filter result for interceptor {:?} filter matched: {}",
         interceptor.name(),
-        phase,
-        is_phase_enabled,
         is_filter_matched
     );
 

@@ -46,6 +46,10 @@ impl Interceptor for BasicAuthInterceptor {
         Phase::RequestFilter.mask()
     }
 
+    fn filter(&self) -> &Option<String> {
+        &self.filter
+    }
+
     async fn request_filter(&self, _session: &mut Session) -> PhaseResult {
         let auth_header_option = _session.ds_req_header("Authorization")?;
         /*
