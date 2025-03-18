@@ -1,3 +1,5 @@
+use log::trace;
+
 use crate::{
     error::DakiaResult,
     gateway::filter::operator::{
@@ -25,38 +27,38 @@ fn contains_slice(haystack: &[u8], needle: &[u8]) -> bool {
 fn match_critera_operator(operator: &CriteriaOperator, value: Option<&[u8]>) -> DakiaResult<bool> {
     match operator {
         CriteriaOperator::Relation(relational_operator) => match relational_operator {
-            RelationalOperator::Eq(items) => match value {
-                Some(value) => Ok(value == items),
+            RelationalOperator::Eq(qval) => match value {
+                Some(value) => Ok(value == qval),
                 None => Ok(false),
             },
-            RelationalOperator::Ne(items) => match value {
-                Some(value) => Ok(value != items),
+            RelationalOperator::Ne(qval) => match value {
+                Some(value) => Ok(value != qval),
                 None => Ok(false),
             },
         },
         CriteriaOperator::Pattern(pattern_operator) => match pattern_operator {
-            PatternOperator::Contains(items) => match value {
-                Some(value) => Ok(contains_slice(value, &items)),
+            PatternOperator::Contains(qval) => match value {
+                Some(value) => Ok(contains_slice(value, &qval)),
                 None => Ok(false),
             },
-            PatternOperator::NotContains(items) => match value {
-                Some(value) => Ok(!contains_slice(value, &items)),
+            PatternOperator::NotContains(qval) => match value {
+                Some(value) => Ok(!contains_slice(value, &qval)),
                 None => Ok(false),
             },
-            PatternOperator::StartsWith(items) => match value {
-                Some(value) => Ok(!value.starts_with(&items)),
+            PatternOperator::StartsWith(qval) => match value {
+                Some(value) => Ok(value.starts_with(&qval)),
                 None => Ok(false),
             },
-            PatternOperator::NotStartWith(items) => match value {
-                Some(value) => Ok(!value.starts_with(&items)),
+            PatternOperator::NotStartWith(qval) => match value {
+                Some(value) => Ok(!value.starts_with(&qval)),
                 None => Ok(false),
             },
-            PatternOperator::EndsWith(items) => match value {
-                Some(value) => Ok(value.ends_with(&items)),
+            PatternOperator::EndsWith(qval) => match value {
+                Some(value) => Ok(value.ends_with(&qval)),
                 None => Ok(false),
             },
-            PatternOperator::NotEndsWith(items) => match value {
-                Some(value) => Ok(!value.ends_with(&items)),
+            PatternOperator::NotEndsWith(qval) => match value {
+                Some(value) => Ok(!value.ends_with(&qval)),
                 None => Ok(false),
             },
             PatternOperator::Matches(pcre2_pattern_matcher) => match value {
@@ -70,18 +72,18 @@ fn match_critera_operator(operator: &CriteriaOperator, value: Option<&[u8]>) -> 
         },
         CriteriaOperator::Set(set_operator) => match value {
             Some(value) => match set_operator {
-                SetOperator::In(items) => {
-                    for item in items {
-                        if item == value {
+                SetOperator::In(qval) => {
+                    for q in qval {
+                        if q == value {
                             return Ok(true);
                         }
                     }
 
                     Ok(false)
                 }
-                SetOperator::Nin(items) => {
-                    for item in items {
-                        if item == value {
+                SetOperator::Nin(qval) => {
+                    for q in qval {
+                        if q == value {
                             return Ok(false);
                         }
                     }
@@ -141,7 +143,6 @@ fn match_part_critera_operators(
             return Ok(false);
         }
     }
-
     Ok(true)
 }
 
@@ -165,6 +166,7 @@ fn match_path<'a>(
     session: &Session<'a>,
 ) -> DakiaResult<bool> {
     let req_path = session.ds_req_path();
+    trace!("executing path match for {req_path}",);
     match_part_critera_operators(criteria_operators, Some(req_path.as_bytes()))
 }
 
@@ -195,6 +197,8 @@ fn exec_part_filter<'a>(
 }
 
 pub fn exec_filter<'a>(filter: &Filter, session: &Session<'a>) -> DakiaResult<bool> {
+    trace!("executing filter match for filter \n {:#?}", filter);
+
     for criteria in &filter.criteria_list {
         match criteria {
             FilterCriteria::Logical(logical_filter_criteria) => match logical_filter_criteria {
@@ -220,6 +224,10 @@ pub fn exec_filter<'a>(filter: &Filter, session: &Session<'a>) -> DakiaResult<bo
                 }
             },
             FilterCriteria::PartFilterCriteria(part_filter_criteria) => {
+                trace!(
+                    "executing part filter criteria match for \n {:#?}",
+                    part_filter_criteria
+                );
                 return exec_part_filter(part_filter_criteria, session);
             }
         }

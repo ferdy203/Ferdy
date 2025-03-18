@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use log::trace;
+
 use crate::{error::DakiaResult, gateway::filter::exec_filter, proxy::http::Session};
 
 use super::{is_hook_enabled, is_phase_enabled, Hook, Interceptor, Phase, PhaseResult};
@@ -47,6 +49,15 @@ async fn execute_interceptor_phase<'a>(
 
     // TODO: store filter matching status inside RwLock<HashMap<&str,bool>> inside session.ctx() to avoid doing heavy computation while filtering the same logic
     let is_filter_matched = match_filter(interceptor.filter(), session)?;
+
+    trace!(
+        "Executing interceptor {:?} phase: {:?}, enabled: {}, filter matched: {}",
+        interceptor.name(),
+        phase,
+        is_phase_enabled,
+        is_filter_matched
+    );
+
     if !is_phase_enabled || !is_filter_matched {
         return Ok(false); // false - continue to other phase or interceptor
     }
