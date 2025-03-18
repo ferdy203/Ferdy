@@ -167,9 +167,10 @@ impl<'a> Session<'a> {
         exec_hook(cur_hook, self).await?;
 
         match self.phase {
-            Phase::RequestFilter | Phase::UpstreamProxyFilter | Phase::PreDownstreamResponse => {
-                self.flush_header_in_ds().await
-            }
+            Phase::RequestFilter
+            | Phase::UpstreamProxyFilter
+            | Phase::PreDownstreamResponse
+            | Phase::UpstreamPeerSelection => self.flush_header_in_ds().await,
             Phase::PreUpstreamRequest => Err(DakiaError::i_explain(format!(
                 "can not write downstream headers in {} phase",
                 Phase::PreUpstreamRequest

@@ -1,6 +1,6 @@
 use crate::{
     config::{source_config::GatewayConfig, ConfigVersion},
-    error::DakiaResult,
+    error::{DakiaError, DakiaResult},
     shared::{mutable_registry::Registry, pattern_registry::PatternRegistryType},
 };
 use arc_swap::ArcSwap;
@@ -63,6 +63,14 @@ impl GatewayState {
 
     pub fn filter(&self, filter_name: &str) -> Option<&Filter> {
         self.filter_registry.get(filter_name)
+    }
+
+    pub fn filter_or_err(&self, filter_name: &str) -> DakiaResult<&Filter> {
+        self.filter_registry
+            .get(filter_name)
+            .ok_or(DakiaError::i_explain(format!(
+                "expected filter {filter_name} not found in filter registry"
+            )))
     }
 
     pub fn version(&self) -> ConfigVersion {

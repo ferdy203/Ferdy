@@ -73,13 +73,13 @@ impl ControllerInterceptor {
         match content_type_hedaer {
             Some(havl) => {
                 let source_dakia_raw_config = if havl == "application/json".as_bytes() {
-                    let s: SourceDakiaRawConfig = serde_json::from_str(body_str)
+                    let source_dakia_config: SourceDakiaRawConfig = serde_json::from_str(body_str)
                         .expect("Failed to deserialize: invalid json body");
-                    s
+                    source_dakia_config
                 } else if havl == "application/yaml".as_bytes() {
-                    let s: SourceDakiaRawConfig = serde_yaml::from_str(body_str)
+                    let source_dakia_config: SourceDakiaRawConfig = serde_yaml::from_str(body_str)
                         .expect("Failed to deserialize: invalid yaml body");
-                    s
+                    source_dakia_config
                 } else {
                     return self.write_invalid_content_type_response(_session).await;
                 };

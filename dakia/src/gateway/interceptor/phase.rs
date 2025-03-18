@@ -6,9 +6,10 @@ pub type PhaseMask = u8;
 pub enum Phase {
     RequestFilter = 0x01,
     UpstreamProxyFilter = 0x02,
-    PreUpstreamRequest = 0x04,
-    PostUpstreamResponse = 0x08,
-    PreDownstreamResponse = 0x10,
+    UpstreamPeerSelection = 0x04,
+    PreUpstreamRequest = 0x08,
+    PostUpstreamResponse = 0x10,
+    PreDownstreamResponse = 0x20,
 }
 
 impl Phase {
@@ -19,6 +20,7 @@ impl Phase {
     pub fn all_phase_mask() -> PhaseMask {
         let bits = Phase::RequestFilter.mask()
             | Phase::UpstreamProxyFilter.mask()
+            | Phase::UpstreamPeerSelection.mask()
             | Phase::PreUpstreamRequest.mask()
             | Phase::PostUpstreamResponse.mask();
 
@@ -43,6 +45,7 @@ impl fmt::Display for Phase {
         let phase_str = match self {
             Phase::RequestFilter => "request_filter",
             Phase::UpstreamProxyFilter => "upstream_proxy_filter",
+            Phase::UpstreamPeerSelection => "upstream_peer_selection",
             Phase::PreUpstreamRequest => "pre_upstream_request",
             Phase::PostUpstreamResponse => "post_upstream_response",
             Phase::PreDownstreamResponse => "pre_downstream_response",

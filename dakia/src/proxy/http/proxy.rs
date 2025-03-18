@@ -4,11 +4,10 @@ use crate::{
     error::{DakiaError, DakiaResult},
     gateway::{interceptor::Phase, state::GatewayStateStore},
     proxy::http::helpers::get_inet_addr_from_backend,
-    qe::engine::exec,
 };
 
 use super::{
-    helpers::{is_valid_ds_host, part_supplier},
+    helpers::is_valid_ds_host,
     session::{self},
     DakiaHttpGatewayCtx,
 };
@@ -106,12 +105,9 @@ impl ProxyHttp for Proxy {
         _ctx: &mut Self::CTX,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
         let gateway_config = _ctx.gateway_state.gateway_config();
+        let mut session = session::Session::build(Phase::UpstreamProxyFilter, _session, _ctx);
 
-        // TODO: return 404 if router config not found
-        let router_config = gateway_config.find_router_config_or_err(|filter| {
-            exec(filter, |path| part_supplier(path, _ctx, _session))
-        })?;
-
+        let router_config = gateway_config.find_router_config_or_err(&mut session)?;
         let upstream_name = &router_config.upstream;
 
         let gateway_state = self.gateway_state_store.get_state();

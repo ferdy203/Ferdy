@@ -65,6 +65,7 @@ async fn execute_interceptor_phase<'a>(
     match phase {
         Phase::RequestFilter => interceptor.request_filter(session).await,
         Phase::UpstreamProxyFilter => interceptor.upstream_proxy_filter(session).await,
+        Phase::UpstreamPeerSelection => todo!(), // no such requirement as of now
         Phase::PreUpstreamRequest => interceptor.pre_upstream_request(session).await,
         Phase::PostUpstreamResponse => interceptor.post_upstream_response(session).await,
         Phase::PreDownstreamResponse => interceptor.pre_downstream_response(session).await,
