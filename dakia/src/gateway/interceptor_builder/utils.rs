@@ -1,5 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
+use log::debug;
+
 use crate::{
     config::source_config::{GatewayConfig, InterceptorConfig},
     error::{DakiaError, DakiaResult},
@@ -79,6 +81,11 @@ pub fn build_interceptors(
     let mut interceptors: Vec<Arc<dyn Interceptor>> = vec![];
 
     for interceptor_config in &gateway_config.interceptors {
+        debug!(
+            "Initializing interceptor: {:?} (enabled: {})",
+            interceptor_config.name, interceptor_config.enabled
+        );
+
         if !interceptor_config.enabled {
             continue;
         }
