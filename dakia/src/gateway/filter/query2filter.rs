@@ -320,45 +320,38 @@ fn is_part(part_path: &str, http_part: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
-    fn test_add() {
-        // let yaml = r#"
-        //     $or:
-        //         ds.req.method: GET
-        //         path:
-        //             $or:
-        //                 $eq: /hello
-        //                 $matches: bolo
-        //                 $starts_with: fuck
-        //             $and:
-        //                 $ends_with: fuck
-        //     ds.req.method: GET
-        //     $and:
-        //         scheme:
-        //             $or:
-        //                 $ne: https
-        //                 $in:
-        //                     - http
-        //                     - https
-        //     $and:
-        //         header.content-type:
-        //             $contains: application/json
-        //     scheme:
-        //         $matches: https
-        // "#;
-
+    fn test_filter() {
         let yaml = r#"
-        scheme:
             $or:
-                $eq: http
-                $ne: https
-    "#;
+                ds.req.method: GET
+                path:
+                    $or:
+                        $eq: /hello
+                        $matches: bolo
+                        $starts_with: fuck
+                    $and:
+                        $ends_with: fuck
+            ds.req.method: GET
+            $and:
+                scheme:
+                    $or:
+                        $ne: https
+                        $in:
+                            - http
+                            - https
+            $and:
+                header.content-type:
+                    $contains: application/json
+            scheme:
+                $matches: https
+        "#;
 
         let query: Query = serde_yaml::from_str(yaml).unwrap();
-        let filter = query2filter(&query).unwrap();
-        println!("Filter\n{:#?}", filter);
-        assert_eq!(5, 5);
+        let filter = query2filter(&query).is_ok();
+        assert!(filter);
     }
 }
