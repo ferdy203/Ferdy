@@ -53,17 +53,22 @@ Dakia ensures your services stay performant, reliable, and highly customizable, 
 - **Customization** - You need ultimate customization, you can configure, extend and even further program in multiple languages.
 - **Asynchronous and Multi-Threaded** – Dakia is designed to handle tasks concurrently, ensuring efficient and high-performance request processing by default.
 
-**A naive benchmark of dakia on local computer with 8CPU core and 16GB of memory**
+**_Benchmark of Dakia on a Local Machine (8 CPU Cores, 16GB RAM)_**
 
 ```txt
-Running 10s test @ http://0.0.0.0:80
-  1 threads and 100 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   699.64us  125.23us   3.77ms   94.20%
-    Req/Sec    76.09k     3.98k   81.89k    86.14%
-  764590 requests in 10.10s, 80.94MB read
-Requests/sec:  75678.12
-Transfer/sec:      8.01MB
+Performance test: 10s @ http://0.0.0.0:80
+  - 1 thread, 100 concurrent connections
+
+  Thread Statistics:
+    - Average Latency: 699.64µs (±125.23µs)
+    - Maximum Latency: 3.77ms
+    - Requests per Second: 76.09k (±3.98k)
+    - Peak Requests per Second: 81.89k
+
+  Total Requests: 764,590 in 10.10s
+  Data Transferred: 80.94MB
+  Throughput: 75,678.12 requests/sec
+  Transfer Rate: 8.01MB/sec
 ```
 
 ## Architecture
@@ -79,27 +84,52 @@ Transfer/sec:      8.01MB
 
 [Dakia Configuration Sample](https://github.com/ats1999/dakia/blob/main/docs/config.sample.yaml)
 
-| Task                                                                                                                       | Status         |
-| -------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Configurable(Only yaml supported for now)                                                                                  | Done ✅        |
-| Virtual Host                                                                                                               | Done ✅        |
-| Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                         | Done ✅        |
-| Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                                 | Done ✅        |
-| Proxy                                                                                                                      | Done ✅        |
-| HTTP Protocol Suport                                                                                                       | Done ✅        |
-| [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)                                               | Done ✅        |
-| Load Balancer                                                                                                              | Done ✅        |
-| Filter (MongoDB like query support)                                                                                        | Done ✅        |
-| Dakia CLI                                                                                                                  | Done ✅        |
-| [PCRE](https://www.pcre.org/) support for pattern matching                                                                 | Done ✅        |
-| Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                               | Done ✅        |
-| Extension,Interceptor(Rust,Java, JavaScript)                                                                               | Pending        |
-| [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                           | Pending        |
-| Load Balancer Algorithms (Least connection, Least response time, IP/Url hash, [Service Discovery](http://bakerstreet.io/)) | Pending        |
-| SSL Support                                                                                                                | Pending        |
-| Certbot Integration                                                                                                        | Pending        |
-| Controller (API to manage dakia over REST)                                                                                 | Done ✅        |
-| TCP/UDP Proxy                                                                                                              | Pending        |
-| Web Socket Proxy                                                                                                           | Pending        |
-| gRPC Proxy                                                                                                                 | Pending        |
-| Docs                                                                                                                       | In-Progress 🚀 |
+| Task                                                                                                                                                                   | Status         |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| Configurable(YAML + JSON)                                                                                                                                              | Done ✅        |
+| Virtual Host                                                                                                                                                           | Done ✅        |
+| Wild card host matching ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                                                                     | Done ✅        |
+| Wild card route ([Wiki](https://en.wikipedia.org/wiki/Matching_wildcards))                                                                                             | Done ✅        |
+| Proxy                                                                                                                                                                  | Done ✅        |
+| HTTP Protocol Suport                                                                                                                                                   | Done ✅        |
+| [Upstream SSL support](https://en.wikipedia.org/wiki/Server_Name_Indication)                                                                                           | Done ✅        |
+| Load Balancer                                                                                                                                                          | Done ✅        |
+| Filter (MongoDB like query support)                                                                                                                                    | Done ✅        |
+| Dakia CLI                                                                                                                                                              | Done ✅        |
+| [PCRE](https://www.pcre.org/) support for pattern matching                                                                                                             | Done ✅        |
+| Extension, Interceptor & Interceptions Phases (Inbuilt Rust)                                                                                                           | Done ✅        |
+| Declarative filter support [(Allows to use MongoDB like query syntax for filtering HTTP requests)](https://github.com/ats1999/dakia/blob/main/docs/config.sample.yaml) | Done ✅        |
+| [FFI](https://en.wikipedia.org/wiki/Foreign_function_interface) Support for interceptor                                                                                | Pending        |
+| [UDS Support](https://man7.org/linux/man-pages/man7/unix.7.html)                                                                                                       | Pending        |
+| Load Balancer Algorithms (Least connection, Least response time, IP/Url hash)                                                                                          | Pending        |
+| SSL Support                                                                                                                                                            | Pending        |
+| Certbot Integration                                                                                                                                                    | Pending        |
+| Controller (API to manage dakia over REST)                                                                                                                             | Done ✅        |
+| TCP/UDP Proxy                                                                                                                                                          | Pending        |
+| Web Socket Proxy                                                                                                                                                       | Pending        |
+| gRPC Proxy                                                                                                                                                             | Pending        |
+| Docs                                                                                                                                                                   | In-Progress 🚀 |
+
+### Load Balancing Algorithm
+
+| Algorithm           | Status  |
+| ------------------- | ------- |
+| Round robin         | Done ✅ |
+| Least connection    | Pending |
+| Least response time | Pending |
+| IP/URL hash         | Pending |
+
+### Interceptor
+
+| Interceptor                                 | Description                                                                                                                                                        | Status  |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| Server Version                              | Append server version into http response header. E.g `Dakia/1.0.1`                                                                                                 | Done ✅ |
+| Basic Auth                                  | [Basic Authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)                                                                                  | Done ✅ |
+| Basic Auth ( External Storage Integration ) | Use external storage for storing user name and password, support hashing.                                                                                          | Pending |
+| JWT Auth                                    | [Support JWT authentication](https://jwt.io/)                                                                                                                      | Pending |
+| Use File                                    | Read data from a file and return its contents as the response. If the file is not found, respond with a 404 error.                                                 | Done ✅ |
+| Use File ( Path rewrite support )           | Allow to rewrite HTTP request path                                                                                                                                 | Pending |
+| Try File                                    | Read data from a file and return its contents as the response. If the file is not found, make request to upstream, write response to file and then serve response. | Pending |
+| Controller                                  | Allow to update dakia configuration in **_YAML/JSON_** format via REST endpoint without restarting the gateway                                                     | Done ✅ |
+| Rate Limiter                                | Token bucket rate limiter algorithm                                                                                                                                | Done ✅ |
+| Prometheus Integration                      | Expose server interval metric using prometheus (New TCP connection, Reused TCP connection, TCP connection failure, etc)                                            | Pending |

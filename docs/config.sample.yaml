@@ -57,30 +57,29 @@ gateways:
               port: 3002
             tls: false
             sni: null
+      - name: default
+        default: true
+        upstream_nodes:
+          - address:
+              host: 0.0.0.0
+              port: 3001
+            tls: false
+            sni: null
     routers:
       - upstream: payment
-        filter:
-          $or:
-            ds.req.path:
-              $or:
-                $starts_with: /pay
-                $ends_with: pay
-              $or:
-                $contains: pay
-                $contains: payment
+        filter: payment_router_filter
       - upstream: search
-        filter:
-          $or:
-            ds.req.query:
-              $exists: true
-          ds.req.method: POST
+        filter: search_router_filter
+      - upstream: default
     interceptors:
       - name: server_version
         enabled: true
       - name: controller
         enabled: true
+        filter: controller
       - name: basic_auth
         enabled: true
+        filter: basic_auth
         config:
           username: dakia
           password: dakia
@@ -88,12 +87,30 @@ gateways:
         enabled: true
         config:
           root: /home/static
-        filter:
-          ds.req.path:
-            matches: "*.json"
-          ds.req.host: cdn.dakia.com
         rewrite:
-          "ds.res.header.content-type": application/json
+          "ds.res.header.content-type": text/html
+      - name: rate_limiter
+        enabled: true
+        config:
+          # 1 req per minute
+          capacity: 5
+          refill_rate: 2
+          refill_interval: 12000
+    filters:
+      - name: controller
+        ds.req.path:
+          $starts_with: /controller
+        header.host: localhost
+      - name: basic_auth
+        header.host: w3worker.net
+      - name: use_file
+        header.host: w3worker.net
+      - name: payment_router_filter
+        path:
+          $starts_with: /payment
+      - name: search_router_filter
+        path:
+          $starts_with: /search
 # ds - downstream
 # us - upstream
 
