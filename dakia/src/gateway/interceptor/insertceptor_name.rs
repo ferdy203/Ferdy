@@ -5,6 +5,7 @@ pub enum InterceptorName {
     UseFile,
     BasicAuth,
     Controller,
+    RateLimiter,
 }
 
 impl InterceptorName {
@@ -14,6 +15,7 @@ impl InterceptorName {
             InterceptorName::UseFile => "use_file",
             InterceptorName::BasicAuth => "basic_auth",
             InterceptorName::Controller => "controller",
+            InterceptorName::RateLimiter => "rate_limiter",
         }
     }
 }

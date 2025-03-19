@@ -61,7 +61,7 @@ pub enum Value {
 #[serde(untagged)]
 pub enum Scaler {
     String(String),
-    I32(i32),
+    I64(i64),
     Bool(bool),
 }
 
@@ -102,7 +102,7 @@ pub fn extract_key_str_or_err<'a>(query: &'a Query, qkey: &'a str) -> DakiaResul
 fn get_str_from_scaler(scaler: &Scaler) -> String {
     match scaler {
         Scaler::String(strval) => strval.to_string(),
-        Scaler::I32(intval) => intval.to_string(),
+        Scaler::I64(intval) => intval.to_string(),
         Scaler::Bool(boolval) => boolval.to_string(),
     }
 }
@@ -158,6 +158,32 @@ pub fn extract_bool_or_err(val: &Value) -> DakiaResult<bool> {
         ))),
     }
 }
+
+pub fn extract_key_i64_or_err(query: &Query, key: &str) -> DakiaResult<i64> {
+    match query.get(key) {
+        Some(val) => match val {
+            Value::Scaler(scaler) => match scaler {
+                Scaler::String(string) => Err(DakiaError::i_explain(format!(
+                    "Key '{key}' expected an integer but found {:?}",
+                    string
+                ))),
+                Scaler::I64(i64) => Ok(*i64),
+                Scaler::Bool(boolean) => Err(DakiaError::i_explain(format!(
+                    "Key '{key}' expected an integer but found {:?}",
+                    boolean
+                ))),
+            },
+            Value::Composite(composite) => Err(DakiaError::i_explain(format!(
+                "Key '{key}' expected an integer but found {:?}",
+                composite
+            ))),
+        },
+        None => Err(DakiaError::i_explain(format!(
+            "Key '{key}' expected an integer but found nothing",
+        ))),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,7 +240,7 @@ mod tests {
     #[test]
     fn test_composite_map() {
         let mut map = Map::new();
-        map.insert("key".to_string(), Value::Scaler(Scaler::I32(42)));
+        map.insert("key".to_string(), Value::Scaler(Scaler::I64(42)));
         let composite = Composite::Map(map);
         let yaml = serde_yaml::to_string(&composite).unwrap();
         assert!(yaml.contains("42"));
@@ -224,7 +250,7 @@ mod tests {
     fn test_composite_vector() {
         let array = Array::from([
             Value::Scaler(Scaler::Bool(true)),
-            Value::Scaler(Scaler::I32(10)),
+            Value::Scaler(Scaler::I64(10)),
         ]);
         let composite = Composite::Vector(array);
         let yaml = serde_yaml::to_string(&composite).unwrap();

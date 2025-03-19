@@ -2,6 +2,7 @@ use std::{collections::HashMap, mem::take};
 
 use bytes::Bytes;
 use http::{uri::PathAndQuery, StatusCode};
+use pingora::protocols::l4::socket::SocketAddr;
 use pingora_http::{RequestHeader as PRequestHeader, ResponseHeader as PResponseHeader};
 use pingora_proxy::Session as PSession;
 
@@ -46,6 +47,12 @@ impl<'a> Session<'a> {
 
     pub fn upstream_response(&mut self, upstream_response: &'a mut PResponseHeader) {
         self.upstream_response = Some(upstream_response);
+    }
+}
+
+impl<'a> Session<'a> {
+    pub fn ds_socket_addr(&self) -> Option<&SocketAddr> {
+        self.psession.client_addr()
     }
 }
 

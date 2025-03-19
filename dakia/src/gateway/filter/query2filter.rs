@@ -136,7 +136,7 @@ fn build_part_filter_criteria(part: &str, part_filter: &Value) -> DakiaResult<Pa
 fn build_sacler_part_criteria_operator(scaler: &query::Scaler) -> PartCriteriaOperator {
     let value = match scaler {
         query::Scaler::String(strval) => strval.to_string(),
-        query::Scaler::I32(intval) => intval.to_string(),
+        query::Scaler::I64(intval) => intval.to_string(),
         query::Scaler::Bool(boolval) => boolval.to_string(),
     };
 
