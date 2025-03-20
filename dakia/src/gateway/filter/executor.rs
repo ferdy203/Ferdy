@@ -153,10 +153,6 @@ fn match_header<'a>(header_criteria: &HeaderCriteria, session: &Session<'a>) -> 
     match_part_critera_operators(&header_criteria.operator, req_header_value)
 }
 
-fn match_cookie<'a>(header_criteria: &HeaderCriteria, session: &Session<'a>) -> DakiaResult<bool> {
-    todo!()
-}
-
 fn match_query<'a>(header_criteria: &HeaderCriteria, session: &Session<'a>) -> DakiaResult<bool> {
     todo!()
 }
@@ -185,7 +181,6 @@ fn exec_part_filter<'a>(
     match part_filter_criteria {
         PartFilterCriteria::Header(header_criteria) => match_header(header_criteria, session),
         PartFilterCriteria::Query(query_criteria) => todo!(),
-        PartFilterCriteria::Cookie(cookie_criteria) => todo!(),
         PartFilterCriteria::Path(part_criteria_operators) => {
             match_path(part_criteria_operators, session)
         }

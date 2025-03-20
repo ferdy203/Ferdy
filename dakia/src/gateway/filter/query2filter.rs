@@ -3,8 +3,8 @@ use std::vec;
 use crate::{
     error::{DakiaError, DakiaResult},
     gateway::filter::operator::{
-        CookieCriteria, Header, HeaderCriteria, LogicalCriteriaOperator, PatternOperator,
-        QueryCriteria, RelationalOperator, SetOperator,
+        Header, HeaderCriteria, LogicalCriteriaOperator, PatternOperator, QueryCriteria,
+        RelationalOperator, SetOperator,
     },
     qe::query::{
         self, extract_bool_or_err, extract_string_or_err, extract_vec_bytes_or_err,
@@ -22,7 +22,7 @@ use super::{
 };
 
 const LOGICAL_OPERATOR: [&str; 2] = ["$and", "$or"];
-const HTTP_PARTS: [&str; 6] = ["scheme", "path", "method", "header", "query", "cookie"];
+const HTTP_PARTS: [&str; 5] = ["scheme", "path", "method", "header", "query"];
 
 pub fn query2filter(query: &Query) -> DakiaResult<Filter> {
     let mut filter = Filter {
@@ -102,16 +102,6 @@ fn build_part_filter_criteria(part: &str, part_filter: &Value) -> DakiaResult<Pa
         };
 
         return Ok(PartFilterCriteria::Query(query_criteria));
-    }
-
-    if is_part_nested(part, "cookie") {
-        let nested_part_name = get_nested_part_name(part, "cookie");
-        let cookie_criteria = CookieCriteria {
-            name: nested_part_name.as_bytes().to_vec(),
-            operator: build_part_criteria_operator_list(part_filter)?,
-        };
-
-        return Ok(PartFilterCriteria::Cookie(cookie_criteria));
     }
 
     let part_criteria_operator_list = build_part_criteria_operator_list(part_filter)?;

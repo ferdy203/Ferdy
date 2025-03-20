@@ -34,7 +34,7 @@ pub enum Header {
     CacheControl,
     ContentType,
     ContentLength,
-    Cookie,
+    SetCookie,
     Host,
     Origin,
     Referer,
@@ -54,7 +54,7 @@ impl From<&str> for Header {
             "cache-control" => Header::CacheControl,
             "content-type" => Header::ContentType,
             "content-length" => Header::ContentLength,
-            "cookie" => Header::Cookie,
+            "set-cookie" => Header::SetCookie,
             "host" => Header::Host,
             "origin" => Header::Origin,
             "referer" => Header::Referer,
@@ -76,7 +76,7 @@ impl Header {
             Header::CacheControl => b"cache-control",
             Header::ContentType => b"content-type",
             Header::ContentLength => b"content-length",
-            Header::Cookie => b"cookie",
+            Header::SetCookie => b"set-cookie",
             Header::Host => b"host",
             Header::Origin => b"origin",
             Header::Referer => b"referer",
@@ -120,16 +120,9 @@ pub struct QueryCriteria {
 }
 
 #[derive(Debug, Clone)]
-pub struct CookieCriteria {
-    pub name: Vec<u8>,
-    pub operator: Vec<PartCriteriaOperator>,
-}
-
-#[derive(Debug, Clone)]
 pub enum PartFilterCriteria {
     Header(HeaderCriteria),
     Query(QueryCriteria),
-    Cookie(CookieCriteria),
     Path(Vec<PartCriteriaOperator>),
     Scheme(Vec<PartCriteriaOperator>),
     Method(Vec<PartCriteriaOperator>),
