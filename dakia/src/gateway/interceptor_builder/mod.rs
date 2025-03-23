@@ -11,7 +11,9 @@ use super::{
     interceptor::HeaderBuffers,
     interceptors::{
         basic_auth::BasicAuthInterceptorBuilder, controller::ControllerInterceptorBuilder,
-        rate_limiter::RateLimiterInterceptorBuilder, server_version, use_file,
+        rate_limiter::RateLimiterInterceptorBuilder,
+        request_rewrite::RequestRewriteInterceptorBuilder,
+        response_rewrite::ResponseRewriteInterceptorBuilder, server_version, use_file,
     },
 };
 
@@ -59,6 +61,16 @@ impl InterceptorBuilderRegistry {
         registry.insert(
             InterceptorName::RateLimiter,
             Arc::new(RateLimiterInterceptorBuilder::default()),
+        );
+
+        registry.insert(
+            InterceptorName::RequestRewrite,
+            Arc::new(RequestRewriteInterceptorBuilder::default()),
+        );
+
+        registry.insert(
+            InterceptorName::ResponseRewrite,
+            Arc::new(ResponseRewriteInterceptorBuilder::default()),
         );
 
         Self { registry }

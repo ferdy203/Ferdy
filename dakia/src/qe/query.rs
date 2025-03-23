@@ -117,6 +117,19 @@ pub fn extract_vec_bytes_or_err(val: &Value) -> DakiaResult<Vec<u8>> {
     }
 }
 
+pub fn extract_key_vec_bytes(query: &Query, key: &str) -> DakiaResult<Option<Vec<u8>>> {
+    match query.get(key) {
+        Some(val) => match val {
+            Value::Scaler(scaler) => Ok(Some(get_str_from_scaler(scaler).as_bytes().to_vec())),
+            Value::Composite(composite) => Err(DakiaError::i_explain(format!(
+                "Expected a scaler value, found {:?}",
+                composite
+            ))),
+        },
+        None => Ok(None),
+    }
+}
+
 pub fn extract_vec_or_err(val: &Value) -> DakiaResult<&Vec<Value>> {
     match val {
         Value::Scaler(scaler) => Err(DakiaError::i_explain(format!(

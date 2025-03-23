@@ -1,7 +1,7 @@
 use std::{collections::HashMap, mem::take};
 
 use bytes::Bytes;
-use http::{uri::PathAndQuery, StatusCode};
+use http::{uri::PathAndQuery, StatusCode, Uri};
 use pingora::protocols::l4::socket::SocketAddr;
 use pingora_http::{RequestHeader as PRequestHeader, ResponseHeader as PResponseHeader};
 use pingora_proxy::Session as PSession;
@@ -22,7 +22,6 @@ pub struct Session<'a> {
     upstream_response: Option<&'a mut PResponseHeader>,
     phase: Phase,
     ds_hbuf: HeaderBuffer,
-    us_hbuf: HeaderBuffer,
     ds_status_code: StatusCode,
     ctx: &'a DakiaHttpGatewayCtx,
 }
@@ -35,7 +34,6 @@ impl<'a> Session<'a> {
             upstream_request: None,
             upstream_response: None,
             ds_hbuf: HeaderBuffer::new(),
-            us_hbuf: HeaderBuffer::new(),
             ds_status_code: StatusCode::OK,
             ctx,
         }
@@ -69,6 +67,18 @@ impl<'a> Session<'a> {
 impl<'a> Session<'a> {
     pub fn ds_req_path(&self) -> &str {
         self.psession.as_downstream().req_header().uri.path()
+    }
+
+    pub fn set_us_req_uri(&mut self, uri: Uri) -> DakiaResult<()> {
+        match self.upstream_request.as_mut() {
+            Some(upstream_request) => {
+                upstream_request.set_uri(uri);
+                Ok(())
+            }
+            None => Err(DakiaError::i_explain(
+                "Something went wrong! Upstream headers are not present",
+            )),
+        }
     }
 }
 
@@ -125,8 +135,17 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub fn set_us_header(&mut self, header_name: String, header_value: Vec<u8>) {
-        self.us_hbuf.insert(header_name, header_value);
+    pub fn set_us_header(&mut self, header_name: String, header_value: Vec<u8>) -> DakiaResult<()> {
+        match self.upstream_request.as_mut() {
+            Some(upstream_request) => {
+                upstream_request.insert_header(header_name, header_value)?;
+                Ok(())
+            }
+
+            None => Err(DakiaError::i_explain(
+                "Something went wrong! Upstream headers are not present",
+            )),
+        }
     }
 
     pub fn set_ds_header(&mut self, header_name: String, header_value: Vec<u8>) {

@@ -19,7 +19,7 @@ use pingora::{
     Error, ErrorSource,
     ErrorType::HTTPStatus,
 };
-use pingora_http::ResponseHeader;
+use pingora_http::{RequestHeader, ResponseHeader};
 
 #[derive(Clone)]
 pub struct Proxy {
@@ -139,6 +139,22 @@ impl ProxyHttp for Proxy {
         Ok(peer)
     }
 
+    async fn upstream_request_filter(
+        &self,
+        _session: &mut Session,
+        _upstream_request: &mut RequestHeader,
+        _ctx: &mut Self::CTX,
+    ) -> Result<(), pingora_core::BError>
+    where
+        Self::CTX: Send + Sync,
+    {
+        let mut session = session::Session::build(Phase::PreUpstreamRequest, _session, _ctx);
+        session.upstream_request(_upstream_request);
+        session.execute_interceptors_phase().await?;
+
+        Ok(())
+    }
+
     async fn fail_to_proxy(&self, _session: &mut Session, e: &Error, _ctx: &mut Self::CTX) -> u16
     where
         Self::CTX: Send + Sync,
@@ -184,6 +200,7 @@ impl ProxyHttp for Proxy {
     {
         let mut session = session::Session::build(Phase::PostUpstreamResponse, _session, _ctx);
         session.upstream_response(_upstream_response);
+        session.execute_interceptors_phase().await?;
         session.flush_ds_header().await?;
         Ok(())
     }

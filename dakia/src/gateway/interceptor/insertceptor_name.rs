@@ -6,6 +6,9 @@ pub enum InterceptorName {
     BasicAuth,
     Controller,
     RateLimiter,
+    RequestRewrite,
+    ResponseRewrite,
+    ShortCircuit,
 }
 
 impl InterceptorName {
@@ -16,6 +19,9 @@ impl InterceptorName {
             InterceptorName::BasicAuth => "basic_auth",
             InterceptorName::Controller => "controller",
             InterceptorName::RateLimiter => "rate_limiter",
+            InterceptorName::RequestRewrite => "request_rewrite",
+            InterceptorName::ResponseRewrite => "response_rewrite",
+            InterceptorName::ShortCircuit => "short_circuit",
         }
     }
 }
