@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
+    config::source_config::find_router_config_or_err,
     error::{DakiaError, DakiaResult},
     gateway::{interceptor::Phase, state::GatewayStateStore},
     proxy::http::helpers::get_inet_addr_from_backend,
@@ -73,7 +74,7 @@ impl ProxyHttp for Proxy {
 
                 if !is_valid_ds_host {
                     session.set_res_status(StatusCode::FORBIDDEN);
-                    session.flush_ds_header().await?;
+                    session.flush_ds_res_header().await?;
                     return Ok(true);
                 }
             }
@@ -81,7 +82,7 @@ impl ProxyHttp for Proxy {
             None => {
                 // host is required header
                 session.set_res_status(StatusCode::BAD_REQUEST);
-                session.flush_ds_header().await?;
+                session.flush_ds_res_header().await?;
                 return Ok(true);
             }
         };
@@ -106,10 +107,9 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
-        let mut session = session::Session::build(Phase::UpstreamProxyFilter, _session, _ctx);
-        let gateway_config = session.ctx().gateway_state.gateway_config();
+        let session = session::Session::build(Phase::UpstreamProxyFilter, _session, _ctx);
 
-        let router_config = gateway_config.find_router_config_or_err(&mut session)?;
+        let router_config = find_router_config_or_err(&session)?;
         let upstream_name = &router_config.upstream;
 
         let gateway_state = self.gateway_state_store.get_state();
@@ -129,7 +129,8 @@ impl ProxyHttp for Proxy {
 
         let inet_address = get_inet_addr_from_backend(&backend);
 
-        let upstream_node_config = gateway_config
+        let upstream_node_config = gateway_state
+            .gateway_config()
             .find_upstream_config_or_err(upstream_name, true)
             .map(|a| a.find_upstream_node_config_or_err(inet_address))??;
 
@@ -153,6 +154,7 @@ impl ProxyHttp for Proxy {
         let mut session = session::Session::build(Phase::PreUpstreamRequest, _session, _ctx);
         session.upstream_request(_upstream_request);
         session.execute_interceptors_phase().await?;
+        session.flush_us_req_header()?;
 
         Ok(())
     }
@@ -186,7 +188,7 @@ impl ProxyHttp for Proxy {
             let mut session = session::Session::build(Phase::PreDownstreamResponse, _session, _ctx);
             let status_code = StatusCode::from_u16(code).unwrap();
             session.set_res_status(status_code);
-            session.flush_ds_header().await.unwrap();
+            session.flush_ds_res_header().await.unwrap();
         }
         code
     }
@@ -203,7 +205,7 @@ impl ProxyHttp for Proxy {
         let mut session = session::Session::build(Phase::PostUpstreamResponse, _session, _ctx);
         session.upstream_response(_upstream_response);
         session.execute_interceptors_phase().await?;
-        session.flush_ds_header().await?;
+        session.flush_ds_res_header().await?;
         Ok(())
     }
 }

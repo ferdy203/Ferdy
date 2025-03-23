@@ -6,6 +6,7 @@ mod router_config;
 mod upstream_config;
 
 pub use downstream_config::DownstreamConfig;
+pub use gateway_config::find_router_config_or_err;
 pub use gateway_config::GatewayConfig;
 pub use inet_address::InetAddress;
 pub use interceptor_config::*;

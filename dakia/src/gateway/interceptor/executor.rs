@@ -24,7 +24,9 @@ fn match_filter<'a>(filter_name: &Option<String>, session: &Session<'a>) -> Daki
 }
 
 pub async fn exec_hook<'a>(cur_hook: Hook, session: &mut Session<'a>) -> PhaseResult {
-    let interceptors = session.ctx().gateway_state.interceptors();
+    let gateway_state = session.ctx().gateway_state.clone();
+    let interceptors = gateway_state.interceptors();
+
     for interceptor in interceptors {
         let is_hook_enabled = is_hook_enabled(interceptor.hook_mask(), &cur_hook);
         // TODO: store filter matching status inside RwLock<HashMap<&str,bool>> inside session.ctx() to avoid doing heavy computation while filtering the same logic
@@ -85,7 +87,8 @@ async fn execute_interceptor_phase<'a>(
 }
 
 pub async fn exec_phase<'a>(session: &mut Session<'a>) -> PhaseResult {
-    let interceptors = session.ctx().gateway_state.interceptors();
+    let gateway_state = session.ctx().gateway_state.clone();
+    let interceptors = gateway_state.interceptors();
 
     for interceptor in interceptors {
         let phase_result = execute_interceptor_phase(interceptor, session).await?;

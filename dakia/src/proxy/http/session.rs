@@ -21,20 +21,22 @@ pub struct Session<'a> {
     upstream_request: Option<&'a mut PRequestHeader>,
     upstream_response: Option<&'a mut PResponseHeader>,
     phase: Phase,
-    ds_res_hbuf: HeaderBuffer,
     ds_status_code: StatusCode,
-    ctx: &'a DakiaHttpGatewayCtx,
+    ctx: &'a mut DakiaHttpGatewayCtx,
     ds_header_flushed: bool,
 }
 
 impl<'a> Session<'a> {
-    pub fn build(phase: Phase, psession: &'a mut PSession, ctx: &'a DakiaHttpGatewayCtx) -> Self {
+    pub fn build(
+        phase: Phase,
+        psession: &'a mut PSession,
+        ctx: &'a mut DakiaHttpGatewayCtx,
+    ) -> Self {
         Session {
             phase,
             psession,
             upstream_request: None,
             upstream_response: None,
-            ds_res_hbuf: HeaderBuffer::new(),
             ds_status_code: StatusCode::OK,
             ctx,
             ds_header_flushed: false,
@@ -137,33 +139,22 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub fn set_us_req_header(
-        &mut self,
-        header_name: String,
-        header_value: Vec<u8>,
-    ) -> DakiaResult<()> {
-        match self.upstream_request.as_mut() {
-            Some(upstream_request) => {
-                upstream_request.insert_header(header_name, header_value)?;
-                Ok(())
-            }
-
-            None => Err(DakiaError::i_explain(
-                "Something went wrong! Upstream headers are not present",
-            )),
-        }
+    pub fn set_us_req_header(&mut self, header_name: String, header_value: Vec<u8>) {
+        self.ctx
+            .us_req_header_buffer
+            .insert(header_name, header_value);
     }
 
     pub fn set_ds_res_header(&mut self, header_name: String, header_value: Vec<u8>) {
-        // self.ctx
-        //     .ds_res_header_buffer
-        //     .insert(header_name, header_value);
+        self.ctx
+            .ds_res_header_buffer
+            .insert(header_name, header_value);
     }
 
     async fn flush_header_to_ds(&mut self) -> DakiaResult<()> {
         let mut header = PResponseHeader::build(self.ds_status_code, None).unwrap();
 
-        let headers = take(&mut self.ds_res_hbuf);
+        let headers = take(&mut self.ctx.ds_res_header_buffer);
         for (header_name, header_value) in headers.into_iter() {
             header.insert_header(header_name, header_value)?;
         }
@@ -184,7 +175,7 @@ impl<'a> Session<'a> {
             .as_str(),
         );
 
-        let headers = take(&mut self.ds_res_hbuf);
+        let headers = take(&mut self.ctx.ds_res_header_buffer);
         for (header_name, header_value) in headers.into_iter() {
             upstream_response.insert_header(header_name, header_value)?;
         }
@@ -192,7 +183,7 @@ impl<'a> Session<'a> {
         Ok(())
     }
 
-    pub async fn flush_ds_header(&mut self) -> DakiaResult<()> {
+    pub async fn flush_ds_res_header(&mut self) -> DakiaResult<()> {
         if self.ds_header_flushed {
             return Err(DakiaError::i_explain("Something went wrong! Downstream headers have already been flushed and cannot be flushed again."));
         }
@@ -219,6 +210,22 @@ impl<'a> Session<'a> {
             Phase::PostUpstreamResponse => self.flush_header_to_us_res().await,
         }
     }
+
+    pub fn flush_us_req_header(&mut self) -> DakiaResult<()> {
+        match self.upstream_request.as_mut() {
+            Some(upstream_request) => {
+                let headers = take(&mut self.ctx.us_req_header_buffer);
+                for (header_name, header_value) in headers.into_iter() {
+                    upstream_request.insert_header(header_name, header_value)?;
+                }
+                Ok(())
+            }
+
+            None => Err(DakiaError::i_explain(
+                "Something went wrong! Upstream headers are not present",
+            )),
+        }
+    }
 }
 
 impl<'a> Session<'a> {
@@ -234,7 +241,7 @@ impl<'a> Session<'a> {
         end_of_stream: bool,
     ) -> DakiaResult<()> {
         if !self.ds_header_flushed {
-            self.flush_ds_header().await?;
+            self.flush_ds_res_header().await?;
         }
 
         self.psession
@@ -255,7 +262,7 @@ impl<'a> Session<'a> {
     pub async fn execute_interceptors_phase(&mut self) -> PhaseResult {
         let short_circuit = exec_phase(self).await?;
         if short_circuit {
-            self.flush_ds_header().await?;
+            self.flush_ds_res_header().await?;
             Ok(true)
         } else {
             Ok(false)

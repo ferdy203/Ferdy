@@ -29,36 +29,30 @@ pub struct GatewayConfig {
     pub filters: Vec<Query>,
 }
 
-impl GatewayConfig {
-    pub fn find_router_config<'a>(
-        &self,
-        session: &mut Session<'a>,
-    ) -> DakiaResult<Option<&RouterConfig>> {
-        for router_config in self.routers.iter() {
-            match &router_config.filter {
-                None => return Ok(Some(router_config)), // if no filter present for any router then it'll be considered a match when encountered
-                Some(filter_name) => {
-                    let filter = session.ctx().gateway_state.filter_or_err(&filter_name)?;
-                    let is_matched = exec_filter(filter, session)?;
-                    if is_matched {
-                        return Ok(Some(router_config));
-                    }
+pub fn find_router_config<'a>(session: &'a Session<'a>) -> DakiaResult<Option<&'a RouterConfig>> {
+    for router_config in session.ctx().gateway_state.gateway_config().routers.iter() {
+        match &router_config.filter {
+            None => return Ok(Some(router_config)), // if no filter present for any router then it'll be considered a match when encountered
+            Some(filter_name) => {
+                let filter = session.ctx().gateway_state.filter_or_err(&filter_name)?;
+                let is_matched = exec_filter(filter, session)?;
+                if is_matched {
+                    return Ok(Some(router_config));
                 }
             }
         }
-        Ok(None)
     }
+    Ok(None)
+}
 
-    pub fn find_router_config_or_err<'a>(
-        &self,
-        session: &mut Session<'a>,
-    ) -> DakiaResult<&RouterConfig> {
-        let router_config = self.find_router_config(session)?;
-        router_config.ok_or(DakiaError::create_unknown_context(
-            crate::error::ImmutStr::Static("router config not found".into()),
-        ))
-    }
+pub fn find_router_config_or_err<'a>(session: &'a Session<'a>) -> DakiaResult<&'a RouterConfig> {
+    let router_config = find_router_config(session)?;
+    router_config.ok_or(DakiaError::create_unknown_context(
+        crate::error::ImmutStr::Static("router config not found".into()),
+    ))
+}
 
+impl GatewayConfig {
     pub fn find_default_upstream(&self) -> Option<&UpstreamConfig> {
         self.upstreams
             .iter()
