@@ -21,7 +21,7 @@ pub struct Session<'a> {
     upstream_request: Option<&'a mut PRequestHeader>,
     upstream_response: Option<&'a mut PResponseHeader>,
     phase: Phase,
-    ds_hbuf: HeaderBuffer,
+    ds_res_hbuf: HeaderBuffer,
     ds_status_code: StatusCode,
     ctx: &'a DakiaHttpGatewayCtx,
     ds_header_flushed: bool,
@@ -34,7 +34,7 @@ impl<'a> Session<'a> {
             psession,
             upstream_request: None,
             upstream_response: None,
-            ds_hbuf: HeaderBuffer::new(),
+            ds_res_hbuf: HeaderBuffer::new(),
             ds_status_code: StatusCode::OK,
             ctx,
             ds_header_flushed: false,
@@ -137,7 +137,11 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub fn set_us_header(&mut self, header_name: String, header_value: Vec<u8>) -> DakiaResult<()> {
+    pub fn set_us_req_header(
+        &mut self,
+        header_name: String,
+        header_value: Vec<u8>,
+    ) -> DakiaResult<()> {
         match self.upstream_request.as_mut() {
             Some(upstream_request) => {
                 upstream_request.insert_header(header_name, header_value)?;
@@ -150,14 +154,16 @@ impl<'a> Session<'a> {
         }
     }
 
-    pub fn set_ds_header(&mut self, header_name: String, header_value: Vec<u8>) {
-        self.ds_hbuf.insert(header_name, header_value);
+    pub fn set_ds_res_header(&mut self, header_name: String, header_value: Vec<u8>) {
+        // self.ctx
+        //     .ds_res_header_buffer
+        //     .insert(header_name, header_value);
     }
 
     async fn flush_header_to_ds(&mut self) -> DakiaResult<()> {
         let mut header = PResponseHeader::build(self.ds_status_code, None).unwrap();
 
-        let headers = take(&mut self.ds_hbuf);
+        let headers = take(&mut self.ds_res_hbuf);
         for (header_name, header_value) in headers.into_iter() {
             header.insert_header(header_name, header_value)?;
         }
@@ -178,7 +184,7 @@ impl<'a> Session<'a> {
             .as_str(),
         );
 
-        let headers = take(&mut self.ds_hbuf);
+        let headers = take(&mut self.ds_res_hbuf);
         for (header_name, header_value) in headers.into_iter() {
             upstream_response.insert_header(header_name, header_value)?;
         }
@@ -188,7 +194,7 @@ impl<'a> Session<'a> {
 
     pub async fn flush_ds_header(&mut self) -> DakiaResult<()> {
         if self.ds_header_flushed {
-            return Ok(());
+            return Err(DakiaError::i_explain("Something went wrong! Downstream headers have already been flushed and cannot be flushed again."));
         }
 
         self.ds_header_flushed = true;
@@ -201,7 +207,8 @@ impl<'a> Session<'a> {
         exec_hook(cur_hook, self).await?;
 
         match self.phase {
-            Phase::RequestFilter
+            Phase::Init
+            | Phase::RequestFilter
             | Phase::UpstreamProxyFilter
             | Phase::PreDownstreamResponse
             | Phase::UpstreamPeerSelection => self.flush_header_to_ds().await,
@@ -257,8 +264,8 @@ impl<'a> Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub fn ctx(&self) -> &'a DakiaHttpGatewayCtx {
-        self.ctx
+    pub fn ctx(&self) -> &DakiaHttpGatewayCtx {
+        &self.ctx
     }
 
     pub fn phase(&self) -> &Phase {
