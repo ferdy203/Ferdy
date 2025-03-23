@@ -67,21 +67,19 @@ impl Interceptor for BasicAuthInterceptor {
                     Ok(false)
                 } else {
                     _session.set_res_status(StatusCode::UNAUTHORIZED);
-                    _session.set_ds_header(
+                    _session.set_ds_res_header(
                         "WWW-Authenticate".to_string(),
                         "Basic realm=\"Protected Area\"".as_bytes().to_vec(),
                     );
-                    _session.flush_ds_header().await?;
                     Ok(true)
                 }
             }
             None => {
                 _session.set_res_status(StatusCode::UNAUTHORIZED);
-                _session.set_ds_header(
+                _session.set_ds_res_header(
                     "WWW-Authenticate".to_string(),
                     "Basic realm=\"Protected Area\"".as_bytes().to_vec(),
                 );
-                _session.flush_ds_header().await?;
                 Ok(true)
             }
         }

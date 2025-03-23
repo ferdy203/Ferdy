@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
+    error::DakiaResult,
     gateway::interceptor::{Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult},
     proxy::http::Session,
 };
@@ -28,18 +29,18 @@ impl Interceptor for ResponseRewriteInterceptor {
     }
 
     fn phase_mask(&self) -> PhaseMask {
-        Phase::PostUpstreamResponse.mask()
+        Phase::Init.mask()
     }
 
     fn filter(&self) -> &Option<String> {
         &self.filter
     }
 
-    async fn post_upstream_response(&self, _session: &mut Session) -> PhaseResult {
+    async fn init(&self, _session: &mut Session) -> DakiaResult<()> {
         for (header_name, header_value) in &self.rewrite_parts.header_buffer {
-            _session.set_ds_header(header_name.clone(), header_value.clone());
+            _session.set_ds_res_header(header_name.clone(), header_value.clone());
         }
 
-        Ok(false)
+        Ok(())
     }
 }

@@ -4,12 +4,13 @@ pub type PhaseMask = u8;
 
 #[derive(PartialEq, Clone, Debug, Eq)]
 pub enum Phase {
-    RequestFilter = 0x01,
-    UpstreamProxyFilter = 0x02,
-    UpstreamPeerSelection = 0x04,
-    PreUpstreamRequest = 0x08,
-    PostUpstreamResponse = 0x10,
-    PreDownstreamResponse = 0x20,
+    Init = 0x01,
+    RequestFilter = 0x02,
+    UpstreamProxyFilter = 0x04,
+    UpstreamPeerSelection = 0x08,
+    PreUpstreamRequest = 0x10,
+    PostUpstreamResponse = 0x20,
+    PreDownstreamResponse = 0x40,
 }
 
 impl Phase {
@@ -43,6 +44,7 @@ impl PartialOrd for Phase {
 impl fmt::Display for Phase {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let phase_str = match self {
+            Phase::Init => "init",
             Phase::RequestFilter => "request_filter",
             Phase::UpstreamProxyFilter => "upstream_proxy_filter",
             Phase::UpstreamPeerSelection => "upstream_peer_selection",

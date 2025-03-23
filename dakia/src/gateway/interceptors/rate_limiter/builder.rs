@@ -4,7 +4,7 @@ use crate::{
     config::source_config::InterceptorConfig,
     error::DakiaResult,
     gateway::{
-        interceptor::{HeaderBuffers, Interceptor},
+        interceptor::Interceptor,
         interceptor_builder::InterceptorBuilder,
         interceptors::rate_limiter::interceptor::{RateLimit, RateLimiterInterceptor},
     },
@@ -20,11 +20,7 @@ impl Default for RateLimiterInterceptorBuilder {
 }
 
 impl InterceptorBuilder for RateLimiterInterceptorBuilder {
-    fn build(
-        &self,
-        _interceptor_config: InterceptorConfig,
-        _header_buffers: HeaderBuffers,
-    ) -> DakiaResult<Arc<dyn Interceptor>> {
+    fn build(&self, _interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>> {
         let config = &_interceptor_config.config.expect(
             format!(
                 "{:?} interceptor config not found.",

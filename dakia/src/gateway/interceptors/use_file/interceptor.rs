@@ -4,31 +4,18 @@ use http::StatusCode;
 use log::debug;
 
 use crate::{
-    gateway::interceptor::{
-        HeaderBuffers, Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult,
-    },
-    proxy::http::{HeaderBuffer, Session},
+    gateway::interceptor::{Interceptor, InterceptorName, Phase, PhaseMask, PhaseResult},
+    proxy::http::Session,
 };
 
 pub struct UseFileInterceptor {
     root: String,
-    ds_res_header_buffer: HeaderBuffer,
     filter: Option<String>,
 }
 
 impl UseFileInterceptor {
-    pub fn build(root: String, header_buffers: HeaderBuffers, filter: Option<String>) -> Self {
-        UseFileInterceptor {
-            root,
-            ds_res_header_buffer: header_buffers.0,
-            filter,
-        }
-    }
-
-    fn set_config_headers(&self, _session: &mut Session) {
-        for (hkey, hval) in &self.ds_res_header_buffer {
-            _session.set_ds_header(hkey.to_string(), hval.clone());
-        }
+    pub fn build(root: String, filter: Option<String>) -> Self {
+        UseFileInterceptor { root, filter }
     }
 }
 
@@ -42,19 +29,20 @@ impl Interceptor for UseFileInterceptor {
         Phase::UpstreamProxyFilter.mask()
     }
 
+    fn filter(&self) -> &Option<String> {
+        &self.filter
+    }
+
     async fn upstream_proxy_filter(&self, _session: &mut Session) -> PhaseResult {
         let path = _session.ds_req_path();
         let aboslute_path = format!("{}{}", self.root, path);
 
-        self.set_config_headers(_session);
-
         match tokio::fs::read(aboslute_path.clone()).await {
             Ok(file_content) => {
-                _session.set_ds_header(
+                _session.set_ds_res_header(
                     "Content-Length".to_string(),
                     file_content.len().to_string().as_bytes().to_vec(),
                 );
-                _session.flush_ds_header().await?;
 
                 _session
                     .write_ds_res_body(Some(Bytes::from(file_content)), true)
@@ -63,7 +51,6 @@ impl Interceptor for UseFileInterceptor {
             Err(err) => {
                 debug!("can not read file {aboslute_path} - {err}");
                 _session.set_res_status(StatusCode::NOT_FOUND);
-                _session.flush_ds_header().await?;
             }
         };
 

@@ -7,4 +7,5 @@ pub struct InterceptorConfig {
     pub filter: Option<String>,
     pub config: Option<Query>,
     pub rewrite: Option<Query>,
+    pub response: Option<Query>,
 }

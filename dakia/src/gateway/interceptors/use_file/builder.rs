@@ -4,7 +4,7 @@ use crate::{
     config::source_config::InterceptorConfig,
     error::{DakiaError, DakiaResult},
     gateway::{
-        interceptor::{HeaderBuffers, Interceptor, InterceptorName},
+        interceptor::{Interceptor, InterceptorName},
         interceptor_builder::InterceptorBuilder,
     },
     qe::query,
@@ -56,14 +56,9 @@ impl UseFileInterceptorBuilder {
 }
 
 impl InterceptorBuilder for UseFileInterceptorBuilder {
-    fn build(
-        &self,
-        interceptor_config: InterceptorConfig,
-        header_buffers: HeaderBuffers,
-    ) -> DakiaResult<Arc<dyn Interceptor>> {
+    fn build(&self, interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>> {
         let root = self.extract_root(&interceptor_config)?;
-        let interceptor =
-            UseFileInterceptor::build(root, header_buffers, interceptor_config.filter);
+        let interceptor = UseFileInterceptor::build(root, interceptor_config.filter);
         Ok(Arc::new(interceptor))
     }
 }

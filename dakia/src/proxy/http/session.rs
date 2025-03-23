@@ -24,6 +24,7 @@ pub struct Session<'a> {
     ds_hbuf: HeaderBuffer,
     ds_status_code: StatusCode,
     ctx: &'a DakiaHttpGatewayCtx,
+    ds_header_flushed: bool,
 }
 
 impl<'a> Session<'a> {
@@ -36,6 +37,7 @@ impl<'a> Session<'a> {
             ds_hbuf: HeaderBuffer::new(),
             ds_status_code: StatusCode::OK,
             ctx,
+            ds_header_flushed: false,
         }
     }
 
@@ -152,7 +154,7 @@ impl<'a> Session<'a> {
         self.ds_hbuf.insert(header_name, header_value);
     }
 
-    async fn flush_header_in_ds(&mut self) -> DakiaResult<()> {
+    async fn flush_header_to_ds(&mut self) -> DakiaResult<()> {
         let mut header = PResponseHeader::build(self.ds_status_code, None).unwrap();
 
         let headers = take(&mut self.ds_hbuf);
@@ -167,7 +169,7 @@ impl<'a> Session<'a> {
         Ok(())
     }
 
-    async fn flush_header_in_us_res(&mut self) -> DakiaResult<()> {
+    async fn flush_header_to_us_res(&mut self) -> DakiaResult<()> {
         let upstream_response = self.upstream_response.as_mut().expect(
             format!(
                 "upstream_response must be available in phase {}",
@@ -185,6 +187,12 @@ impl<'a> Session<'a> {
     }
 
     pub async fn flush_ds_header(&mut self) -> DakiaResult<()> {
+        if self.ds_header_flushed {
+            return Ok(());
+        }
+
+        self.ds_header_flushed = true;
+
         let cur_hook = Hook::PreDownstreamResponseHeaderFlush;
         // TODO: allow to configure keepalive once bug is fixed in pingora itself
         // https://github.com/cloudflare/pingora/issues/540
@@ -196,12 +204,12 @@ impl<'a> Session<'a> {
             Phase::RequestFilter
             | Phase::UpstreamProxyFilter
             | Phase::PreDownstreamResponse
-            | Phase::UpstreamPeerSelection => self.flush_header_in_ds().await,
+            | Phase::UpstreamPeerSelection => self.flush_header_to_ds().await,
             Phase::PreUpstreamRequest => Err(DakiaError::i_explain(format!(
                 "can not write downstream headers in {} phase",
                 Phase::PreUpstreamRequest
             ))),
-            Phase::PostUpstreamResponse => self.flush_header_in_us_res().await,
+            Phase::PostUpstreamResponse => self.flush_header_to_us_res().await,
         }
     }
 }
@@ -218,6 +226,10 @@ impl<'a> Session<'a> {
         body: Option<Bytes>,
         end_of_stream: bool,
     ) -> DakiaResult<()> {
+        if !self.ds_header_flushed {
+            self.flush_ds_header().await?;
+        }
+
         self.psession
             .write_response_body(body, end_of_stream)
             .await?;
@@ -234,7 +246,13 @@ impl<'a> Session<'a> {
 
 impl<'a> Session<'a> {
     pub async fn execute_interceptors_phase(&mut self) -> PhaseResult {
-        exec_phase(self).await
+        let short_circuit = exec_phase(self).await?;
+        if short_circuit {
+            self.flush_ds_header().await?;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
     }
 }
 

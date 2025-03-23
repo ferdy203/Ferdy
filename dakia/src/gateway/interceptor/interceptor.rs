@@ -1,15 +1,10 @@
 use async_trait::async_trait;
 
-use crate::{
-    config::source_config::InterceptorConfig,
-    error::DakiaResult,
-    proxy::http::{HeaderBuffer, Session},
-};
+use crate::{config::source_config::InterceptorConfig, error::DakiaResult, proxy::http::Session};
 
 use super::{HookMask, InterceptorName, PhaseMask};
 
 pub type PhaseResult = DakiaResult<bool>;
-pub type HeaderBuffers = (HeaderBuffer, HeaderBuffer);
 
 #[async_trait]
 pub trait Interceptor: Send + Sync {
@@ -30,6 +25,10 @@ pub trait Interceptor: Send + Sync {
     // if there is no filter, it'll be considered as match
     fn filter(&self) -> &Option<String> {
         &None
+    }
+
+    async fn init(&self, _session: &mut Session) -> DakiaResult<()> {
+        Ok(())
     }
 
     async fn request_filter(&self, _session: &mut Session) -> PhaseResult {

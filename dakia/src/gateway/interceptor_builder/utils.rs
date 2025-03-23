@@ -57,13 +57,9 @@ pub fn build_interceptor(
 ) -> DakiaResult<Arc<dyn Interceptor>> {
     let interceptor_name = &interceptor_config.name;
     let builder = interceptor_builder_registry.registry.get(interceptor_name);
-    let header_buffers = match &interceptor_config.rewrite {
-        Some(query) => extract_headers(query)?,
-        None => (HashMap::new(), HashMap::new()),
-    };
 
     let interceptor = match builder {
-        Some(builder) => builder.build(interceptor_config.clone(), header_buffers)?,
+        Some(builder) => builder.build(interceptor_config.clone())?,
         None => {
             return Err(DakiaError::i_explain(format!(
                 "Invalid interceptor name {:?}. No such interceptor exists",

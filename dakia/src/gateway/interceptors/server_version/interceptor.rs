@@ -22,7 +22,7 @@ impl ServerVersionInterceptor {
             hval.as_bytes().to_vec()
         });
 
-        _session.set_ds_header(SERVER_HEADER_NAME.to_owned(), header_value.clone());
+        _session.set_ds_res_header(SERVER_HEADER_NAME.to_owned(), header_value.clone());
         Ok(false)
     }
 }

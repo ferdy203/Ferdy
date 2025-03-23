@@ -49,6 +49,8 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<(), Box<Error>> {
+        let mut session = session::Session::build(Phase::Init, _session, _ctx);
+        session.execute_interceptors_phase().await?;
         Ok(())
     }
 
@@ -63,7 +65,7 @@ impl ProxyHttp for Proxy {
         match host {
             Some(host) => {
                 let is_valid_ds_host = is_valid_ds_host(
-                    &_ctx.gateway_state.gateway_config(),
+                    &session.ctx().gateway_state.gateway_config(),
                     &self.gateway_state_store.get_state().pattern_registry(),
                     host,
                 )
@@ -104,8 +106,8 @@ impl ProxyHttp for Proxy {
         _session: &mut Session,
         _ctx: &mut Self::CTX,
     ) -> Result<Box<HttpPeer>, Box<Error>> {
-        let gateway_config = _ctx.gateway_state.gateway_config();
         let mut session = session::Session::build(Phase::UpstreamProxyFilter, _session, _ctx);
+        let gateway_config = session.ctx().gateway_state.gateway_config();
 
         let router_config = gateway_config.find_router_config_or_err(&mut session)?;
         let upstream_name = &router_config.upstream;

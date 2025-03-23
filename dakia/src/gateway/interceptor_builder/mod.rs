@@ -7,22 +7,15 @@ use crate::{
     gateway::interceptor::{Interceptor, InterceptorName},
 };
 
-use super::{
-    interceptor::HeaderBuffers,
-    interceptors::{
-        basic_auth::BasicAuthInterceptorBuilder, controller::ControllerInterceptorBuilder,
-        rate_limiter::RateLimiterInterceptorBuilder,
-        request_rewrite::RequestRewriteInterceptorBuilder,
-        response_rewrite::ResponseRewriteInterceptorBuilder, server_version, use_file,
-    },
+use super::interceptors::{
+    basic_auth::BasicAuthInterceptorBuilder, controller::ControllerInterceptorBuilder,
+    rate_limiter::RateLimiterInterceptorBuilder, request_rewrite::RequestRewriteInterceptorBuilder,
+    response_rewrite::ResponseRewriteInterceptorBuilder, server_version,
+    short_circuit::ShortCircuitInterceptorBuilder, use_file,
 };
 
 pub trait InterceptorBuilder: Sync + Send {
-    fn build(
-        &self,
-        _interceptor_config: InterceptorConfig,
-        _header_buffers: HeaderBuffers,
-    ) -> DakiaResult<Arc<dyn Interceptor>>;
+    fn build(&self, _interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>>;
 }
 
 #[derive(Clone)]
@@ -71,6 +64,11 @@ impl InterceptorBuilderRegistry {
         registry.insert(
             InterceptorName::ResponseRewrite,
             Arc::new(ResponseRewriteInterceptorBuilder::default()),
+        );
+
+        registry.insert(
+            InterceptorName::ShortCircuit,
+            Arc::new(ShortCircuitInterceptorBuilder::default()),
         );
 
         Self { registry }

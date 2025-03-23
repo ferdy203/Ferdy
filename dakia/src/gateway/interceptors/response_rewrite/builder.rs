@@ -3,10 +3,7 @@ use std::sync::Arc;
 use crate::{
     config::source_config::InterceptorConfig,
     error::DakiaResult,
-    gateway::{
-        interceptor::{HeaderBuffers, Interceptor},
-        interceptor_builder::InterceptorBuilder,
-    },
+    gateway::{interceptor::Interceptor, interceptor_builder::InterceptorBuilder},
 };
 
 use super::{interceptor::ResponseRewriteInterceptor, rewrite_parts::RewriteParts};
@@ -20,11 +17,7 @@ impl Default for ResponseRewriteInterceptorBuilder {
 }
 
 impl InterceptorBuilder for ResponseRewriteInterceptorBuilder {
-    fn build(
-        &self,
-        _interceptor_config: InterceptorConfig,
-        _header_buffers: HeaderBuffers,
-    ) -> DakiaResult<Arc<dyn Interceptor>> {
+    fn build(&self, _interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>> {
         let rewrite_parts = RewriteParts::build(&_interceptor_config)?;
         let interceptor =
             ResponseRewriteInterceptor::build(_interceptor_config.filter, rewrite_parts);

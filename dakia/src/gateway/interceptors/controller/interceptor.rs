@@ -26,12 +26,12 @@ impl ControllerInterceptor {
 
     async fn write_invalid_method_response(&self, _session: &mut Session<'_>) -> DakiaResult<()> {
         _session.set_res_status(StatusCode::METHOD_NOT_ALLOWED);
-        _session.flush_ds_header().await
+        Ok(())
     }
 
     async fn write_bad_request_response(&self, _session: &mut Session<'_>) -> DakiaResult<()> {
         _session.set_res_status(StatusCode::BAD_REQUEST);
-        _session.flush_ds_header().await
+        Ok(())
     }
 
     async fn write_invalid_content_type_response(
@@ -39,7 +39,7 @@ impl ControllerInterceptor {
         _session: &mut Session<'_>,
     ) -> DakiaResult<()> {
         _session.set_res_status(StatusCode::UNSUPPORTED_MEDIA_TYPE);
-        _session.flush_ds_header().await
+        Ok(())
     }
 
     async fn store_dakia_config_in_store(&self, mut dakia_config: DakiaConfig) -> DakiaResult<()> {
@@ -86,7 +86,7 @@ impl ControllerInterceptor {
 
                 self.store_dakia_config_in_store(DakiaConfig::from(source_dakia_raw_config))
                     .await?;
-                _session.flush_ds_header().await
+                Ok(())
             }
             None => return self.write_invalid_content_type_response(_session).await,
         }
@@ -97,7 +97,7 @@ impl ControllerInterceptor {
         _session: &mut Session<'_>,
     ) -> DakiaResult<()> {
         _session.set_res_status(StatusCode::NOT_ACCEPTABLE);
-        _session.flush_ds_header().await
+        Ok(())
     }
 
     async fn write_dakia_config_in_response(&self, _session: &mut Session<'_>) -> DakiaResult<()> {
@@ -120,7 +120,6 @@ impl ControllerInterceptor {
                     return Ok(());
                 };
 
-                _session.flush_ds_header().await?;
                 _session
                     .write_ds_res_body(Some(Bytes::from(config_str)), true)
                     .await?;

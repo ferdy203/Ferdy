@@ -3,11 +3,7 @@ use std::sync::Arc;
 use crate::{
     config::source_config::InterceptorConfig,
     error::DakiaResult,
-    gateway::{
-        filter::Filter,
-        interceptor::{HeaderBuffers, Interceptor},
-        interceptor_builder::InterceptorBuilder,
-    },
+    gateway::{interceptor::Interceptor, interceptor_builder::InterceptorBuilder},
 };
 
 use super::ControllerInterceptor;
@@ -21,11 +17,7 @@ impl Default for ControllerInterceptorBuilder {
 }
 
 impl InterceptorBuilder for ControllerInterceptorBuilder {
-    fn build(
-        &self,
-        _interceptor_config: InterceptorConfig,
-        _header_buffers: HeaderBuffers,
-    ) -> DakiaResult<Arc<dyn Interceptor>> {
+    fn build(&self, _interceptor_config: InterceptorConfig) -> DakiaResult<Arc<dyn Interceptor>> {
         let interceptor = ControllerInterceptor::build(_interceptor_config.filter);
         Ok(Arc::new(interceptor))
     }

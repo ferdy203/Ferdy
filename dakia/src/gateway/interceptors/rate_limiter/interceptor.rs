@@ -98,7 +98,6 @@ impl Interceptor for RateLimiterInterceptor {
 
         if !consumed {
             _session.set_res_status(StatusCode::TOO_MANY_REQUESTS);
-            _session.flush_ds_header().await?;
             Ok(true)
         } else {
             Ok(false)

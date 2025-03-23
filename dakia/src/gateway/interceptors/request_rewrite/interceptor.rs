@@ -38,7 +38,7 @@ impl Interceptor for RequestRewriteInterceptor {
 
     async fn pre_upstream_request(&self, _session: &mut Session) -> PhaseResult {
         for (header_name, header_value) in &self.rewrite_parts.header_buffer {
-            _session.set_us_header(header_name.clone(), header_value.clone())?;
+            _session.set_us_req_header(header_name.clone(), header_value.clone())?;
         }
 
         if let Some(path) = &self.rewrite_parts.path {
