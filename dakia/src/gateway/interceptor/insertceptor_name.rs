@@ -9,6 +9,7 @@ pub enum InterceptorName {
     RequestRewrite,
     ResponseRewrite,
     ShortCircuit,
+    RequestId,
 }
 
 impl InterceptorName {
@@ -22,6 +23,7 @@ impl InterceptorName {
             InterceptorName::RequestRewrite => "request_rewrite",
             InterceptorName::ResponseRewrite => "response_rewrite",
             InterceptorName::ShortCircuit => "short_circuit",
+            InterceptorName::RequestId => "request_id",
         }
     }
 }

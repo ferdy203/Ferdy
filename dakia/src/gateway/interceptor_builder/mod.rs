@@ -9,7 +9,8 @@ use crate::{
 
 use super::interceptors::{
     basic_auth::BasicAuthInterceptorBuilder, controller::ControllerInterceptorBuilder,
-    rate_limiter::RateLimiterInterceptorBuilder, request_rewrite::RequestRewriteInterceptorBuilder,
+    rate_limiter::RateLimiterInterceptorBuilder, request_id::RequestIdInterceptorBuilder,
+    request_rewrite::RequestRewriteInterceptorBuilder,
     response_rewrite::ResponseRewriteInterceptorBuilder, server_version,
     short_circuit::ShortCircuitInterceptorBuilder, use_file,
 };
@@ -69,6 +70,11 @@ impl InterceptorBuilderRegistry {
         registry.insert(
             InterceptorName::ShortCircuit,
             Arc::new(ShortCircuitInterceptorBuilder::default()),
+        );
+
+        registry.insert(
+            InterceptorName::RequestId,
+            Arc::new(RequestIdInterceptorBuilder::default()),
         );
 
         Self { registry }

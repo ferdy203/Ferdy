@@ -185,7 +185,7 @@ impl<'a> Session<'a> {
 
     pub async fn flush_ds_res_header(&mut self) -> DakiaResult<()> {
         if self.ds_header_flushed {
-            return Err(DakiaError::i_explain("Something went wrong! Downstream headers have already been flushed and cannot be flushed again."));
+            return Ok(());
         }
 
         self.ds_header_flushed = true;
