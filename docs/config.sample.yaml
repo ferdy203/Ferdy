@@ -24,7 +24,7 @@ gateways:
     downstreams:
       - host: example.com
       - host: localhost
-      - host: w3worker.net
+      - host: example.net
     upstreams:
       - name: payment
         default: false
@@ -72,13 +72,25 @@ gateways:
         filter: search_router_filter
       - upstream: default
     interceptors:
+      - name: request_id
+        enabled: true
+      - name: response_rewrite
+        enabled: true
+        rewrite:
+          header.from-response-rewrite: ok
+      - name: short_circuit
+        enabled: true
+        filter: short_circuit
+        response:
+          header.terminated: true
+          status: 502
       - name: server_version
         enabled: true
       - name: controller
-        enabled: true
+        enabled: false
         filter: controller
       - name: basic_auth
-        enabled: true
+        enabled: false
         filter: basic_auth
         config:
           username: dakia
@@ -87,8 +99,6 @@ gateways:
         enabled: true
         config:
           root: /home/static
-        rewrite:
-          "ds.res.header.content-type": text/html
       - name: rate_limiter
         enabled: true
         config:
@@ -102,13 +112,16 @@ gateways:
           $starts_with: /controller
         header.host: localhost
       - name: basic_auth
-        header.host: w3worker.net
+        header.host: example.net
       - name: use_file
-        header.host: w3worker.net
+        header.host: example.net
       - name: payment_router_filter
         path:
           $starts_with: /payment
       - name: search_router_filter
+        path:
+          $starts_with: /search
+      - name: short_circuit
         path:
           $starts_with: /search
 # ds - downstream
