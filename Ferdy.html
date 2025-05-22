@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Susun Block Warna</title>
+  <style>
+    body {
+      background: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+    }
+    canvas {
+      background: #000;
+      border: 2px solid #fff;
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      color: white;
+      background-color: #333;
+      border: none;
+      cursor: pointer;
+    }
+    button:active {
+      background-color: #444;
+    }
+    .score {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="score">Skor: <span id="score">0</span></div>
+  <canvas id="game"></canvas>
+
+  <div class="controls">
+    <button id="left">Kiri</button>
+    <button id="rotate">Putar</button>
+    <button id="right">Kanan</button>
+    <button id="down">Turun</button>
+    <button id="start">Mulai</button>
+    <button id="pause">Jeda</button>
+  </div>
+
+  <audio id="bgMusic" src="https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Monplaisir/Fronteiras/Monplaisir_-_04_-_Mellifera.mp3" autoplay loop></audio>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const COLS = 10;
+    const ROWS = 20;
+    
+    // Responsif: ukuran blok berdasarkan lebar layar
+    const screenWidth = window.innerWidth;
+    const maxWidth = Math.min(screenWidth, 400); // Maksimal 400px
+    const BLOCK_SIZE = Math.floor(maxWidth / COLS);
+
+    canvas.width = BLOCK_SIZE * COLS;
+    canvas.height = BLOCK_SIZE * ROWS;
+
+    let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+    let score = 0;
+    let interval = null;
+    let isPaused = false;
+
+    const shapes = [
+      { shape: [[1, 1], [1, 1]], color: "#f00" },
+      { shape: [[1, 0, 0], [1, 1, 1]], color: "#0f0" },
+      { shape: [[0, 0, 1], [1, 1, 1]], color: "#00f" },
+      { shape: [[1, 1, 0], [0, 1, 1]], color: "#ff0" },
+      { shape: [[0, 1, 1], [1, 1, 0]], color: "#f0f" },
+      { shape: [[1, 1, 1, 1]], color: "#0ff" },
+      { shape: [[0, 1, 0], [1, 1, 1]], color: "#ff7f00" }
+    ];
+
+    let block = getRandomBlock();
+
+    function getRandomBlock() {
+      const randomIndex = Math.floor(Math.random() * shapes.length);
+      return { x: 4, y: 0, shape: shapes[randomIndex].shape, color: shapes[randomIndex].color };
+    }
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          if (board[y][x]) {
+            drawBlock(x, y, board[y][x]);
+          }
+        }
+      }
+    }
+
+    function drawBlock(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+    }
+
+    function drawBlockShape() {
+      block.shape.forEach((row, dy) => {
+        row.forEach((value, dx) => {
+          if (value) {
+            drawBlock(block.x + dx, block.y + dy, block.color);
+          }
+        });
+      });
+    }
+
+    function moveDown() {
+      if (!collide(0, 1)) {
+        block.y++;
+      } else {
+        merge();
+        checkFullLines();
+        resetBlock();
+        draw(); // Tambahan agar langsung terlihat block baru
+        return;
+      }
+      draw();
+    }
+
+    function collide(offsetX, offsetY, shape = block.shape) {
+      return shape.some((row, dy) =>
+        row.some((value, dx) => {
+          if (value) {
+            let newX = block.x + dx + offsetX;
+            let newY = block.y + dy + offsetY;
+            return newX < 0 || newX >= COLS || newY >= ROWS || board[newY]?.[newX];
+          }
+          return false;
+        })
+      );
+    }
+
+    function merge() {
+      block.shape.forEach((row, dy) => {
+        row.forEach((value, dx) => {
+          if (value) {
+            board[block.y + dy][block.x + dx] = block.color;
+          }
+        });
+      });
+    }
+
+    function checkFullLines() {
+      for (let y = ROWS - 1; y >= 0; y--) {
+        if (board[y].every(cell => cell)) {
+          board.splice(y, 1);
+          board.unshift(Array(COLS).fill(0));
+          score += 100;
+          document.getElementById("score").textContent = score;
+          y++;
+        }
+      }
+    }
+
+    function resetBlock() {
+      block = getRandomBlock();
+      if (collide(0, 0)) {
+        alert("Game Over!\nSkor akhir: " + score);
+        board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        score = 0;
+        document.getElementById("score").textContent = score;
+      }
+    }
+
+    function draw() {
+      drawBoard();
+      drawBlockShape();
+    }
+
+    function moveLeft() {
+      if (!collide(-1, 0)) block.x--;
+      draw();
+    }
+
+    function moveRight() {
+      if (!collide(1, 0)) block.x++;
+      draw();
+    }
+
+    function rotate() {
+      const newShape = block.shape[0].map((_, i) => block.shape.map(row => row[i])).reverse();
+      const originalShape = block.shape;
+      block.shape = newShape;
+      if (collide(0, 0, block.shape)) {
+        block.shape = originalShape;
+      }
+      draw();
+    }
+
+    function startGame() {
+      if (interval) clearInterval(interval);
+      interval = setInterval(() => {
+        if (!isPaused) moveDown();
+      }, 500);
+    }
+
+    function pauseGame() {
+      isPaused = !isPaused;
+      document.getElementById("pause").textContent = isPaused ? "Lanjut" : "Jeda";
+    }
+
+    // Tombol
+    document.getElementById("left").addEventListener("click", moveLeft);
+    document.getElementById("right").addEventListener("click", moveRight);
+    document.getElementById("rotate").addEventListener("click", rotate);
+    document.getElementById("down").addEventListener("click", moveDown);
+    document.getElementById("start").addEventListener("click", () => {
+      score = 0;
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      document.getElementById("score").textContent = score;
+      resetBlock();
+      draw();
+      startGame();
+    });
+    document.getElementById("pause").addEventListener("click", pauseGame);
+
+    // Keyboard
+    document.addEventListener("keydown", (e) => {
+      if (isPaused) return;
+      switch (e.key) {
+        case "ArrowLeft":
+          moveLeft();
+          break;
+        case "ArrowRight":
+          moveRight();
+          break;
+        case "ArrowDown":
+          moveDown();
+          break;
+        case "ArrowUp":
+          rotate();
+          break;
+      }
+    });
+
+    draw();
+  </script>
+</body>
+</html>
